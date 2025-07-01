@@ -1,26 +1,37 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './pages/Home';
+import ClassPage from './pages/ClassPage';
+import SolvedPapers from './pages/SolvedPapers';
+import Notes from './pages/Notes';
+import Assignments from './pages/Assignments';
+import ExtraMaterials from './pages/ExtraMaterials';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => (
+  <Router>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/class/:classCode" element={<ClassPage />} />
+          <Route path="/class/:classCode/solved" element={<SolvedPapers />} />
+          <Route path="/class/:classCode/notes" element={<Notes />} />
+          <Route path="/class/:classCode/assignments" element={<Assignments />} />
+          <Route path="/class/:classCode/extra" element={<ExtraMaterials />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
+  </Router>
+);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>PolyStudi V3</h1>
-      <h2>Back to the Work!!!</h2>
-      
-    </>
-  )
-}
-
-export default App
+export default App;
