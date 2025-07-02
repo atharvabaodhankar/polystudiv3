@@ -1,36 +1,89 @@
 import React from 'react';
+import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaGithub, FaInstagram } from 'react-icons/fa';
+
+const contactInfo = [
+  {
+    icon: <FaMapMarkerAlt className="text-[#9102C0] w-6 h-6 bg-white rounded-full p-1" />,
+    label: 'Solapur',
+    href: 'https://goo.gl/maps/xyz',
+  },
+  {
+    icon: <FaPhoneAlt className="text-[#9102C0] w-6 h-6 bg-white rounded-full p-1" />,
+    label: '+91 9373924727',
+    href: 'tel:+919373924727',
+  },
+  {
+    icon: <FaEnvelope className="text-[#9102C0] w-6 h-6 bg-white rounded-full p-1" />,
+    label: 'baodhankaratharva@gmail.com',
+    href: 'mailto:baodhankaratharva@gmail.com',
+  },
+];
+
+const socialLinks = [
+  {
+    icon: <FaGithub className="w-5 h-5" />,
+    href: 'https://github.com/atharvabaodhankar',
+    label: 'GitHub',
+    bg: 'bg-white',
+    color: 'text-[#342F76]',
+  },
+  {
+    icon: <FaInstagram className="w-5 h-5" />,
+    href: 'https://www.instagram.com/op_athu_/',
+    label: 'Instagram',
+    bg: 'bg-white',
+    color: 'text-[#9102C0]',
+  },
+  {
+    icon: <FaEnvelope className="w-5 h-5" />,
+    href: 'mailto:baodhankaratharva@gmail.com',
+    label: 'Email',
+    bg: 'bg-white',
+    color: 'text-[#9102C0]',
+  },
+];
 
 const Footer = () => {
   return (
-    <section id="footer" className="bg-[#9102C0] pt-24 flex flex-col items-center justify-center">
-      <div className="footer-box flex w-full px-16 justify-between items-start max-w-6xl">
-        <div className="footer-main w-[500px] text-white flex flex-col items-start">
-          <h1 className="text-[5rem] font-baumans">PolyStudi</h1>
-          <p className="my-8">
-            Whether you're stuck on a tricky calculus problem, need a morale boost before your next exam, or just want to chat about the latest Poly news, we're here for you. Don't hesitate to reach out - we love connecting with fellow Poly peeps and helping them navigate the academic jungle.
+    <footer className="w-full bg-[#9102C0] pt-16 pb-0 mt-16 text-white font-poppins">
+      <div className="max-w-6xl mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center justify-between items-start gap-12 md:gap-0">
+        {/* Logo and About */}
+        <div className="flex-1 flex flex-col items-start">
+          <div className="flex items-center gap-4 mb-4">
+            <span className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white text-[#9102C0] text-4xl font-baumans shadow">P</span>
+            <span className="font-baumans text-4xl text-white tracking-wide">PolyStudi</span>
+          </div>
+          <p className="text-white/90 text-lg max-w-md mb-6">
+            Whether you're stuck on a tricky problem, need a morale boost, or want to chat about the latest Poly news, we're here for you. Reach out—let's connect and grow together!
           </p>
-          <a href="https://polystudi.com/#contact" className="cu-btn border-2 border-white text-white py-4 px-6 text-[1.8rem] relative z-10 transition-all hover:text-black inline-block mt-8">Contact Us</a>
+          <a href="https://polystudi.com/#contact" className="inline-block mt-2 px-7 py-3 rounded-full border-2 border-white text-white hover:bg-white hover:text-[#9102C0] font-semibold transition-all duration-150">Contact Us</a>
         </div>
-        <div className="footer-touch w-[300px] text-white text-center">
-          <h1 className="text-[5rem] font-baumans">Get In Touch!</h1>
-          <p className="my-8">
-            Your feedback helps us grow! We welcome your ideas and reviews on how we can improve your experience
-          </p>
-          <div className="footer-ico mt-16">
-            <ul className="flex flex-col items-start gap-8">
-              <li className="text-[1.6rem]"><i className="fa-solid fa-location-dot mr-4 text-[2rem]"></i>Solapur</li>
-              <li className="text-[1.6rem]"><i className="fa-solid fa-phone mr-4 text-[2rem]"></i>+91 9373924727</li>
-              <li className="text-[1.6rem]"><i className="fa-solid fa-envelope mr-4 text-[2rem]"></i>baodhankaratharva@gmail.com</li>
-            </ul>
+        {/* Simple, Unified Get In Touch Section */}
+        <div className="flex-1 flex flex-col items-start md:items-end text-left md:text-right md:justify-center mt-10 md:mt-0 w-full">
+          <h2 className="font-baumans text-2xl text-white mb-4">Get In Touch!</h2>
+          <div className="flex flex-col gap-4 mb-4">
+            {contactInfo.map((item, idx) => (
+              <a key={idx} href={item.href} className="flex items-center gap-3 px-0 py-2 rounded-lg text-white font-semibold hover:underline transition-all">
+                {item.icon}
+                {item.label}
+              </a>
+            ))}
+          </div>
+          <div className="flex gap-3 justify-center md:justify-end mt-2">
+            {socialLinks.map((item, idx) => (
+              <a key={idx} href={item.href} className={`w-10 h-10 flex items-center justify-center rounded-full ${item.bg} ${item.color} hover:bg-[#9102C0] hover:text-white transition-all border border-[#ede9fe]`} aria-label={item.label}>
+                {item.icon}
+              </a>
+            ))}
           </div>
         </div>
       </div>
-      <div className="footer-rights text-white w-full px-16 py-10 bg-[#342F76] mt-16 overflow-hidden">
-        <p className="text-center text-[1.6rem]">
-          © 2025 ❤️<a style={{ textDecoration: 'underline' }} href="#" className="ml-2 text-[2rem] font-baumans">PolyStudi</a>, inc. All Rights Reserved
+      <div className="w-full border-t border-white/20 mt-12 pt-6 bg-[#342F76]">
+        <p className="text-center text-white text-base font-poppins">
+          © 2025 <span className="font-baumans text-white">PolyStudi</span>, inc. All Rights Reserved
         </p>
       </div>
-    </section>
+    </footer>
   );
 };
 
