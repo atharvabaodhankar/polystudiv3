@@ -1,10 +1,12 @@
 import React from 'react';
 import navLogo from '../assets/nav-logo.png';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [adminDropdown, setAdminDropdown] = useState(false);
   // Extract classCode from the URL if present
   const match = location.pathname.match(/^\/class\/([^\/]+)/);
   const classCode = match ? match[1] : null;
@@ -39,7 +41,22 @@ const Navbar = () => {
           <li><a href="#courses" onClick={handleNavSection('courses')} className="nav-btn uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all text-xl text-black">Courses</a></li>
           <li><a href="#aboutus" onClick={handleNavSection('aboutus')} className="nav-btn uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all text-xl text-black">AboutUs</a></li>
           <li><a href="#contact" onClick={handleNavSection('contact')} className="nav-btn uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all text-xl text-black">ContactUs</a></li>
-          <li><a href="/admin" className="nav-btn uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all text-xl text-black">Admins</a></li>
+          <li className="relative">
+            <button
+              className="nav-btn uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all text-xl text-black flex items-center gap-2"
+              onClick={() => setAdminDropdown((v) => !v)}
+              type="button"
+            >
+              Admins
+              <svg className={`w-4 h-4 ml-1 transition-transform ${adminDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+            {adminDropdown && (
+              <div className="absolute right-0 mt-2 w-44 bg-white border border-[#ede9fe] rounded-xl shadow-lg z-50 flex flex-col">
+                <Link to="/login" onClick={() => setAdminDropdown(false)} className="px-5 py-3 text-[#9102C0] font-semibold hover:bg-[#f3e8ff] rounded-t-xl transition">Admin Login</Link>
+                <Link to="/admin-signup" onClick={() => setAdminDropdown(false)} className="px-5 py-3 text-[#342F76] font-semibold hover:bg-[#f3e8ff] rounded-b-xl transition">Admin Signup</Link>
+              </div>
+            )}
+          </li>
           {classCode && (
             <li>
               <Link to={`/class/${classCode}/assignments`} className="nav-btn uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all text-xl text-black">

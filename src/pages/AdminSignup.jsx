@@ -1,44 +1,44 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 
-const Login = () => {
+const AdminSignup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setMessage('');
-    const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-    if (loginError) {
-      setError(loginError.message);
+    // Sign up with Supabase Auth
+    const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+    if (signUpError) {
+      setError(signUpError.message);
       setLoading(false);
       return;
     }
-    // Check user role/approval
+    // Insert into users table as admin_candidate
     const user = data.user;
     if (user) {
-      const { data: userRow } = await supabase.from('users').select('role, approved').eq('id', user.id).single();
-      if (!userRow || ((userRow.role !== 'admin' && userRow.role !== 'superadmin') || userRow.approved === false)) {
-        await supabase.auth.signOut();
-        setError('Your admin account is pending approval by the superadmin.');
-        setLoading(false);
-        return;
-      }
+      await supabase.from('users').upsert({
+        id: user.id,
+        email: user.email,
+        role: 'admin_candidate',
+        approved: false,
+      });
     }
-    setMessage('Login successful! Redirecting...');
+    setMessage('Signup successful! Your request is pending approval by the superadmin.');
     setLoading(false);
-    // Optionally redirect to dashboard here
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8f6ff] px-4">
-      <form onSubmit={handleLogin} className="bg-white border border-[#9102C0] rounded-2xl shadow-xl p-10 flex flex-col gap-6 w-full max-w-md">
-        <h1 className="text-3xl font-baumans text-[#9102C0] mb-2 text-center">Admin Login</h1>
+      <form onSubmit={handleSignup} className="bg-white border border-[#9102C0] rounded-2xl shadow-xl p-10 flex flex-col gap-6 w-full max-w-md">
+        <h1 className="text-3xl font-baumans text-[#9102C0] mb-2 text-center">Admin Signup</h1>
+        <p className="text-[#342F76] text-center mb-2">Request admin access. You will be able to log in after superadmin approval.</p>
         <input
           type="email"
           required
@@ -60,7 +60,7 @@ const Login = () => {
           className="w-full py-3 rounded-full bg-[#9102C0] text-white font-bold text-lg shadow-sm hover:scale-105 hover:shadow-md transition-all duration-150"
           disabled={loading}
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {loading ? 'Signing up...' : 'Request Admin Access'}
         </button>
         {error && <div className="text-red-600 text-center font-semibold">{error}</div>}
         {message && <div className="text-green-600 text-center font-semibold">{message}</div>}
@@ -69,4 +69,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default AdminSignup; 

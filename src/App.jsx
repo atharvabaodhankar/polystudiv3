@@ -11,6 +11,7 @@ import ExtraMaterials from './pages/ExtraMaterials';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import AdminSignup from './pages/AdminSignup';
 
 const App = () => (
   <Router>
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/admin-signup" element={<AdminSignup />} />
           <Route path="/class/:classCode" element={<ClassPage />} />
           <Route path="/class/:classCode/solved" element={<SolvedPapers />} />
           <Route path="/class/:classCode/notes" element={<Notes />} />
