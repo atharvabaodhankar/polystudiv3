@@ -52,6 +52,8 @@ const ClassPage = () => {
   const [notes, setNotes] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAllNotes, setShowAllNotes] = useState(false);
+  const [showAllExtra, setShowAllExtra] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -83,7 +85,7 @@ const ClassPage = () => {
       <section id="extra-materials" className="mb-16">
         <h2 className="p-h1 text-4xl text-[#9102C0] font-baumans mb-8">Extra Materials</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {dummyExtraMaterials.map((mat, i) => (
+          {(showAllExtra ? dummyExtraMaterials : dummyExtraMaterials.slice(0, 3)).map((mat, i) => (
             <div key={i} className="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-t-4 border-[#342F76] hover:shadow-2xl transition group">
               <div className="flex items-center gap-2">
                 <span className="inline-block px-3 py-1 text-xs rounded-full bg-[#9102C0] text-white font-bold">{mat.type}</span>
@@ -97,22 +99,61 @@ const ClassPage = () => {
             </div>
           ))}
         </div>
+        {dummyExtraMaterials.length > 3 && (
+          <div className="flex justify-center mt-4">
+            <button
+              className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
+              onClick={() => setShowAllExtra((v) => !v)}
+            >
+              {showAllExtra ? 'Show Less' : 'Show All'}
+            </button>
+          </div>
+        )}
       </section>
       {/* Notes Grid */}
       <section id="notes" className="mb-16">
-        <h2 className="p-h1 text-4xl text-[#9102C0] font-baumans mb-8">Notes</h2>
+        <h2 className="p-h1 text-4xl font-bold text-[#9102C0] font-baumans mb-8">Notes</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {dummyNotes.map((note, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-t-4 border-[#9102C0] hover:shadow-2xl transition group">
-              <h3 className="text-lg font-bold text-[#342F76] group-hover:text-[#9102C0] transition">{note.title}</h3>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-sm text-gray-500">By {note.uploader}</span>
-                <span className="text-xs text-gray-400">{note.date}</span>
-                <a href={note.url} className="text-[#9102C0] hover:underline font-bold">Download</a>
+          {(showAllNotes ? dummyNotes : dummyNotes.slice(0, 3)).map((note, i) => (
+            <div
+              key={i}
+              className="relative bg-white/80 rounded-2xl shadow-md p-6 flex flex-col min-h-[240px] border border-[#ede9fe] hover:shadow-lg transition-all duration-200 group"
+            >
+              {/* Small note icon in circle */}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f3e8ff] text-2xl text-[#9102C0] shadow-sm mr-2">
+                  📝
+                </span>
+                <span className="inline-block w-2 h-2 rounded-full bg-[#9102C0] mr-1"></span>
+                <span className="text-xs text-[#342F76] font-semibold">{note.date}</span>
+              </div>
+              <h3 className="text-lg font-bold text-[#342F76] mb-2 line-clamp-2 font-baumans">{note.title}</h3>
+              <div className="text-sm text-[#9102C0] font-medium mb-4">By {note.uploader}</div>
+              <div className="mt-auto">
+                <a
+                  href={note.url}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#9102C0] text-[#9102C0] hover:bg-[#9102C0] hover:text-white font-semibold transition-all duration-200 shadow-sm"
+                  title="Download Note"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4m-8 8h8" />
+                  </svg>
+                  Download
+                </a>
               </div>
             </div>
           ))}
         </div>
+        {dummyNotes.length > 3 && (
+          <div className="flex justify-center mt-4">
+            <button
+              className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
+              onClick={() => setShowAllNotes((v) => !v)}
+            >
+              {showAllNotes ? 'Show Less' : 'Show All'}
+            </button>
+          </div>
+        )}
       </section>
       {/* Solved Papers Preview */}
       <section id="solved-papers" className="mb-16">
