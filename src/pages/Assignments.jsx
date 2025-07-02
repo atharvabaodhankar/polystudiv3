@@ -7,6 +7,12 @@ const Assignments = () => {
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const dummyAssignments = [
+    { id: 1, title: 'OOP Assignment 1', uploader: 'Prof. Sharma', file_url: '#' },
+    { id: 2, title: 'DBMS Assignment 2', uploader: 'Prof. Patel', file_url: '#' },
+    { id: 3, title: 'DSA Assignment 3', uploader: 'Prof. Singh', file_url: '#' },
+  ];
+
   useEffect(() => {
     const fetchAssignments = async () => {
       const { data, error } = await supabase
@@ -21,29 +27,53 @@ const Assignments = () => {
   }, [classCode]);
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Assignments for {classCode}</h1>
+    <div className="max-w-4xl mx-auto py-12 px-4">
+      <h1 className="text-4xl font-baumans text-[#9102C0] mb-8 text-center drop-shadow">Assignments for <span className="text-[#342F76]">{classCode}</span></h1>
       {loading ? (
-        <div>Loading...</div>
+        <div className="text-center text-lg text-[#342F76]">Loading...</div>
       ) : assignments.length === 0 ? (
-        <div>No assignments found.</div>
+        <div>
+          <div className="text-center text-[#9102C0] font-semibold mb-4">No assignments found. Showing sample assignments:</div>
+          <div className="overflow-x-auto mt-4">
+            <table className="min-w-full border border-[#9102C0] rounded-xl shadow-lg bg-white">
+              <thead className="bg-[#f3e8ff]">
+                <tr>
+                  <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Assignment Title</th>
+                  <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Uploaded By</th>
+                  <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Download</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dummyAssignments.map((a) => (
+                  <tr key={a.id} className="hover:bg-[#f3e8ff]/60 transition">
+                    <td className="px-6 py-4 text-[#342F76] font-medium">{a.title}</td>
+                    <td className="px-6 py-4 text-[#9102C0]">{a.uploader}</td>
+                    <td className="px-6 py-4">
+                      <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="bg-[#9102C0] hover:bg-[#342F76] text-white px-4 py-2 rounded-lg shadow transition font-semibold">Download</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full border text-sm">
-            <thead className="bg-gray-100">
+        <div className="overflow-x-auto mt-4">
+          <table className="min-w-full border border-[#9102C0] rounded-xl shadow-lg bg-white">
+            <thead className="bg-[#f3e8ff]">
               <tr>
-                <th className="border px-4 py-2">Assignment Title</th>
-                <th className="border px-4 py-2">Uploaded By</th>
-                <th className="border px-4 py-2">Download</th>
+                <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Assignment Title</th>
+                <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Uploaded By</th>
+                <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Download</th>
               </tr>
             </thead>
             <tbody>
               {assignments.map((a) => (
-                <tr key={a.id}>
-                  <td className="border px-4 py-2">{a.title}</td>
-                  <td className="border px-4 py-2">{a.uploader}</td>
-                  <td className="border px-4 py-2">
-                    <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="bg-blue-600 text-white px-3 py-1 rounded">Download</a>
+                <tr key={a.id} className="hover:bg-[#f3e8ff]/60 transition">
+                  <td className="px-6 py-4 text-[#342F76] font-medium">{a.title}</td>
+                  <td className="px-6 py-4 text-[#9102C0]">{a.uploader}</td>
+                  <td className="px-6 py-4">
+                    <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="bg-[#9102C0] hover:bg-[#342F76] text-white px-4 py-2 rounded-lg shadow transition font-semibold">Download</a>
                   </td>
                 </tr>
               ))}

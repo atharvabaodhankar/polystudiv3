@@ -1,8 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import heroImg from '../assets/hero.jpg';
 import atharvaImg from '../assets/Atharva.jpg';
 
 const Home = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state && location.state.scrollTo) {
+      const el = document.getElementById(location.state.scrollTo);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }, 100); // wait for DOM
+      }
+    }
+  }, [location]);
+
   return (
     <>
       {/* Loader (optional, can be implemented later if needed) */}

@@ -55,6 +55,7 @@ const ClassPage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.title = `Polystudi || ${classCode}`;
     const fetchData = async () => {
       const [{ data: syllabusData }, { data: extraData }, { data: notesData }, { data: subjectsData }] = await Promise.all([
         supabase.from('subjects').select('*').eq('class_code', classCode),
@@ -97,6 +98,22 @@ const ClassPage = () => {
           ))}
         </div>
       </section>
+      {/* Notes Grid */}
+      <section id="notes" className="mb-16">
+        <h2 className="p-h1 text-4xl text-[#9102C0] font-baumans mb-8">Notes</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+          {dummyNotes.map((note, i) => (
+            <div key={i} className="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-t-4 border-[#9102C0] hover:shadow-2xl transition group">
+              <h3 className="text-lg font-bold text-[#342F76] group-hover:text-[#9102C0] transition">{note.title}</h3>
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-sm text-gray-500">By {note.uploader}</span>
+                <span className="text-xs text-gray-400">{note.date}</span>
+                <a href={note.url} className="text-[#9102C0] hover:underline font-bold">Download</a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
       {/* Solved Papers Preview */}
       <section id="solved-papers" className="mb-16">
         <h2 className="p-h1 text-4xl text-[#9102C0] font-baumans mb-8">Solved Papers</h2>
@@ -120,22 +137,7 @@ const ClassPage = () => {
           ))}
         </div>
       </section>
-      {/* Notes Grid */}
-      <section id="notes" className="mb-16">
-        <h2 className="p-h1 text-4xl text-[#9102C0] font-baumans mb-8">Notes</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {dummyNotes.map((note, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-t-4 border-[#9102C0] hover:shadow-2xl transition group">
-              <h3 className="text-lg font-bold text-[#342F76] group-hover:text-[#9102C0] transition">{note.title}</h3>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-sm text-gray-500">By {note.uploader}</span>
-                <span className="text-xs text-gray-400">{note.date}</span>
-                <a href={note.url} className="text-[#9102C0] hover:underline font-bold">Download</a>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      
     </div>
   );
 };
