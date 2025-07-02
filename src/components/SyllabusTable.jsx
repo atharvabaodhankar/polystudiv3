@@ -1,25 +1,29 @@
 import React from 'react';
 
-const SyllabusTable = () => (
-  <div className="overflow-x-auto">
-    <table className="min-w-full border text-sm">
-      <thead className="bg-gray-100">
+const SyllabusTable = ({ data }) => (
+  <div className="overflow-x-auto rounded-lg shadow">
+    <table className="min-w-full bg-white text-left text-sm font-poppins">
+      <thead className="bg-[#342F76] text-white">
         <tr>
-          <th className="border px-4 py-2">Sr.No</th>
-          <th className="border px-4 py-2">Subject Name</th>
-          <th className="border px-4 py-2">Subject Code</th>
-          <th className="border px-4 py-2">Total Marks</th>
-          <th className="border px-4 py-2">Download PDF</th>
+          <th className="py-3 px-4">Sr.No</th>
+          <th className="py-3 px-4">Subject Name</th>
+          <th className="py-3 px-4">Subject Code</th>
+          <th className="py-3 px-4">Total Marks</th>
+          <th className="py-3 px-4">Download PDF</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td className="border px-4 py-2">1</td>
-          <td className="border px-4 py-2">Sample Subject</td>
-          <td className="border px-4 py-2">SUB123</td>
-          <td className="border px-4 py-2">100</td>
-          <td className="border px-4 py-2"><button className="bg-blue-500 text-white px-2 py-1 rounded">Download</button></td>
-        </tr>
+        {data.map((row, i) => (
+          <tr key={i} className="border-b hover:bg-[#f3e8ff] transition">
+            <td className="py-2 px-4">{row.sr}</td>
+            <td className="py-2 px-4">{row.name}</td>
+            <td className="py-2 px-4">{row.code}</td>
+            <td className="py-2 px-4">{row.marks}</td>
+            <td className="py-2 px-4">
+              <a href={row.pdf} className="bg-[#9102C0] text-white px-4 py-1 rounded hover:bg-[#342F76] transition font-bold">Download</a>
+            </td>
+          </tr>
+        ))}
       </tbody>
     </table>
   </div>
