@@ -58,7 +58,9 @@ const MaterialRequestForm = ({ onClose }) => {
       <label className="font-semibold">Title*</label>
       <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="border rounded px-3 py-2" required />
       <label className="font-semibold">Class*</label>
-      <input type="text" value={classCode} onChange={e => setClassCode(e.target.value)} className="border rounded px-3 py-2" required />
+      <select value={classCode}  className="border rounded px-3 py-2 bg-gray-100 text-gray-500">
+        {/* Add your class options here */}
+      </select>
       <label className="font-semibold">Subject*</label>
       <input type="text" value={subjectCode} onChange={e => setSubjectCode(e.target.value)} className="border rounded px-3 py-2" required />
       <label className="font-semibold">File URL (optional)</label>
