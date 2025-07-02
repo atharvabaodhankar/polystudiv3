@@ -26,10 +26,10 @@ const Navbar = () => {
   return (
     <div id="navbar" className="w-full h-20 flex items-center justify-between px-[3.5vw] border-b border-white/20 fixed top-0 left-0 bg-white z-[100] transition-all duration-1000">
       <div className="nav-logo flex items-center gap-8">
-        <a href="#" className="flex items-center gap-8">
+        <Link to="/" className="flex items-center gap-8">
           <img src={navLogo} alt="PolyStudi Logo" className="w-[55px] border border-[#342F76] rounded-full" />
           <span className="font-baumans text-[2rem] text-black">PolyStudi</span>
-        </a>
+        </Link>
       </div>
       <nav id="nav">
         <ul className="flex gap-[2vw]">
