@@ -4,6 +4,7 @@ import { supabase } from '../supabaseClient';
 import SyllabusTable from '../components/SyllabusTable';
 import MaterialCard from '../components/MaterialCard';
 import SubjectSection from '../components/SubjectSection';
+import MaterialRequestForm from '../components/MaterialRequestForm';
 
 const sampleSyllabus = [
   { sr: 1, name: 'Java Programming', code: '22412', marks: 100, pdf: '#' },
@@ -54,6 +55,7 @@ const ClassPage = () => {
   const [loading, setLoading] = useState(true);
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [showAllExtra, setShowAllExtra] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -84,6 +86,12 @@ const ClassPage = () => {
       {/* Extra Material Section */}
       <section id="extra-materials" className="mb-16">
         <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Extra Materials</h2>
+        <button
+          className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
+          onClick={() => navigate(`/class/${classCode}/request-material`)}
+        >
+          Request to Share Material
+        </button>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {(showAllExtra ? dummyExtraMaterials : dummyExtraMaterials.slice(0, 3)).map((mat, i) => (
             <div key={i} className="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-t-4 border-[#342F76] hover:shadow-2xl transition group">
@@ -113,6 +121,12 @@ const ClassPage = () => {
       {/* Notes Grid */}
       <section id="notes" className="mb-16">
         <h2 className="p-h1 text-4xl font-bold text-[#9102C0] font-baumans mb-8">Notes</h2>
+        <button
+          className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
+          onClick={() => navigate(`/class/${classCode}/request-material`)}
+        >
+          Request to Share Material
+        </button>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {(showAllNotes ? dummyNotes : dummyNotes.slice(0, 3)).map((note, i) => (
             <div
@@ -158,6 +172,12 @@ const ClassPage = () => {
       {/* Solved Papers Preview */}
       <section id="solved-papers" className="mb-16">
         <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Solved Papers</h2>
+        <button
+          className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
+          onClick={() => navigate(`/class/${classCode}/request-material`)}
+        >
+          Request to Share Material
+        </button>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {solvedPapers.map((subj, i) => (
             <div key={i} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
@@ -178,7 +198,14 @@ const ClassPage = () => {
           ))}
         </div>
       </section>
-      
+      {showRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full relative">
+            <button className="absolute top-3 right-3 text-2xl text-[#9102C0] font-bold" onClick={() => setShowRequestModal(false)}>&times;</button>
+            <MaterialRequestForm onClose={() => setShowRequestModal(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
