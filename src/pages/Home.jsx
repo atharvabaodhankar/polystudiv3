@@ -1,11 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import heroImg from '../assets/hero.jpg';
 import atharvaImg from '../assets/Atharva.jpg';
 import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane } from 'react-icons/fa';
+import { supabase } from '../supabaseClient';
 
 const Home = () => {
   const location = useLocation();
+  const [contactLoading, setContactLoading] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState('');
+  const [contactError, setContactError] = useState('');
 
   useEffect(() => {
     if (location.state && location.state.scrollTo) {
@@ -17,6 +21,26 @@ const Home = () => {
       }
     }
   }, [location]);
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setContactLoading(true);
+    setContactSuccess('');
+    setContactError('');
+    const form = e.target;
+    const name = form.name.value;
+    const rollno = form.rollno.value;
+    const email = form.email.value;
+    const message = form.message.value;
+    const { error } = await supabase.from('reviews').insert({ name, rollno, email, message });
+    if (error) {
+      setContactError('Failed to send message. Please try again.');
+    } else {
+      setContactSuccess('Message sent successfully!');
+      form.reset();
+    }
+    setContactLoading(false);
+  };
 
   return (
     <>
@@ -92,7 +116,7 @@ const Home = () => {
             Remember, no question is too big or too small. We're here to support you on your Poly journey, so don't be shy - reach out and let's chat!
           </p>
           <div className="flex justify-center">
-            <form className="relative bg-[#fcfaff] border border-[#e0cafd] rounded-xl shadow-sm p-8 flex flex-col gap-6 w-full max-w-md">
+            <form className="relative bg-[#fcfaff] border border-[#e0cafd] rounded-xl shadow-sm p-8 flex flex-col gap-6 w-full max-w-md" onSubmit={handleContactSubmit}>
               <div className="relative">
                 <input required className="peer w-full border border-[#e0cafd] rounded-lg px-4 pt-6 pb-2 font-poppins bg-transparent text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition" placeholder=" " type="text" name="name" id="contact-name" />
                 <label htmlFor="contact-name" className="absolute left-4 top-2 text-[#9102C0] text-sm font-semibold pointer-events-none transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-placeholder-shown:text-[#342F76]/60 peer-focus:top-2 peer-focus:text-[#9102C0] peer-focus:text-sm">Name</label>
@@ -109,9 +133,11 @@ const Home = () => {
                 <textarea required className="peer w-full border border-[#e0cafd] rounded-lg px-4 pt-6 pb-2 font-poppins bg-transparent text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition resize-none min-h-[120px]" placeholder=" " name="message" id="contact-message" rows={4}></textarea>
                 <label htmlFor="contact-message" className="absolute left-4 top-2 text-[#9102C0] text-sm font-semibold pointer-events-none transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-placeholder-shown:text-[#342F76]/60 peer-focus:top-2 peer-focus:text-[#9102C0] peer-focus:text-sm">Message</label>
               </div>
-              <button type="submit" className="w-full py-3 rounded-full bg-[#9102C0] text-white font-bold text-lg shadow-sm hover:scale-105 hover:shadow-md transition-all duration-150">
-                Send Message
+              <button type="submit" className="w-full py-3 rounded-full bg-[#9102C0] text-white font-bold text-lg shadow-sm hover:scale-105 hover:shadow-md transition-all duration-150" disabled={contactLoading}>
+                {contactLoading ? 'Sending...' : 'Send Message'}
               </button>
+              {contactSuccess && <div className="text-green-600 text-center font-semibold mt-2">{contactSuccess}</div>}
+              {contactError && <div className="text-red-600 text-center font-semibold mt-2">{contactError}</div>}
             </form>
           </div>
         </div>

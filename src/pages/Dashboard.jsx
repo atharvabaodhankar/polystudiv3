@@ -12,6 +12,7 @@ const Dashboard = () => {
   const [candidateLoading, setCandidateLoading] = useState(false);
   const [userId, setUserId] = useState(null);
   const [reviewers, setReviewers] = useState({});
+  const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -45,6 +46,12 @@ const Dashboard = () => {
       } else {
         setReviewers({});
       }
+      // Fetch reviews for admin panel
+      const fetchReviews = async () => {
+        const { data } = await supabase.from('reviews').select('*').order('submitted_at', { ascending: false });
+        setReviews(data || []);
+      };
+      fetchReviews();
       setLoading(false);
     };
     fetchRequests();
@@ -209,6 +216,39 @@ const Dashboard = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {(userRole === 'admin' || userRole === 'superadmin') && (
+        <div className="mb-10 mt-12">
+          <h2 className="text-3xl font-baumans text-[#9102C0] mb-8">Contact Form Submissions</h2>
+          {reviews.length === 0 ? (
+            <div className="text-[#342F76]">No reviews submitted yet.</div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl shadow border border-[#ede9fe] bg-white mb-6">
+              <table className="min-w-full text-left text-sm font-poppins">
+                <thead className="bg-[#9102C0] text-white">
+                  <tr>
+                    <th className="py-3 px-4">Name</th>
+                    <th className="py-3 px-4">Roll No</th>
+                    <th className="py-3 px-4">Email</th>
+                    <th className="py-3 px-4">Message</th>
+                    <th className="py-3 px-4">Submitted At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reviews.map((r) => (
+                    <tr key={r.id} className="border-b hover:bg-[#f3e8ff]/40 transition">
+                      <td className="py-2 px-4 font-semibold text-[#342F76]">{r.name}</td>
+                      <td className="py-2 px-4">{r.rollno}</td>
+                      <td className="py-2 px-4">{r.email}</td>
+                      <td className="py-2 px-4">{r.message}</td>
+                      <td className="py-2 px-4">{r.submitted_at ? new Date(r.submitted_at).toLocaleString() : '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>
