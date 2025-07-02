@@ -25,7 +25,7 @@ const socialLinks = [
     href: 'https://github.com/atharvabaodhankar',
     label: 'GitHub',
     bg: 'bg-white',
-    color: 'text-[#342F76]',
+    color: 'text-[#9102C0]',
   },
   {
     icon: <FaInstagram className="w-5 h-5" />,
@@ -71,7 +71,7 @@ const Footer = () => {
           </div>
           <div className="flex gap-3 justify-center md:justify-end mt-2">
             {socialLinks.map((item, idx) => (
-              <a key={idx} href={item.href} className={`w-10 h-10 flex items-center justify-center rounded-full ${item.bg} ${item.color} hover:bg-[#9102C0] hover:text-white transition-all border border-[#ede9fe]`} aria-label={item.label}>
+              <a key={idx} href={item.href} className={`w-10 h-10 flex items-center justify-center rounded-full ${item.bg} ${item.color} hover:bg-[#9102C0] hover:text-white transition-all border-2 border-[#ede9fe]`} aria-label={item.label}>
                 {item.icon}
               </a>
             ))}

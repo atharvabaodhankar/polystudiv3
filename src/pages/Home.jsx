@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import heroImg from '../assets/hero.jpg';
 import atharvaImg from '../assets/Atharva.jpg';
-import { FaGithub, FaInstagram, FaEnvelope } from 'react-icons/fa';
+import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane } from 'react-icons/fa';
 
 const Home = () => {
   const location = useLocation();
@@ -59,7 +59,7 @@ const Home = () => {
         </div>
       </section>
       {/* About Us Section */}
-      <section id="aboutus" className="py-24 relative overflow-x-hidden">
+      <section id="aboutus" className=" bg-[#f8f6ff] py-24 relative overflow-x-hidden">
         <div className="absolute -left-32 top-24 w-96 h-96 bg-gradient-to-br from-[#9102C0]/10 to-[#342F76]/0 rounded-full blur-3xl z-0" />
         <div className="max-w-5xl mx-auto px-4 relative z-10">
           <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-4">About Us</h1>
@@ -92,12 +92,26 @@ const Home = () => {
             Remember, no question is too big or too small. We're here to support you on your Poly journey, so don't be shy - reach out and let's chat!
           </p>
           <div className="flex justify-center">
-            <form className="bg-white rounded-2xl shadow-xl p-8 flex flex-col gap-4 w-full max-w-md border border-[#ede9fe]">
-              <input required className="form_contril border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Name" type="text" name="name" />
-              <input required className="form_contril border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Roll Number" type="text" name="rollno" />
-              <input required className="form_contril border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Email" type="email" name="email" />
-              <textarea required className="textarea border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Message" name="message" rows={4}></textarea>
-              <input type="submit" value="Submit" className="send_btn bg-[#9102C0] text-white rounded py-2 px-4 cursor-pointer hover:bg-[#342F76] transition font-poppins" />
+            <form className="relative bg-[#fcfaff] border border-[#e0cafd] rounded-xl shadow-sm p-8 flex flex-col gap-6 w-full max-w-md">
+              <div className="relative">
+                <input required className="peer w-full border border-[#e0cafd] rounded-lg px-4 pt-6 pb-2 font-poppins bg-transparent text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition" placeholder=" " type="text" name="name" id="contact-name" />
+                <label htmlFor="contact-name" className="absolute left-4 top-2 text-[#9102C0] text-sm font-semibold pointer-events-none transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-placeholder-shown:text-[#342F76]/60 peer-focus:top-2 peer-focus:text-[#9102C0] peer-focus:text-sm">Name</label>
+              </div>
+              <div className="relative">
+                <input required className="peer w-full border border-[#e0cafd] rounded-lg px-4 pt-6 pb-2 font-poppins bg-transparent text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition" placeholder=" " type="text" name="rollno" id="contact-rollno" />
+                <label htmlFor="contact-rollno" className="absolute left-4 top-2 text-[#9102C0] text-sm font-semibold pointer-events-none transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-placeholder-shown:text-[#342F76]/60 peer-focus:top-2 peer-focus:text-[#9102C0] peer-focus:text-sm">Roll Number</label>
+              </div>
+              <div className="relative">
+                <input required className="peer w-full border border-[#e0cafd] rounded-lg px-4 pt-6 pb-2 font-poppins bg-transparent text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition" placeholder=" " type="email" name="email" id="contact-email" />
+                <label htmlFor="contact-email" className="absolute left-4 top-2 text-[#9102C0] text-sm font-semibold pointer-events-none transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-placeholder-shown:text-[#342F76]/60 peer-focus:top-2 peer-focus:text-[#9102C0] peer-focus:text-sm">Email</label>
+              </div>
+              <div className="relative">
+                <textarea required className="peer w-full border border-[#e0cafd] rounded-lg px-4 pt-6 pb-2 font-poppins bg-transparent text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition resize-none min-h-[120px]" placeholder=" " name="message" id="contact-message" rows={4}></textarea>
+                <label htmlFor="contact-message" className="absolute left-4 top-2 text-[#9102C0] text-sm font-semibold pointer-events-none transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-placeholder-shown:text-[#342F76]/60 peer-focus:top-2 peer-focus:text-[#9102C0] peer-focus:text-sm">Message</label>
+              </div>
+              <button type="submit" className="w-full py-3 rounded-full bg-[#9102C0] text-white font-bold text-lg shadow-sm hover:scale-105 hover:shadow-md transition-all duration-150">
+                Send Message
+              </button>
             </form>
           </div>
         </div>
