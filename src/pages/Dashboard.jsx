@@ -10,12 +10,15 @@ const Dashboard = () => {
   const [tab, setTab] = useState('pending');
   const [adminCandidates, setAdminCandidates] = useState([]);
   const [candidateLoading, setCandidateLoading] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [reviewers, setReviewers] = useState({});
 
   useEffect(() => {
     const fetchUserRole = async () => {
       setAuthLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        setUserId(user.id);
         const { data } = await supabase.from('users').select('role').eq('email', user.email).single();
         setUserRole(data?.role);
       }
@@ -32,6 +35,16 @@ const Dashboard = () => {
       if (tab !== 'all') query = query.eq('status', tab);
       const { data } = await query;
       setRequests(data || []);
+      // Fetch reviewer names for all reviewed_by ids
+      const reviewerIds = (data || []).map(r => r.reviewed_by).filter(Boolean);
+      if (reviewerIds.length > 0) {
+        const { data: reviewerUsers } = await supabase.from('users').select('id, full_name').in('id', reviewerIds);
+        const reviewerMap = {};
+        (reviewerUsers || []).forEach(u => { reviewerMap[u.id] = u.full_name; });
+        setReviewers(reviewerMap);
+      } else {
+        setReviewers({});
+      }
       setLoading(false);
     };
     fetchRequests();
@@ -62,12 +75,17 @@ const Dashboard = () => {
           creator: req.creator,
           created_at: req.created_at,
         }]);
-        await supabase.from('material_requests').update({ status: 'approved', reviewed_by: userRole }).eq('id', id);
+        const { error } = await supabase.from('material_requests').update({ status: 'approved', reviewed_by: userId }).eq('id', id);
+        if (!error) {
+          setRequests((prev) => prev.filter((r) => r.id !== id));
+        }
       }
     } else if (action === 'decline') {
-      await supabase.from('material_requests').update({ status: 'declined', reviewed_by: userRole }).eq('id', id);
+      const { error } = await supabase.from('material_requests').update({ status: 'declined', reviewed_by: userId }).eq('id', id);
+      if (!error) {
+        setRequests((prev) => prev.filter((r) => r.id !== id));
+      }
     }
-    setRequests((prev) => prev.filter((r) => r.id !== id));
     setActionLoading(null);
   };
 
@@ -168,7 +186,7 @@ const Dashboard = () => {
                     <a href={req.file_url} target="_blank" rel="noopener noreferrer" className="text-[#9102C0] underline font-semibold">View</a>
                   </td>
                   <td className="py-2 px-4 capitalize">{req.status}</td>
-                  <td className="py-2 px-4">{req.reviewed_by || '-'}</td>
+                  <td className="py-2 px-4">{req.reviewed_by ? (reviewers[req.reviewed_by] || req.reviewed_by) : '-'}</td>
                   <td className="py-2 px-4 flex gap-2">
                     {tab === 'pending' && <>
                       <button
