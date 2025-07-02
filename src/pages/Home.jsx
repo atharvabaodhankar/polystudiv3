@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import heroImg from '../assets/hero.jpg';
 import atharvaImg from '../assets/Atharva.jpg';
+import { FaGithub, FaInstagram, FaEnvelope } from 'react-icons/fa';
 
 const Home = () => {
   const location = useLocation();
@@ -19,87 +20,86 @@ const Home = () => {
 
   return (
     <>
-      {/* Loader (optional, can be implemented later if needed) */}
       {/* Hero Section */}
-      <section id="hero" className="h-screen bg-cover bg-center pt-32 relative z-20" style={{ backgroundImage: `url(${heroImg})` }}>
-        <div id="hero-div" className="flex items-center justify-center h-full">
-          <div className="hero-div-main flex flex-col items-center text-center">
-            <h1 className="hero-h1 text-[5vw] text-[#9102C0] font-baumans hover:text-[#342F76] transition-colors">PolyStudi</h1>
-            <div className="hero-div-inner flex items-center gap-4 my-4">
-              <h3 className="hero-h3-1 text-2xl font-bold">For Students</h3>
-              <span className="w-8 h-1 bg-[#342F76]"></span>
-              <h3 className="hero-h3-1 text-2xl font-bold">By Students</h3>
-            </div>
-            <p className="max-w-xl text-lg mt-4 font-poppins">
+      <section id="hero" className="h-[90vh] min-h-[500px] bg-cover bg-center relative flex items-center justify-center" style={{ backgroundImage: `url(${heroImg})` }}>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#9102C0]/80 via-[#9102C0]/60 to-[#342F76]/80 z-10" />
+        <div className="relative z-20 flex flex-col items-center justify-center text-center w-full px-4">
+          <h1 className="text-5xl md:text-7xl font-baumans bg-gradient-to-r from-white via-[#f3e8ff] to-[#9102C0] bg-clip-text text-transparent drop-shadow-lg mb-4">PolyStudi</h1>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+            <span className="text-xl md:text-2xl font-bold text-white/90">For Students</span>
+            <span className="hidden md:block w-8 h-1 bg-white/60 rounded-full" />
+            <span className="text-xl md:text-2xl font-bold text-white/90">By Students</span>
+          </div>
+          <div className="backdrop-blur-md bg-white/20 rounded-xl shadow-lg p-6 max-w-2xl mx-auto mb-6">
+            <p className="text-lg md:text-xl text-white font-poppins">
               Polystudi is more than just a website, it's a movement. We're passionate about empowering polytechnic students to achieve their academic dreams. So, what are you waiting for? Join the Polystudi fam, crank up your learning curve, and watch your potential explode!
             </p>
           </div>
+          <a href="#courses" className="inline-block mt-2 px-8 py-3 rounded-full bg-white text-[#9102C0] font-bold text-lg shadow hover:bg-[#9102C0] hover:text-white transition-all duration-200 border-2 border-white">Get Started</a>
         </div>
       </section>
       {/* Courses Section */}
-      <section id="courses" className="py-20">
-        <div className="courses-head section-head flex flex-col items-start justify-center pr-8 gap-10 w-[calc(100%-10vw)] ml-[10vw] mb-20">
-          <h1 className="p-h1 text-[5vmax] text-[#9102C0] font-baumans">Courses</h1>
-          <p className="p-p text-[#666] text-lg font-poppins">
-            Select your Course and semester for futher guidance and study materials for that specific Course and Semester.
+      <section id="courses" className="py-24 bg-[#f8f6ff]">
+        <div className="max-w-5xl mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-4">Courses</h1>
+          <p className="text-[#342F76] text-lg mb-10 font-poppins">
+            Select your Course and semester for further guidance and study materials for that specific Course and Semester.
           </p>
-        </div>
-        <div className="courses-main flex justify-center">
-          <div className="course-box bg-white rounded-lg shadow-lg p-8">
-            <ul className="flex flex-col items-center gap-12">
-              <h1 className="text-3xl font-bold mb-4 font-baumans">Computer Technology</h1>
-              <li><a href="/class/CM1K" className="btn-cm px-16 py-6 border-2 border-[#9102C0] rounded-[10px] font-bold text-2xl text-black shadow-[0_1px_15px_-4px_rgba(31,0,45,0.75)] relative overflow-hidden transition-all duration-300 hover:text-white before:content-[''] before:absolute before:right-0 before:top-0 before:w-0 before:h-1/2 before:bg-[#9102C0] before:rounded-t-[7px] before:transition-all before:duration-300 hover:before:w-full after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-1/2 after:bg-[#9102C0] after:rounded-b-[7px] after:transition-all after:duration-300 hover:after:w-full">CM 1 K</a></li>
-              <li><a href="/class/CM2K" className="btn-cm px-16 py-6 border-2 border-[#9102C0] rounded-[10px] font-bold text-2xl text-black shadow-[0_1px_15px_-4px_rgba(31,0,45,0.75)] relative overflow-hidden transition-all duration-300 hover:text-white before:content-[''] before:absolute before:right-0 before:top-0 before:w-0 before:h-1/2 before:bg-[#9102C0] before:rounded-t-[7px] before:transition-all before:duration-300 hover:before:w-full after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-1/2 after:bg-[#9102C0] after:rounded-b-[7px] after:transition-all after:duration-300 hover:after:w-full">CM 2 K</a></li>
-              <li><a href="/class/CM3K" className="btn-cm px-16 py-6 border-2 border-[#9102C0] rounded-[10px] font-bold text-2xl text-black shadow-[0_1px_15px_-4px_rgba(31,0,45,0.75)] relative overflow-hidden transition-all duration-300 hover:text-white before:content-[''] before:absolute before:right-0 before:top-0 before:w-0 before:h-1/2 before:bg-[#9102C0] before:rounded-t-[7px] before:transition-all before:duration-300 hover:before:w-full after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-1/2 after:bg-[#9102C0] after:rounded-b-[7px] after:transition-all after:duration-300 hover:after:w-full">CM 3 K</a></li>
-              <li><a href="/class/CM4K" className="btn-cm px-16 py-6 border-2 border-[#9102C0] rounded-[10px] font-bold text-2xl text-black shadow-[0_1px_15px_-4px_rgba(31,0,45,0.75)] relative overflow-hidden transition-all duration-300 hover:text-white before:content-[''] before:absolute before:right-0 before:top-0 before:w-0 before:h-1/2 before:bg-[#9102C0] before:rounded-t-[7px] before:transition-all before:duration-300 hover:before:w-full after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-0 after:h-1/2 after:bg-[#9102C0] after:rounded-b-[7px] after:transition-all after:duration-300 hover:after:w-full">CM 4 K</a></li>
-            </ul>
-          </div>
-        </div>
-      </section>
-      {/* About Us Section */}
-      <section id="aboutus" className="py-20">
-        <div className="aboutus-head section-head flex flex-col items-start justify-center pr-8 gap-10 w-[calc(100%-10vw)] ml-[10vw] mb-20">
-          <h1 className="p-h1 text-[5vmax] text-[#9102C0] font-baumans">About Us</h1>
-          <p className="p-p text-[#666] text-lg font-poppins">
-            We are just students like you, Here is introduction to us!
-          </p>
-        </div>
-        <div className="aboutus-main flex justify-center">
-          <div className="aboutus-box flex justify-center">
-            <div className="about-card bg-white rounded-[10px] shadow-lg p-0 text-center overflow-hidden relative w-[300px] m-8 cursor-pointer group">
-              <div className="a-c-picture inline-block h-[130px] w-[130px] mb-[50px] z-10 relative">
-                <img className="img-fluid w-full h-auto rounded-full object-cover transition-transform duration-700 group-hover:scale-75 group-hover:shadow-[0_0_0_14px_#f7f5ec]" src={atharvaImg} alt="Atharva Baodhankar" />
-                <div className="absolute top-0 left-0 w-full h-full rounded-full bg-[#342F76] opacity-90 scale-0 group-hover:scale-100 transition-all duration-300 z-0"></div>
-              </div>
-              <div className="about-card-content text-center">
-                <h3 className="text-2xl font-bold leading-tight font-baumans">Atharva <br />Baodhankar</h3>
-                <h4 className="text-lg text-[#9102C0] mt-2 font-poppins">Developer/Owner</h4>
-              </div>
-              <ul className="social w-full p-0 m-0 bg-[#9102C0] absolute bottom-[-100px] left-0 transition-all duration-500 group-hover:bottom-0 flex justify-center">
-                <li className="inline-block"><a href="https://github.com/atharvabaodhankar" className="block p-2 text-[30px] text-white transition-all duration-300 hover:text-[#342F76] mx-4" aria-label="GitHub"><i className="fa-brands fa-github"></i></a></li>
-                <li className="inline-block"><a href="https://www.instagram.com/op_athu_/" className="block p-2 text-[30px] text-white transition-all duration-300 hover:text-[#342F76] mx-4" aria-label="Instagram"><i className="fa-brands fa-instagram"></i></a></li>
-                <li className="inline-block"><a href="mailto:baodhankaratharva@gmail.com" className="block p-2 text-[30px] text-white transition-all duration-300 hover:text-[#342F76] mx-4" aria-label="Email"><i className="fa-solid fa-envelope"></i></a></li>
+          <div className="flex justify-center">
+            <div className="bg-white/90 rounded-2xl shadow-xl p-10 flex flex-col items-center gap-8 border border-[#ede9fe]">
+              <h2 className="text-2xl font-bold font-baumans text-[#342F76] mb-2">Computer Technology</h2>
+              <ul className="flex flex-col items-center gap-6 w-full">
+                <li><a href="/class/CM1K" className="block w-48 text-center px-8 py-4 rounded-xl border-2 border-[#9102C0] font-bold text-lg text-[#342F76] bg-white shadow-sm hover:bg-[#9102C0] hover:text-white transition-all duration-200">CM 1 K</a></li>
+                <li><a href="/class/CM2K" className="block w-48 text-center px-8 py-4 rounded-xl border-2 border-[#9102C0] font-bold text-lg text-[#342F76] bg-white shadow-sm hover:bg-[#9102C0] hover:text-white transition-all duration-200">CM 2 K</a></li>
+                <li><a href="/class/CM3K" className="block w-48 text-center px-8 py-4 rounded-xl border-2 border-[#9102C0] font-bold text-lg text-[#342F76] bg-white shadow-sm hover:bg-[#9102C0] hover:text-white transition-all duration-200">CM 3 K</a></li>
+                <li><a href="/class/CM4K" className="block w-48 text-center px-8 py-4 rounded-xl border-2 border-[#9102C0] font-bold text-lg text-[#342F76] bg-white shadow-sm hover:bg-[#9102C0] hover:text-white transition-all duration-200">CM 4 K</a></li>
               </ul>
             </div>
           </div>
         </div>
       </section>
+      {/* About Us Section */}
+      <section id="aboutus" className="py-24 relative overflow-x-hidden">
+        <div className="absolute -left-32 top-24 w-96 h-96 bg-gradient-to-br from-[#9102C0]/10 to-[#342F76]/0 rounded-full blur-3xl z-0" />
+        <div className="max-w-5xl mx-auto px-4 relative z-10">
+          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-4">About Us</h1>
+          <p className="text-[#342F76] text-lg mb-10 font-poppins">
+            We are just students like you. Here is an introduction to us!
+          </p>
+          <div className="flex justify-center">
+            <div className="bg-white/70 backdrop-blur-md border-2 border-[#9102C0]/10 rounded-3xl shadow-2xl p-10 text-center overflow-hidden relative w-[320px] group transition-all duration-300 hover:shadow-[0_8px_40px_-8px_#9102C0]">
+              <div className="inline-block h-[120px] w-[120px] mb-6 z-10 relative rounded-full border-4 border-[#9102C0]/30 shadow-lg overflow-hidden">
+                <img className="w-full h-full object-cover" src={atharvaImg} alt="Atharva Baodhankar" />
+              </div>
+              <div className="about-card-content text-center">
+                <h3 className="text-2xl font-bold leading-tight font-baumans text-[#342F76] mb-1">Atharva Baodhankar</h3>
+                <h4 className="text-lg text-[#9102C0] font-poppins mb-2">Founder/Developer</h4>
+                <div className="flex justify-center gap-4 mt-4">
+                  <a href="https://github.com/atharvabaodhankar" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#f3e8ff] text-[#9102C0] hover:bg-[#9102C0] hover:text-white transition-all" aria-label="GitHub"><FaGithub className="text-2xl" /></a>
+                  <a href="https://www.instagram.com/op_athu_/" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#f3e8ff] text-[#9102C0] hover:bg-[#9102C0] hover:text-white transition-all" aria-label="Instagram"><FaInstagram className="text-2xl" /></a>
+                  <a href="mailto:baodhankaratharva@gmail.com" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#f3e8ff] text-[#9102C0] hover:bg-[#9102C0] hover:text-white transition-all" aria-label="Email"><FaEnvelope className="text-2xl" /></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* Contact Us Section */}
-      <section id="contact" className="py-20">
-        <div className="contact-head section-head flex flex-col items-start justify-center pr-8 gap-10 w-[calc(100%-10vw)] ml-[10vw] mb-20">
-          <h1 className="p-h1 text-[5vmax] text-[#9102C0] font-baumans">Contact Us</h1>
-          <p className="p-p text-[#666] text-lg font-poppins">
+      <section id="contact" className="py-24 bg-[#f8f6ff]">
+        <div className="max-w-5xl mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-4">Contact Us</h1>
+          <p className="text-[#342F76] text-lg mb-10 font-poppins">
             Remember, no question is too big or too small. We're here to support you on your Poly journey, so don't be shy - reach out and let's chat!
           </p>
-        </div>
-        <div className="contact-main flex justify-center">
-          <form className="contact-form bg-white rounded-lg shadow-lg p-8 flex flex-col gap-4 w-full max-w-md">
-            <input required className="form_contril border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Name" type="text" name="name" />
-            <input required className="form_contril border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Roll Number" type="text" name="rollno" />
-            <input required className="form_contril border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Email" type="email" name="email" />
-            <textarea required className="textarea border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Message" name="message" rows={4}></textarea>
-            <input type="submit" value="Submit" className="send_btn bg-[#9102C0] text-white rounded py-2 px-4 cursor-pointer hover:bg-[#342F76] transition font-poppins" />
-          </form>
+          <div className="flex justify-center">
+            <form className="bg-white rounded-2xl shadow-xl p-8 flex flex-col gap-4 w-full max-w-md border border-[#ede9fe]">
+              <input required className="form_contril border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Name" type="text" name="name" />
+              <input required className="form_contril border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Roll Number" type="text" name="rollno" />
+              <input required className="form_contril border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Email" type="email" name="email" />
+              <textarea required className="textarea border border-gray-300 rounded px-4 py-2 font-poppins" placeholder="Message" name="message" rows={4}></textarea>
+              <input type="submit" value="Submit" className="send_btn bg-[#9102C0] text-white rounded py-2 px-4 cursor-pointer hover:bg-[#342F76] transition font-poppins" />
+            </form>
+          </div>
         </div>
       </section>
     </>

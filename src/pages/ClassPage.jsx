@@ -78,12 +78,12 @@ const ClassPage = () => {
     <div className="max-w-7xl mx-auto py-12 px-4">
       {/* Syllabus Table */}
       <section id="syllabus" className="mb-16">
-        <h2 className="p-h1 text-4xl text-[#9102C0] font-baumans mb-8">Syllabus</h2>
+        <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Syllabus</h2>
         <SyllabusTable data={sampleSyllabus} />
       </section>
       {/* Extra Material Section */}
       <section id="extra-materials" className="mb-16">
-        <h2 className="p-h1 text-4xl text-[#9102C0] font-baumans mb-8">Extra Materials</h2>
+        <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Extra Materials</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {(showAllExtra ? dummyExtraMaterials : dummyExtraMaterials.slice(0, 3)).map((mat, i) => (
             <div key={i} className="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-t-4 border-[#342F76] hover:shadow-2xl transition group">
@@ -157,7 +157,7 @@ const ClassPage = () => {
       </section>
       {/* Solved Papers Preview */}
       <section id="solved-papers" className="mb-16">
-        <h2 className="p-h1 text-4xl text-[#9102C0] font-baumans mb-8">Solved Papers</h2>
+        <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Solved Papers</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {solvedPapers.map((subj, i) => (
             <div key={i} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
