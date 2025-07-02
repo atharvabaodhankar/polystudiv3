@@ -1,5 +1,5 @@
 import React from 'react';
-import navLogo from '../assets/react.svg'; // Replace with actual logo path if available
+import navLogo from '../assets/nav-logo.png';
 
 const Navbar = () => {
   return (
