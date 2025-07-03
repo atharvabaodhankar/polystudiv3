@@ -18,6 +18,7 @@ const MaterialRequest = () => {
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [optionsLoading, setOptionsLoading] = useState(true);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -57,10 +58,7 @@ const MaterialRequest = () => {
     if (reqError) {
       setError('Failed to submit request. Please try again.');
     } else {
-      setSuccess('Your request has been submitted! Admins will review it.');
-      setTimeout(() => {
-        navigate(-1);
-      }, 2000);
+      setShowSuccessModal(true);
     }
     setLoading(false);
   };
@@ -110,6 +108,40 @@ const MaterialRequest = () => {
         </form>
         )}
       </div>
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full flex flex-col items-center gap-6 relative">
+            <h2 className="text-2xl font-baumans text-[#9102C0] mb-2 text-center">Request Submitted!</h2>
+            <p className="text-[#342F76] text-lg text-center">Your material request has been submitted. Would you like to request another, or go back to the class page?</p>
+            <div className="flex gap-4 mt-4">
+              <button
+                className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  setType('note');
+                  setTitle('');
+                  setSelectedClass(classCode || '');
+                  setSelectedSubject('');
+                  setFileUrl('');
+                  setName('');
+                  setEmail('');
+                  setError('');
+                  setSuccess('');
+                }}
+              >
+                Request Another
+              </button>
+              <button
+                className="px-6 py-2 rounded-lg bg-gray-200 text-[#9102C0] font-semibold hover:bg-[#f3e8ff] transition"
+                onClick={() => navigate(`/class/${classCode}`)}
+              >
+                Go to Class Page
+              </button>
+            </div>
+            <button className="absolute top-3 right-3 text-2xl text-[#9102C0] font-bold" onClick={() => setShowSuccessModal(false)}>&times;</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
