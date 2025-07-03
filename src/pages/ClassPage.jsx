@@ -81,7 +81,19 @@ const ClassPage = () => {
       {/* Syllabus Table */}
       <section id="syllabus" className="mb-16">
         <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Syllabus</h2>
-        <SyllabusTable data={sampleSyllabus} />
+        {syllabus.length === 0 ? (
+          <div className="text-[#342F76] text-lg font-poppins">Syllabus is not available for this class yet.</div>
+        ) : (
+          <SyllabusTable
+            data={syllabus.map((subj, i) => ({
+              sr: i + 1,
+              name: subj.subject_name,
+              code: subj.subject_code,
+              marks: subj.total_marks || '',
+              pdf: subj.syllabus_pdf || '#',
+            }))}
+          />
+        )}
       </section>
       {/* Extra Material Section */}
       <section id="extra-materials" className="mb-16">
