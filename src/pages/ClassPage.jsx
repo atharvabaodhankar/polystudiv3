@@ -167,38 +167,43 @@ const ClassPage = () => {
         >
           Request to Share Material
         </button>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {(showAllNotes ? dummyNotes : dummyNotes.slice(0, 3)).map((note, i) => (
-            <div
-              key={i}
-              className="relative bg-white/80 rounded-2xl shadow-md p-6 flex flex-col min-h-[240px] border border-[#ede9fe] hover:shadow-lg transition-all duration-200 group"
-            >
-              {/* Small note icon in circle */}
-              <div className="flex items-center gap-2 mb-3">
-                <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f3e8ff] text-2xl text-[#9102C0] shadow-sm mr-2">
-                  📝
-                </span>
-                <span className="inline-block w-2 h-2 rounded-full bg-[#9102C0] mr-1"></span>
-                <span className="text-xs text-[#342F76] font-semibold">{note.date}</span>
+        {notes.length === 0 ? (
+          <div className="text-[#342F76] text-lg font-poppins">No notes found for this class yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {(showAllNotes ? notes : notes.slice(0, 3)).map((note, i) => (
+              <div
+                key={note.id}
+                className="relative bg-white/80 rounded-2xl shadow-md p-6 flex flex-col min-h-[240px] border border-[#ede9fe] hover:shadow-lg transition-all duration-200 group"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f3e8ff] text-2xl text-[#9102C0] shadow-sm mr-2">
+                    📝
+                  </span>
+                  <span className="inline-block w-2 h-2 rounded-full bg-[#9102C0] mr-1"></span>
+                  <span className="text-xs text-[#342F76] font-semibold">{note.created_at ? new Date(note.created_at).toLocaleDateString() : ''}</span>
+                </div>
+                <h3 className="text-lg font-bold text-[#342F76] mb-2 line-clamp-2 font-baumans">{note.title}</h3>
+                <div className="text-sm text-[#9102C0] font-medium mb-4">By {note.uploader || 'Unknown'}</div>
+                <div className="mt-auto">
+                  <a
+                    href={note.file_url}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#9102C0] text-[#9102C0] hover:bg-[#9102C0] hover:text-white font-semibold transition-all duration-200 shadow-sm"
+                    title="Download Note"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4m-8 8h8" />
+                    </svg>
+                    Download
+                  </a>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-[#342F76] mb-2 line-clamp-2 font-baumans">{note.title}</h3>
-              <div className="text-sm text-[#9102C0] font-medium mb-4">By {note.uploader}</div>
-              <div className="mt-auto">
-                <a
-                  href={note.url}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#9102C0] text-[#9102C0] hover:bg-[#9102C0] hover:text-white font-semibold transition-all duration-200 shadow-sm"
-                  title="Download Note"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4m-8 8h8" />
-                  </svg>
-                  Download
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-        {dummyNotes.length > 3 && (
+            ))}
+          </div>
+        )}
+        {notes.length > 3 && (
           <div className="flex justify-center mt-4">
             <button
               className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
