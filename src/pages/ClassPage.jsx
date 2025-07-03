@@ -104,29 +104,23 @@ const ClassPage = () => {
         >
           Request to Share Material
         </button>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {(showAllExtra ? dummyExtraMaterials : dummyExtraMaterials.slice(0, 3)).map((mat, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-t-4 border-[#342F76] hover:shadow-2xl transition group">
-              <div className="flex items-center gap-2">
-                <span className="inline-block px-3 py-1 text-xs rounded-full bg-[#9102C0] text-white font-bold">{mat.type}</span>
-                <span className="text-xs text-gray-400 ml-auto">{mat.date}</span>
+        {extraMaterials.length === 0 ? (
+          <div className="text-[#342F76] text-lg font-poppins">No extra materials found for this class yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {extraMaterials.map((mat, i) => (
+              <div key={i} className="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-t-4 border-[#342F76] hover:shadow-2xl transition group">
+                <div className="flex items-center gap-2">
+                  <span className="inline-block px-3 py-1 text-xs rounded-full bg-[#9102C0] text-white font-bold">Extra</span>
+                  <span className="text-xs text-gray-400 ml-auto">{mat.created_at ? new Date(mat.created_at).toLocaleDateString() : ''}</span>
+                </div>
+                <h3 className="text-lg font-bold text-[#342F76] group-hover:text-[#9102C0] transition">{mat.title}</h3>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-sm text-gray-500">By {mat.uploader || 'Unknown'}</span>
+                  <a href={mat.file_url} className="text-[#9102C0] hover:underline font-bold" target="_blank" rel="noopener noreferrer">Download</a>
+                </div>
               </div>
-              <h3 className="text-lg font-bold text-[#342F76] group-hover:text-[#9102C0] transition">{mat.title}</h3>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-sm text-gray-500">By {mat.uploader}</span>
-                <a href={mat.url} className="text-[#9102C0] hover:underline font-bold">Download</a>
-              </div>
-            </div>
-          ))}
-        </div>
-        {dummyExtraMaterials.length > 3 && (
-          <div className="flex justify-center mt-4">
-            <button
-              className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
-              onClick={() => setShowAllExtra((v) => !v)}
-            >
-              {showAllExtra ? 'Show Less' : 'Show All'}
-            </button>
+            ))}
           </div>
         )}
       </section>
