@@ -29,6 +29,12 @@ const Assignments = () => {
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
       <h1 className="text-4xl font-baumans text-[#9102C0] mb-8 text-center drop-shadow">Assignments for <span className="text-[#342F76]">{classCode}</span></h1>
+      <button
+        className="mb-8 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition block mx-auto"
+        onClick={() => window.location.href = `/class/${classCode}/request-material`}
+      >
+        Request to Share Material
+      </button>
       {loading ? (
         <div className="text-center text-lg text-[#342F76]">Loading...</div>
       ) : assignments.length === 0 ? (
