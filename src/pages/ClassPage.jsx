@@ -57,6 +57,8 @@ const ClassPage = () => {
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [showAllExtra, setShowAllExtra] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
+  const [showAllSolved, setShowAllSolved] = useState(false);
+  const [showAllQuestions, setShowAllQuestions] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -194,7 +196,7 @@ const ClassPage = () => {
           Request to Share Material
         </button>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {solvedPapers.map((subj, i) => (
+          {(showAllSolved ? solvedPapers : solvedPapers.slice(0, 2)).map((subj, i) => (
             <div key={i} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
               <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{subj.subject} ({subj.code})</h3>
               <ul className="space-y-2">
@@ -212,6 +214,16 @@ const ClassPage = () => {
             </div>
           ))}
         </div>
+        {solvedPapers.length > 2 && (
+          <div className="flex justify-center mt-4">
+            <button
+              className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
+              onClick={() => setShowAllSolved((v) => !v)}
+            >
+              {showAllSolved ? 'Show Less' : 'Show All'}
+            </button>
+          </div>
+        )}
       </section>
       {/* Question Papers Section */}
       <section id="question-papers" className="mb-16">
@@ -225,18 +237,30 @@ const ClassPage = () => {
         {questionPapers.length === 0 ? (
           <div className="text-[#342F76] text-lg font-poppins">No question papers found for this class yet.</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {questionPapers.map((qp) => (
-              <div key={qp.id} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
-                <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{qp.title}</h3>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-sm text-gray-500">By {qp.uploader || 'Unknown'}</span>
-                  <a href={qp.file_url} className="text-[#9102C0] hover:underline font-bold" target="_blank" rel="noopener noreferrer">Download</a>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {(showAllQuestions ? questionPapers : questionPapers.slice(0, 2)).map((qp) => (
+                <div key={qp.id} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
+                  <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{qp.title}</h3>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-sm text-gray-500">By {qp.uploader || 'Unknown'}</span>
+                    <a href={qp.file_url} className="text-[#9102C0] hover:underline font-bold" target="_blank" rel="noopener noreferrer">Download</a>
+                  </div>
+                  <div className="text-xs text-gray-400 mt-2">{qp.created_at ? new Date(qp.created_at).toLocaleDateString() : ''}</div>
                 </div>
-                <div className="text-xs text-gray-400 mt-2">{qp.created_at ? new Date(qp.created_at).toLocaleDateString() : ''}</div>
+              ))}
+            </div>
+            {questionPapers.length > 2 && (
+              <div className="flex justify-center mt-4">
+                <button
+                  className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
+                  onClick={() => setShowAllQuestions((v) => !v)}
+                >
+                  {showAllQuestions ? 'Show Less' : 'Show All'}
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </section>
       {showRequestModal && (
