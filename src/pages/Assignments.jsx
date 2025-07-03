@@ -41,7 +41,7 @@ const Assignments = () => {
         <div className="text-center text-[#9102C0] font-semibold mb-4">No assignments found for this class yet.</div>
       ) : (
         <div className="overflow-x-auto mt-4">
-          <table className="min-w-full table-fixed border border-[#9102C0] rounded-xl shadow-lg bg-white">
+          <table className="min-w-full table-fixed border border-[#9102C0] rounded-xl shadow-lg bg-white text-center">
             <thead className="bg-[#f3e8ff]">
               <tr>
                 <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Assignment Title</th>
