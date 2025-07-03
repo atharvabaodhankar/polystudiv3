@@ -80,6 +80,7 @@ const MaterialRequest = () => {
             <option value="solved">Solved Paper</option>
             <option value="assignment">Assignment</option>
             <option value="extra">Extra Material</option>
+            <option value="question_paper">Question Paper</option>
           </select>
           <label className="font-semibold">Title*</label>
           <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="border rounded px-3 py-2" required />

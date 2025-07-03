@@ -52,6 +52,7 @@ const ClassPage = () => {
   const [extraMaterials, setExtraMaterials] = useState([]);
   const [notes, setNotes] = useState([]);
   const [subjects, setSubjects] = useState([]);
+  const [questionPapers, setQuestionPapers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [showAllExtra, setShowAllExtra] = useState(false);
@@ -61,16 +62,24 @@ const ClassPage = () => {
   useEffect(() => {
     document.title = `Polystudi || ${classCode}`;
     const fetchData = async () => {
-      const [{ data: syllabusData }, { data: extraData }, { data: notesData }, { data: subjectsData }] = await Promise.all([
+      const [
+        { data: syllabusData },
+        { data: extraData },
+        { data: notesData },
+        { data: subjectsData },
+        { data: questionPapersData }
+      ] = await Promise.all([
         supabase.from('subjects').select('*').eq('class_code', classCode),
         supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'extra'),
         supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'note'),
         supabase.from('subjects').select('*').eq('class_code', classCode),
+        supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'question_paper'),
       ]);
       setSyllabus(syllabusData || []);
       setExtraMaterials(extraData || []);
       setNotes(notesData || []);
       setSubjects(subjectsData || []);
+      setQuestionPapers(questionPapersData || []);
       setLoading(false);
     };
     fetchData();
@@ -203,6 +212,32 @@ const ClassPage = () => {
             </div>
           ))}
         </div>
+      </section>
+      {/* Question Papers Section */}
+      <section id="question-papers" className="mb-16">
+        <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Question Papers</h2>
+        <button
+          className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
+          onClick={() => navigate(`/class/${classCode}/request-material`)}
+        >
+          Request to Share Material
+        </button>
+        {questionPapers.length === 0 ? (
+          <div className="text-[#342F76] text-lg font-poppins">No question papers found for this class yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {questionPapers.map((qp) => (
+              <div key={qp.id} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
+                <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{qp.title}</h3>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-sm text-gray-500">By {qp.uploader || 'Unknown'}</span>
+                  <a href={qp.file_url} className="text-[#9102C0] hover:underline font-bold" target="_blank" rel="noopener noreferrer">Download</a>
+                </div>
+                <div className="text-xs text-gray-400 mt-2">{qp.created_at ? new Date(qp.created_at).toLocaleDateString() : ''}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
       {showRequestModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
