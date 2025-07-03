@@ -53,6 +53,7 @@ const ClassPage = () => {
   const [notes, setNotes] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [questionPapers, setQuestionPapers] = useState([]);
+  const [solvedPapers, setSolvedPapers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAllNotes, setShowAllNotes] = useState(false);
   const [showAllExtra, setShowAllExtra] = useState(false);
@@ -69,19 +70,41 @@ const ClassPage = () => {
         { data: extraData },
         { data: notesData },
         { data: subjectsData },
-        { data: questionPapersData }
+        { data: questionPapersData },
+        { data: solvedPapersData }
       ] = await Promise.all([
         supabase.from('subjects').select('*').eq('class_code', classCode),
         supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'extra'),
         supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'note'),
         supabase.from('subjects').select('*').eq('class_code', classCode),
         supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'question_paper'),
+        supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'solved'),
       ]);
       setSyllabus(syllabusData || []);
       setExtraMaterials(extraData || []);
       setNotes(notesData || []);
       setSubjects(subjectsData || []);
       setQuestionPapers(questionPapersData || []);
+      // Group solved papers by subject
+      if (solvedPapersData) {
+        const grouped = {};
+        solvedPapersData.forEach((item) => {
+          if (!grouped[item.subject_code]) grouped[item.subject_code] = [];
+          grouped[item.subject_code].push(item);
+        });
+        // Map to array for rendering
+        const solvedArray = Object.entries(grouped).map(([subject_code, papers]) => {
+          const subject = subjectsData.find(s => s.subject_code === subject_code);
+          return {
+            subject: subject ? subject.subject_name : subject_code,
+            code: subject_code,
+            papers,
+          };
+        });
+        setSolvedPapers(solvedArray);
+      } else {
+        setSolvedPapers([]);
+      }
       setLoading(false);
     };
     fetchData();
@@ -195,34 +218,42 @@ const ClassPage = () => {
         >
           Request to Share Material
         </button>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {(showAllSolved ? solvedPapers : solvedPapers.slice(0, 2)).map((subj, i) => (
-            <div key={i} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
-              <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{subj.subject} ({subj.code})</h3>
-              <ul className="space-y-2">
-                {subj.papers.map((paper, j) => (
-                  <li key={j}>
-                    <button
-                      onClick={() => navigate(paper.url)}
-                      className="text-[#9102C0] hover:underline font-bold bg-[#f3e8ff] px-4 py-2 rounded transition"
-                    >
-                      {paper.title} — Download
-                    </button>
-                  </li>
-                ))}
-              </ul>
+        {solvedPapers.length === 0 ? (
+          <div className="text-[#342F76] text-lg font-poppins">No solved papers found for this class yet.</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {(showAllSolved ? solvedPapers : solvedPapers.slice(0, 2)).map((subj, i) => (
+                <div key={i} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
+                  <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{subj.subject} ({subj.code})</h3>
+                  <ul className="space-y-2">
+                    {subj.papers.map((paper, j) => (
+                      <li key={paper.id}>
+                        <a
+                          href={paper.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#9102C0] hover:underline font-bold bg-[#f3e8ff] px-4 py-2 rounded transition inline-block"
+                        >
+                          {paper.title} — Download
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-        {solvedPapers.length > 2 && (
-          <div className="flex justify-center mt-4">
-            <button
-              className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
-              onClick={() => setShowAllSolved((v) => !v)}
-            >
-              {showAllSolved ? 'Show Less' : 'Show All'}
-            </button>
-          </div>
+            {solvedPapers.length > 2 && (
+              <div className="flex justify-center mt-4">
+                <button
+                  className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
+                  onClick={() => setShowAllSolved((v) => !v)}
+                >
+                  {showAllSolved ? 'Show Less' : 'Show All'}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </section>
       {/* Question Papers Section */}
