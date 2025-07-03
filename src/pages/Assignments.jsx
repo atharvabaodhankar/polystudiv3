@@ -32,34 +32,10 @@ const Assignments = () => {
       {loading ? (
         <div className="text-center text-lg text-[#342F76]">Loading...</div>
       ) : assignments.length === 0 ? (
-        <div>
-          <div className="text-center text-[#9102C0] font-semibold mb-4">No assignments found. Showing sample assignments:</div>
-          <div className="overflow-x-auto mt-4">
-            <table className="min-w-full border border-[#9102C0] rounded-xl shadow-lg bg-white">
-              <thead className="bg-[#f3e8ff]">
-                <tr>
-                  <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Assignment Title</th>
-                  <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Uploaded By</th>
-                  <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Download</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dummyAssignments.map((a) => (
-                  <tr key={a.id} className="hover:bg-[#f3e8ff]/60 transition">
-                    <td className="px-6 py-4 text-[#342F76] font-medium">{a.title}</td>
-                    <td className="px-6 py-4 text-[#9102C0]">{a.uploader}</td>
-                    <td className="px-6 py-4">
-                      <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="bg-[#9102C0] hover:bg-[#342F76] text-white px-4 py-2 rounded-lg shadow transition font-semibold">Download</a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <div className="text-center text-[#9102C0] font-semibold mb-4">No assignments found for this class yet.</div>
       ) : (
         <div className="overflow-x-auto mt-4">
-          <table className="min-w-full border border-[#9102C0] rounded-xl shadow-lg bg-white">
+          <table className="min-w-full table-fixed border border-[#9102C0] rounded-xl shadow-lg bg-white">
             <thead className="bg-[#f3e8ff]">
               <tr>
                 <th className="border-b border-[#9102C0] px-6 py-3 text-[#342F76] text-lg font-bold">Assignment Title</th>
@@ -72,8 +48,8 @@ const Assignments = () => {
                 <tr key={a.id} className="hover:bg-[#f3e8ff]/60 transition">
                   <td className="px-6 py-4 text-[#342F76] font-medium">{a.title}</td>
                   <td className="px-6 py-4 text-[#9102C0]">{a.uploader}</td>
-                  <td className="px-6 py-4">
-                    <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="bg-[#9102C0] hover:bg-[#342F76] text-white px-4 py-2 rounded-lg shadow transition font-semibold">Download</a>
+                  <td className="px-6 py-4 text-center">
+                    <a href={a.file_url} target="_blank" rel="noopener noreferrer" className="bg-[#9102C0] hover:bg-[#342F76] text-white px-4 py-2 rounded-lg shadow transition font-semibold w-full block" style={{ maxWidth: 140, margin: '0 auto' }}>Download</a>
                   </td>
                 </tr>
               ))}
