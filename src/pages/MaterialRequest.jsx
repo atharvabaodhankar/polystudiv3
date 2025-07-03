@@ -76,7 +76,7 @@ const MaterialRequest = () => {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label className="font-semibold">Material Type*</label>
           <select value={type} onChange={e => setType(e.target.value)} className="border rounded px-3 py-2">
-            <option value="note">Note</option>
+            <option value="note">Notes</option>
             <option value="solved">Solved Paper</option>
             <option value="assignment">Assignment</option>
             <option value="extra">Extra Material</option>

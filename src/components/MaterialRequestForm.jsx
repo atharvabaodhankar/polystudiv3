@@ -50,7 +50,7 @@ const MaterialRequestForm = ({ onClose }) => {
       <h2 className="text-2xl font-baumans text-[#9102C0] mb-2 text-center">Request to Share Material</h2>
       <label className="font-semibold">Material Type*</label>
       <select value={type} onChange={e => setType(e.target.value)} className="border rounded px-3 py-2">
-        <option value="note">Note</option>
+        <option value="note">Notes</option>
         <option value="solved">Solved Paper</option>
         <option value="assignment">Assignment</option>
         <option value="extra">Extra Material</option>
