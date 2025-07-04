@@ -49,7 +49,7 @@ const Home = () => {
       <section id="hero" className="h-[90vh] min-h-[500px] bg-cover bg-center relative flex items-center justify-center" style={{ backgroundImage: `url(${heroImg})` }}>
         <div className="absolute inset-0 bg-gradient-to-br from-[#9102C0]/80 via-[#9102C0]/60 to-[#342F76]/80 z-10" />
         <div className="relative z-20 flex flex-col items-center justify-center text-center w-full px-4">
-          <h1 className="text-5xl md:text-7xl font-baumans bg-gradient-to-r from-white via-[#f3e8ff] to-[#9102C0] bg-clip-text text-transparent drop-shadow-lg mb-4">PolyStudi</h1>
+          <h1 className="text-5xl md:text-7xl sora-font bg-gradient-to-r from-white via-[#f3e8ff] to-[#9102C0] bg-clip-text text-transparent drop-shadow-lg mb-4">PolyStudi</h1>
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
             <span className="text-xl md:text-2xl font-bold text-white/90">For Students</span>
             <span className="hidden md:block w-8 h-1 bg-white/60 rounded-full" />

@@ -68,7 +68,7 @@ const Footer = () => {
         <div className="flex-1 flex flex-col items-start">
           <div className="flex items-center gap-4 mb-4">
             <img src={navLogo} alt="PolyStudi Logo" className="w-16 h-16" />
-            <span className="font-baumans text-4xl text-white tracking-wide">PolyStudi</span>
+            <span className="sora-font text-4xl text-white tracking-wide">PolyStudi</span>
           </div>
           <p className="text-white/90 text-lg max-w-md mb-6">
             Whether you're stuck on a tricky problem, need a morale boost, or want to chat about the latest Poly news, we're here for you. Reach out—let's connect and grow together!
@@ -78,18 +78,11 @@ const Footer = () => {
         {/* Simple, Unified Get In Touch Section */}
         <div className="flex-1 flex flex-col items-start md:items-end text-left md:text-right md:justify-center mt-10 md:mt-0 w-full">
           <h2 className="font-baumans text-2xl text-white mb-4">Get In Touch!</h2>
-          <div className="flex flex-col gap-4 mb-4">
+          <div className="flex flex-col gap-4 mb-4 w-full md:items-end md:text-right items-center text-center">
             {contactInfo.map((item, idx) => (
-              <a key={idx} href={item.href} className="flex items-center gap-3 px-0 py-2 rounded-lg text-white font-semibold hover:underline transition-all">
+              <a key={idx} href={item.href} className="flex items-center gap-3 px-0 py-2 rounded-lg text-white font-semibold hover:underline transition-all justify-center md:justify-end">
                 {item.icon}
                 {item.label}
-              </a>
-            ))}
-          </div>
-          <div className="flex gap-3 justify-center md:justify-end mt-2">
-            {socialLinks.map((item, idx) => (
-              <a key={idx} href={item.href} className={`w-10 h-10 flex items-center justify-center rounded-full ${item.bg} ${item.color} hover:bg-[#9102C0] hover:text-white transition-all border-2 border-[#ede9fe]`} aria-label={item.label}>
-                {item.icon}
               </a>
             ))}
           </div>

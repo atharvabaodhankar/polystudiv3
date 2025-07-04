@@ -104,9 +104,9 @@ const Navbar = () => {
   return (
     <header id="navbar" className="w-full h-20 flex items-center justify-between px-[3.5vw] border-b border-white/20 fixed top-0 left-0 bg-white z-[100] transition-all duration-1000">
       <div className="nav-logo flex items-center gap-4 md:gap-8">
-        <Link to="/" className="flex items-center gap-4 md:gap-8">
+        <Link to="/" className="flex items-center gap-4 md:gap-4">
           <img src={navLogo} alt="PolyStudi Logo" className="w-[45px] md:w-[55px] border border-[#342F76] rounded-full" />
-          <span className="font-baumans text-[1.5rem] md:text-[2rem] text-black">PolyStudi</span>
+          <span className="sora-font text-[1.5rem] md:text-[1.7rem] text-black">PolyStudi</span>
         </Link>
       </div>
       {/* Desktop Nav */}

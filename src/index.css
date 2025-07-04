@@ -55,3 +55,9 @@
   transform: scale(1.09) translateY(-3px);
   transition: color 0.3s, box-shadow 0.3s, transform 0.3s, text-shadow 0.3s;
 }
+.sora-font {
+  font-family: "Sora", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+}
