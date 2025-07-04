@@ -1,6 +1,5 @@
 import React from 'react';
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaGithub, FaInstagram } from 'react-icons/fa';
-import navLogo from '../../public/polystudiv3-round.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const contactInfo = [
@@ -67,7 +66,7 @@ const Footer = () => {
         {/* Logo and About */}
         <div className="flex-1 flex flex-col items-start">
           <div className="flex items-center gap-4 mb-4">
-            <img src={navLogo} alt="PolyStudi Logo" className="w-16 h-16" />
+            <img src="/polystudiv3-round.png" alt="PolyStudi Logo" className="w-16 h-16" />
             <span className="sora-font text-4xl text-white tracking-wide">PolyStudi</span>
           </div>
           <p className="text-white/90 text-lg max-w-md mb-6">
