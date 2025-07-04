@@ -1,1 +1,57 @@
 @import "tailwindcss";
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease;
+}
+.animate-slideDown {
+  animation: slideDown 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+.super-hover {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: color 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+.super-hover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, #9102C0 0%, #342F76 40%, #f3e8ff 70%, #9102C0 100%);
+  background-size: 200% 200%;
+  opacity: 0;
+  transition: opacity 0.35s, transform 0.35s;
+  z-index: -1;
+}
+.super-hover:hover::before,
+.super-hover:focus::before,
+.super-hover:active::before {
+  opacity: 1;
+  animation: shimmer 1.2s linear infinite;
+}
+.super-hover:hover,
+.super-hover:focus,
+.super-hover:active {
+  color: white !important;
+  box-shadow: 0 0 16px 2px #9102C0, 0 4px 32px 0 #342F7644, 0 1.5px 6px 0 #342F7612;
+  text-shadow: 0 2px 8px #f3e8ffcc, 0 1px 2px #342F76cc;
+  transform: scale(1.09) translateY(-3px) rotate(-1deg);
+  transition: color 0.3s, box-shadow 0.3s, transform 0.3s, text-shadow 0.3s;
+}

@@ -79,7 +79,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      <div className="w-full border-t border-white/20 mt-12 pt-6 bg-[#342F76]">
+      <div className="w-full border-t border-white/20 mt-12 pt-6 bg-[#342F76] pb-6">
         <p className="text-center text-white text-base font-poppins">
           © 2025 <span className="font-baumans text-white">PolyStudi</span>, inc. All Rights Reserved
         </p>
