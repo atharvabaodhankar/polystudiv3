@@ -80,9 +80,14 @@ const Footer = () => {
           <h2 className="font-baumans text-2xl text-white mb-4">Get In Touch!</h2>
           <div className="flex flex-col gap-4 mb-4 w-full md:items-end md:text-right items-center text-center">
             {contactInfo.map((item, idx) => (
-              <a key={idx} href={item.href} className="flex items-center gap-3 px-0 py-2 rounded-lg text-white font-semibold hover:underline transition-all justify-center md:justify-end">
+              <a
+                key={idx}
+                href={item.href}
+                className="flex items-center gap-3 px-6 py-3 rounded-lg text-white font-semibold hover:underline transition-all justify-center md:justify-end w-full max-w-xs bg-white/10 hover:bg-white/20 shadow-sm"
+                style={{ minWidth: '220px' }}
+              >
                 {item.icon}
-                {item.label}
+                <span className="truncate">{item.label}</span>
               </a>
             ))}
           </div>
