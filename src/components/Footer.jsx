@@ -1,6 +1,7 @@
 import React from 'react';
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaGithub, FaInstagram } from 'react-icons/fa';
 import navLogo from '../../public/polystudiv3-round.png';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const contactInfo = [
   {
@@ -45,6 +46,21 @@ const socialLinks = [
 ];
 
 const Footer = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleContactClick = (e) => {
+    e.preventDefault();
+    if (location.pathname === '/') {
+      const el = document.getElementById('contact');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate('/', { state: { scrollTo: 'contact' } });
+    }
+  };
+
   return (
     <footer className="w-full bg-[#9102C0] pt-16 pb-0 mt-16 text-white font-poppins">
       <div className="max-w-6xl mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center justify-between items-start gap-12 md:gap-0">
@@ -57,7 +73,7 @@ const Footer = () => {
           <p className="text-white/90 text-lg max-w-md mb-6">
             Whether you're stuck on a tricky problem, need a morale boost, or want to chat about the latest Poly news, we're here for you. Reach out—let's connect and grow together!
           </p>
-          <a href="https://polystudi.com/#contact" className="inline-block mt-2 px-7 py-3 rounded-full border-2 border-white text-white hover:bg-white hover:text-[#9102C0] font-semibold transition-all duration-150">Contact Us</a>
+          <a href="/#contact" onClick={handleContactClick} className="inline-block mt-2 px-7 py-3 rounded-full border-2 border-white text-white hover:bg-white hover:text-[#9102C0] font-semibold transition-all duration-150">Contact Us</a>
         </div>
         {/* Simple, Unified Get In Touch Section */}
         <div className="flex-1 flex flex-col items-start md:items-end text-left md:text-right md:justify-center mt-10 md:mt-0 w-full">
