@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import heroImg from '../assets/hero.jpg';
+import heroImg from '../../public/hero-bg-neon.png';
 import atharvaImg from '../assets/Atharva.jpg';
 import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane } from 'react-icons/fa';
 import { supabase } from '../supabaseClient';
@@ -46,21 +46,24 @@ const Home = () => {
   return (
     <>
       {/* Hero Section */}
-      <section id="hero" className="h-[90vh] min-h-[500px] bg-cover bg-center relative flex items-center justify-center" style={{ backgroundImage: `url(${heroImg})` }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-[#9102C0]/80 via-[#9102C0]/60 to-[#342F76]/80 z-10" />
-        <div className="relative z-20 flex flex-col items-center justify-center text-center w-full px-4">
-          <h1 className="text-5xl md:text-7xl sora-font bg-gradient-to-r from-white via-[#f3e8ff] to-[#9102C0] bg-clip-text text-transparent drop-shadow-lg mb-4">PolyStudi</h1>
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+      <section id="hero" className="h-[90vh] min-h-[500px] bg-cover bg-center relative flex items-center justify-start overflow-hidden" style={{ backgroundImage: `url(${heroImg})` }}>
+        {/* Animated gradient shapes */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-[#9102C0]/40 via-[#f3e8ff]/60 to-[#342F76]/30 rounded-full blur-3xl z-0 animate-pulse-slow" />
+        <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-tr from-[#342F76]/30 via-[#9102C0]/20 to-[#f3e8ff]/40 rounded-full blur-2xl z-0 animate-pulse-slow" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-40 bg-gradient-to-t from-[#9102C0]/30 to-transparent rounded-full blur-2xl z-0" />
+        <div className="relative z-20 flex flex-col items-start justify-center text-left w-full max-w-3xl px-4 sm:px-8 md:px-16 lg:px-24 py-8">
+          <h1 className="text-5xl md:text-7xl sora-font font-extrabold bg-gradient-to-r from-white via-[#f3e8ff] to-[#9102C0] bg-clip-text text-transparent drop-shadow-lg mb-4 animate-fade-in text-left leading-tight">PolyStudi</h1>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-start gap-4 mb-4 animate-fade-in delay-100 w-full">
             <span className="text-xl md:text-2xl font-bold text-white/90">For Students</span>
             <span className="hidden md:block w-8 h-1 bg-white/60 rounded-full" />
             <span className="text-xl md:text-2xl font-bold text-white/90">By Students</span>
           </div>
-          <div className="backdrop-blur-md bg-white/20 rounded-xl shadow-lg p-6 max-w-2xl mx-auto mb-6">
-            <p className="text-lg md:text-xl text-white font-poppins">
-              Polystudi is more than just a website, it's a movement. We're passionate about empowering polytechnic students to achieve their academic dreams. So, what are you waiting for? Join the Polystudi fam, crank up your learning curve, and watch your potential explode!
-            </p>
-          </div>
-          <a href="#courses" className="inline-block mt-2 px-8 py-3 rounded-full bg-white text-[#9102C0] font-bold text-lg shadow hover:bg-[#9102C0] hover:text-white transition-all duration-200 border-2 border-white">Get Started</a>
+          <p className="text-base sm:text-lg md:text-xl text-white font-poppins mb-8 max-w-xl animate-fade-in delay-200 leading-relaxed">
+            Polystudi is more than just a website, it's a movement. We're passionate about empowering polytechnic students to achieve their academic dreams. So, what are you waiting for? Join the Polystudi fam, crank up your learning curve, and watch your potential explode!
+          </p>
+          <a href="#courses" className="inline-block mt-2 px-8 sm:px-10 py-3 sm:py-4 rounded-full bg-white text-[#9102C0] font-bold text-base sm:text-lg shadow-lg hover:bg-[#9102C0] hover:text-white transition-all duration-200 border-2 border-white animate-float">
+            Get Started
+          </a>
         </div>
       </section>
       {/* Courses Section */}
