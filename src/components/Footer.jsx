@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaGithub, FaInstagram } from 'react-icons/fa';
+import navLogo from '../../public/polystudiv3-round.png';
 
 const contactInfo = [
   {
@@ -50,7 +51,7 @@ const Footer = () => {
         {/* Logo and About */}
         <div className="flex-1 flex flex-col items-start">
           <div className="flex items-center gap-4 mb-4">
-            <span className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white text-[#9102C0] text-4xl font-baumans shadow">P</span>
+            <img src={navLogo} alt="PolyStudi Logo" className="w-16 h-16" />
             <span className="font-baumans text-4xl text-white tracking-wide">PolyStudi</span>
           </div>
           <p className="text-white/90 text-lg max-w-md mb-6">

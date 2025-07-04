@@ -1,5 +1,5 @@
 import React from 'react';
-import navLogo from '../assets/nav-logo.png';
+import navLogo from '../../public/polystudiv3-round.png';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
