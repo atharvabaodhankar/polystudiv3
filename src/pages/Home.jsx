@@ -52,7 +52,7 @@ const Home = () => {
         <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-tr from-[#342F76]/30 via-[#9102C0]/20 to-[#f3e8ff]/40 rounded-full blur-2xl z-0 animate-pulse-slow" />
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-40 bg-gradient-to-t from-[#9102C0]/30 to-transparent rounded-full blur-2xl z-0" />
         <div className="relative z-20 flex flex-col items-start justify-center text-left w-full max-w-3xl px-4 sm:px-8 md:px-16 lg:px-24 py-8">
-          <h1 className="text-5xl md:text-7xl sora-font font-extrabold text-white drop-shadow-lg mb-4 animate-fade-in text-left leading-tight">PolyStudi</h1>
+          <h1 className="text-5xl md:text-7xl sora-font font-extrabold text-white drop-shadow-lg mb-4 animate-fade-in text-left leading-tight tracking-tight">PolyStudi</h1>
           <div className="flex flex-col md:flex-row items-start md:items-center justify-start gap-4 mb-4 animate-fade-in delay-100 w-full">
             <span className="text-xl md:text-2xl font-bold text-white/90">For Students</span>
             <span className="hidden md:block w-8 h-1 bg-white/60 rounded-full" />
