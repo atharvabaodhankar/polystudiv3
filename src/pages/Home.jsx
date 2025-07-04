@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import heroImg from '../assets/hero.jpg';
 import atharvaImg from '../assets/Atharva.jpg';
 import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane } from 'react-icons/fa';
@@ -10,6 +10,7 @@ const Home = () => {
   const [contactLoading, setContactLoading] = useState(false);
   const [contactSuccess, setContactSuccess] = useState('');
   const [contactError, setContactError] = useState('');
+  const [showAllCourses, setShowAllCourses] = useState(false);
 
   useEffect(() => {
     if (location.state && location.state.scrollTo) {
@@ -63,30 +64,72 @@ const Home = () => {
         </div>
       </section>
       {/* Courses Section */}
-      <section id="courses" className="py-24 bg-[#f8f6ff]">
-        <div className="max-w-5xl mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-4">Courses</h1>
-          <p className="text-[#342F76] text-lg mb-10 font-poppins">
-            Select your Course and semester for further guidance and study materials for that specific Course and Semester.
-          </p>
-          <div className="flex justify-center">
-            <div className="bg-white/90 rounded-2xl shadow-xl p-10 flex flex-col items-center gap-8 border border-[#ede9fe]">
-              <h2 className="text-2xl font-bold font-baumans text-[#342F76] mb-2">Computer Technology</h2>
-              <ul className="flex flex-col items-center gap-6 w-full">
-                <li><a href="/class/CM1K" className="block w-48 text-center px-8 py-4 rounded-xl border-2 border-[#9102C0] font-bold text-lg text-[#342F76] bg-white shadow-sm hover:bg-[#9102C0] hover:text-white transition-all duration-200">CM 1 K</a></li>
-                <li><a href="/class/CM2K" className="block w-48 text-center px-8 py-4 rounded-xl border-2 border-[#9102C0] font-bold text-lg text-[#342F76] bg-white shadow-sm hover:bg-[#9102C0] hover:text-white transition-all duration-200">CM 2 K</a></li>
-                <li><a href="/class/CM3K" className="block w-48 text-center px-8 py-4 rounded-xl border-2 border-[#9102C0] font-bold text-lg text-[#342F76] bg-white shadow-sm hover:bg-[#9102C0] hover:text-white transition-all duration-200">CM 3 K</a></li>
-                <li><a href="/class/CM4K" className="block w-48 text-center px-8 py-4 rounded-xl border-2 border-[#9102C0] font-bold text-lg text-[#342F76] bg-white shadow-sm hover:bg-[#9102C0] hover:text-white transition-all duration-200">CM 4 K</a></li>
-              </ul>
-            </div>
+      <section id="courses" className="py-24 bg-[#f8f6ff] relative overflow-hidden">
+        {/* Decorative blurred gradient shapes */}
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-[#9102C0]/20 via-[#f3e8ff]/40 to-[#342F76]/10 rounded-full blur-3xl z-0 animate-pulse-slow" />
+        <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-tr from-[#342F76]/20 via-[#9102C0]/10 to-[#f3e8ff]/30 rounded-full blur-2xl z-0 animate-pulse-slow" />
+        <div className="max-w-5xl mx-auto px-4 relative z-10">
+          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-2 pb-5 font-bold">Courses</h1>
+          <p className="text-[#342F76] text-lg mb-2 font-poppins">Select your Course and semester for further guidance and study materials for that specific Course and Semester.</p>
+          <p className="text-[#9102C0] text-base mb-10 font-baumans italic">Empowering Polytechnic Students, One Click at a Time.</p>
+          {/* Computer Technology (CM) always visible */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-8">
+            {Array.from({ length: 5 }, (_, i) => ({
+              code: `CM${i + 1}K`,
+              label: `CM ${i + 1} K`,
+              icon: <svg className="w-7 h-7 text-[#9102C0]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>,
+            })).map((sem) => (
+              <a
+                key={sem.code}
+                href={`/class/${sem.code}`}
+                className="group relative bg-white/80 border border-[#ede9fe] rounded-xl shadow-sm p-6 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-104 hover:border-[#9102C0] focus:outline-none focus:ring-2 focus:ring-[#9102C0]/30"
+                style={{ minHeight: 160 }}
+              >
+                <div className="mb-1">{sem.icon}</div>
+                <span className="font-baumans text-lg text-[#9102C0]">{sem.label}</span>
+                <span className="mt-1 text-[#342F76] text-xs font-poppins">Semester</span>
+                <span className="mt-3 inline-block px-4 py-1 rounded-full bg-[#9102C0] text-white font-bold text-xs shadow-sm transition-all duration-150 hover:bg-[#342F76]">Explore</span>
+              </a>
+            ))}
           </div>
+          {/* Show more courses button */}
+          {!showAllCourses && (
+            <button
+              className="mx-auto block px-7 py-2 rounded-full bg-[#342F76] text-white font-bold text-base shadow-sm hover:bg-[#9102C0] hover:text-white transition-all duration-200 border border-[#9102C0]"
+              onClick={() => setShowAllCourses(true)}
+            >
+              Show More Courses
+            </button>
+          )}
+          {/* EJ classes, shown when showAllCourses is true */}
+          {showAllCourses && (
+            <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
+              {Array.from({ length: 5 }, (_, i) => ({
+                code: `EJ${i + 1}K`,
+                label: `EJ ${i + 1} K`,
+                icon: <svg className="w-7 h-7 text-[#342F76]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" /></svg>,
+              })).map((sem) => (
+                <a
+                  key={sem.code}
+                  href={`/class/${sem.code}`}
+                  className="group relative bg-white/80 border border-[#ede9fe] rounded-xl shadow-sm p-6 flex flex-col items-center gap-2 transition-all duration-200 hover:scale-104 hover:border-[#342F76] focus:outline-none focus:ring-2 focus:ring-[#342F76]/30"
+                  style={{ minHeight: 160 }}
+                >
+                  <div className="mb-1">{sem.icon}</div>
+                  <span className="font-baumans text-lg text-[#342F76]">{sem.label}</span>
+                  <span className="mt-1 text-[#9102C0] text-xs font-poppins">Semester</span>
+                  <span className="mt-3 inline-block px-4 py-1 rounded-full bg-[#342F76] text-white font-bold text-xs shadow-sm transition-all duration-150 hover:bg-[#9102C0]">Explore</span>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </section>
       {/* About Us Section */}
       <section id="aboutus" className=" bg-[#f8f6ff] py-24 relative overflow-x-hidden">
         <div className="absolute -left-32 top-24 w-96 h-96 bg-gradient-to-br from-[#9102C0]/10 to-[#342F76]/0 rounded-full blur-3xl z-0" />
         <div className="max-w-5xl mx-auto px-4 relative z-10">
-          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-4">About Us</h1>
+          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-4 pb-5 font-bold">About Us</h1>
           <p className="text-[#342F76] text-lg mb-10 font-poppins">
             We are just students like you. Here is an introduction to us!
           </p>
@@ -111,7 +154,7 @@ const Home = () => {
       {/* Contact Us Section */}
       <section id="contact" className="py-24 bg-[#f8f6ff]">
         <div className="max-w-5xl mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-4">Contact Us</h1>
+          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-4 pb-5 font-bold">Contact Us</h1>
           <p className="text-[#342F76] text-lg mb-10 font-poppins">
             Remember, no question is too big or too small. We're here to support you on your Poly journey, so don't be shy - reach out and let's chat!
           </p>
