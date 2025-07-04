@@ -34,7 +34,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(120deg, #9102C0 0%, #342F76 40%, #f3e8ff 70%, #9102C0 100%);
+  background: radial-gradient(circle,rgba(145, 2, 192, 1) 0%, rgb(172, 1, 230) 50%, rgba(145, 2, 192, 1) 100%);
   background-size: 200% 200%;
   opacity: 0;
   transition: opacity 0.35s, transform 0.35s;
@@ -44,7 +44,7 @@
 .super-hover:focus::before,
 .super-hover:active::before {
   opacity: 1;
-  animation: shimmer 1.2s linear infinite;
+  animation: shimmer 1.7s linear infinite;
 }
 .super-hover:hover,
 .super-hover:focus,
@@ -52,6 +52,6 @@
   color: white !important;
   box-shadow: 0 0 16px 2px #9102C0, 0 4px 32px 0 #342F7644, 0 1.5px 6px 0 #342F7612;
   text-shadow: 0 2px 8px #f3e8ffcc, 0 1px 2px #342F76cc;
-  transform: scale(1.09) translateY(-3px) rotate(-1deg);
+  transform: scale(1.09) translateY(-3px);
   transition: color 0.3s, box-shadow 0.3s, transform 0.3s, text-shadow 0.3s;
 }
