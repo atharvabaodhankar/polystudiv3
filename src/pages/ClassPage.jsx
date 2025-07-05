@@ -167,6 +167,11 @@ const ClassPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto py-12 px-4">
+      {/* Class Welcome Section */}
+      <section className="mb-16 flex flex-col items-start bg-gradient-to-r from-[#f3e8ff] via-white to-white rounded-2xl p-8 shadow-lg border-l-8 border-[#9102C0]">
+        <h1 className="text-5xl md:text-7xl font-bold text-[#9102C0] mb-2 tracking-tight uppercase drop-shadow-sm">{classCode}</h1>
+        <div className="h-1 w-20 bg-[#9102C0] rounded"></div>
+      </section>
       {/* Syllabus Table */}
       <section id="syllabus" className="mb-16" ref={syllabusRef}>
         <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Syllabus</h2>
