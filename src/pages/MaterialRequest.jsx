@@ -64,16 +64,17 @@ const MaterialRequest = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f6ff] px-4 py-12">
-      <div className="w-full max-w-lg bg-white border border-[#9102C0] rounded-2xl shadow-xl p-10 flex flex-col gap-6">
-        <button onClick={() => navigate(-1)} className="mb-2 px-4 py-2 rounded-full bg-[#342F76] text-white font-bold w-fit">&larr; Go Back</button>
-        <h2 className="text-2xl font-baumans text-[#9102C0] mb-2 text-center">Request to Share Material</h2>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#f8f6ff] via-[#f3e8ff] to-white px-4 py-12">
+      <div className="w-full max-w-lg bg-white/90 border border-[#9102C0] rounded-2xl shadow-2xl p-10 flex flex-col gap-6">
+        <button onClick={() => navigate(-1)} className="mb-2 px-4 py-2 rounded-full bg-[#342F76] text-white font-bold w-fit hover:bg-[#9102C0] transition">&larr; Go Back</button>
+        <h2 className="text-3xl font-extrabold text-[#9102C0] mb-1 text-center">Request to Share Material</h2>
+        <p className="text-center text-[#342F76] mb-2">Help your classmates by contributing useful study materials! Fill out the form below to submit your request.</p>
         {optionsLoading ? (
           <div className="text-center text-[#9102C0]">Loading options...</div>
         ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <label className="font-semibold">Material Type*</label>
-          <select value={type} onChange={e => setType(e.target.value)} className="border rounded px-3 py-2">
+          <select value={type} onChange={e => setType(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition">
             <option value="note">Notes</option>
             <option value="solved">Solved Paper</option>
             <option value="assignment">Assignment</option>
@@ -86,28 +87,28 @@ const MaterialRequest = () => {
             </div>
           )}
           <label className="font-semibold">Title*</label>
-          <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="border rounded px-3 py-2" required />
+          <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
           <label className="font-semibold">Class*</label>
-          <select value={selectedClass} onChange={e => { setSelectedClass(e.target.value); setSelectedSubject(''); }} className="border rounded px-3 py-2" required>
+          <select value={selectedClass} onChange={e => { setSelectedClass(e.target.value); setSelectedSubject(''); }} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required>
             <option value="">Select Class</option>
             {classes.map(c => (
               <option key={c.code} value={c.code}>{c.name} ({c.code})</option>
             ))}
           </select>
           <label className="font-semibold">Subject*</label>
-          <select value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} className="border rounded px-3 py-2" required disabled={!selectedClass}>
+          <select value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required disabled={!selectedClass}>
             <option value="">{selectedClass ? 'Select Subject' : 'Select Class First'}</option>
             {filteredSubjects.map(s => (
               <option key={s.subject_code} value={s.subject_code}>{s.subject_name} ({s.subject_code})</option>
             ))}
           </select>
-          <label className="font-semibold">File URL (optional)</label>
-          <input type="text" value={fileUrl} onChange={e => setFileUrl(e.target.value)} className="border rounded px-3 py-2" />
+          <label className="font-semibold">File URL*</label>
+          <input type="text" value={fileUrl} onChange={e => setFileUrl(e.target.value)}  className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required/>
           <label className="font-semibold">Your Name*</label>
-          <input type="text" value={name} onChange={e => setName(e.target.value)} className="border rounded px-3 py-2" required />
+          <input type="text" value={name} onChange={e => setName(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
           <label className="font-semibold">Your Email*</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="border rounded px-3 py-2" required />
-          <button type="submit" className="w-full py-2 rounded-full bg-[#9102C0] text-white font-bold text-lg mt-2" disabled={loading}>{loading ? 'Submitting...' : 'Submit Request'}</button>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
+          <button type="submit" className="cursor-pointer w-full py-3 rounded-xl bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#342F76] text-white font-bold text-lg mt-2 shadow-lg hover:scale-105 transition" disabled={loading}>{loading ? 'Submitting...' : 'Submit Request'}</button>
           {error && <div className="text-red-600 text-center font-semibold">{error}</div>}
           {success && <div className="text-green-600 text-center font-semibold">{success}</div>}
         </form>
