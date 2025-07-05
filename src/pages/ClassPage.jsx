@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import SyllabusTable from '../components/SyllabusTable';
 import MaterialCard from '../components/MaterialCard';
 import SubjectSection from '../components/SubjectSection';
 import MaterialRequestForm from '../components/MaterialRequestForm';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const sampleSyllabus = [
   { sr: 1, name: 'Java Programming', code: '22412', marks: 100, pdf: '#' },
@@ -61,6 +65,11 @@ const ClassPage = () => {
   const [showAllSolved, setShowAllSolved] = useState(false);
   const [showAllQuestions, setShowAllQuestions] = useState(false);
   const navigate = useNavigate();
+  const syllabusRef = useRef(null);
+  const extraRef = useRef(null);
+  const notesRef = useRef(null);
+  const solvedRef = useRef(null);
+  const questionRef = useRef(null);
 
   useEffect(() => {
     document.title = `Polystudi || ${classCode}`;
@@ -84,7 +93,25 @@ const ClassPage = () => {
       setExtraMaterials(extraData || []);
       setNotes(notesData || []);
       setSubjects(subjectsData || []);
-      setQuestionPapers(questionPapersData || []);
+      // Group question papers by subject
+      if (questionPapersData) {
+        const groupedQ = {};
+        questionPapersData.forEach((item) => {
+          if (!groupedQ[item.subject_code]) groupedQ[item.subject_code] = [];
+          groupedQ[item.subject_code].push(item);
+        });
+        const questionArray = Object.entries(groupedQ).map(([subject_code, papers]) => {
+          const subject = subjectsData.find(s => s.subject_code === subject_code);
+          return {
+            subject: subject ? subject.subject_name : subject_code,
+            code: subject_code,
+            papers,
+          };
+        });
+        setQuestionPapers(questionArray);
+      } else {
+        setQuestionPapers([]);
+      }
       // Group solved papers by subject
       if (solvedPapersData) {
         const grouped = {};
@@ -110,10 +137,38 @@ const ClassPage = () => {
     fetchData();
   }, [classCode]);
 
+  useEffect(() => {
+    // GSAP Animations
+    const sections = [syllabusRef, extraRef, notesRef, solvedRef, questionRef];
+    sections.forEach((ref, i) => {
+      if (ref.current) {
+        gsap.fromTo(
+          ref.current,
+          { opacity: 0, y: 40 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: ref.current,
+              start: 'top 85%',
+              toggleActions: 'play none none none',
+            },
+            delay: i * 0.1,
+          }
+        );
+      }
+    });
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, [loading]);
+
   return (
     <div className="max-w-7xl mx-auto py-12 px-4">
       {/* Syllabus Table */}
-      <section id="syllabus" className="mb-16">
+      <section id="syllabus" className="mb-16" ref={syllabusRef}>
         <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Syllabus</h2>
         {syllabus.length === 0 ? (
           <div className="text-[#342F76] text-lg font-poppins">Syllabus is not available for this class yet.</div>
@@ -130,7 +185,7 @@ const ClassPage = () => {
         )}
       </section>
       {/* Extra Material Section */}
-      <section id="extra-materials" className="mb-16">
+      <section id="extra-materials" className="mb-16" ref={extraRef}>
         <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Extra Materials</h2>
         <button
           className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
@@ -159,7 +214,7 @@ const ClassPage = () => {
         )}
       </section>
       {/* Notes Grid */}
-      <section id="notes" className="mb-16">
+      <section id="notes" className="mb-16" ref={notesRef}>
         <h2 className="p-h1 text-4xl font-bold text-[#9102C0] font-baumans mb-8">Notes</h2>
         <button
           className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
@@ -215,7 +270,7 @@ const ClassPage = () => {
         )}
       </section>
       {/* Solved Papers Preview */}
-      <section id="solved-papers" className="mb-16">
+      <section id="solved-papers" className="mb-16" ref={solvedRef}>
         <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Solved Papers</h2>
         <button
           className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
@@ -262,7 +317,7 @@ const ClassPage = () => {
         )}
       </section>
       {/* Question Papers Section */}
-      <section id="question-papers" className="mb-16">
+      <section id="question-papers" className="mb-16" ref={questionRef}>
         <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Question Papers</h2>
         <button
           className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
@@ -275,14 +330,24 @@ const ClassPage = () => {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {(showAllQuestions ? questionPapers : questionPapers.slice(0, 2)).map((qp) => (
-                <div key={qp.id} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
-                  <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{qp.title}</h3>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-sm text-gray-500">By {qp.uploader || 'Unknown'}</span>
-                    <a href={qp.file_url} className="text-[#9102C0] hover:underline font-bold" target="_blank" rel="noopener noreferrer">Download</a>
-                  </div>
-                  <div className="text-xs text-gray-400 mt-2">{qp.created_at ? new Date(qp.created_at).toLocaleDateString() : ''}</div>
+              {(showAllQuestions ? questionPapers : questionPapers.slice(0, 2)).map((subj, i) => (
+                <div key={i} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
+                  <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{subj.subject} ({subj.code})</h3>
+                  <ul className="space-y-2">
+                    {subj.papers.map((paper, j) => (
+                      <li key={paper.id}>
+                        <a
+                          href={paper.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#9102C0] hover:underline font-bold bg-[#f3e8ff] px-4 py-2 rounded transition inline-block"
+                        >
+                          {paper.title} — Download
+                        </a>
+                        {/* <span className="text-xs text-gray-400 ml-2">{paper.created_at ? new Date(paper.created_at).toLocaleDateString() : ''}</span> */}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>
