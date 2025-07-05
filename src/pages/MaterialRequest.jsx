@@ -108,7 +108,7 @@ const MaterialRequest = () => {
           <input type="text" value={name} onChange={e => setName(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
           <label className="font-semibold">Your Email*</label>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
-          <button type="submit" className="cursor-pointer w-full py-3 rounded-xl bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#342F76] text-white font-bold text-lg mt-2 shadow-lg hover:scale-105 transition" disabled={loading}>{loading ? 'Submitting...' : 'Submit Request'}</button>
+          <button type="submit" className="cursor-pointer w-full py-3 rounded-xl bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold text-lg mt-2 shadow-lg hover:scale-105 transition" disabled={loading}>{loading ? 'Submitting...' : 'Submit Request'}</button>
           {error && <div className="text-red-600 text-center font-semibold">{error}</div>}
           {success && <div className="text-green-600 text-center font-semibold">{success}</div>}
         </form>
