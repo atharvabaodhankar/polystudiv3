@@ -109,12 +109,12 @@ const Navbar = () => {
         </Link>
       </div>
       {/* Desktop Nav */}
-      <nav className="hidden md:block">
+      <nav className="hidden lg:block">
         <ul className="flex gap-[2vw] items-center">{navLinks}</ul>
       </nav>
       {/* Mobile Hamburger */}
       <button
-        className="menu-btn flex flex-col justify-center items-center w-10 h-10 md:hidden z-[200] relative"
+        className="menu-btn flex flex-col justify-center items-center w-10 h-10 lg:hidden z-[200] relative"
         aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={mobileMenuOpen}
         onClick={() => setMobileMenuOpen((v) => !v)}
