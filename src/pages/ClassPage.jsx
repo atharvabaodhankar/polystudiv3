@@ -171,6 +171,17 @@ const ClassPage = () => {
       <section className="mb-16 flex flex-col items-start bg-gradient-to-r from-[#f3e8ff] via-white to-white rounded-2xl p-8 shadow-lg border-l-8 border-[#9102C0]">
         <h1 className="text-5xl md:text-7xl font-bold text-[#9102C0] mb-2 tracking-tight uppercase drop-shadow-sm">{classCode}</h1>
         <div className="h-1 w-20 bg-[#9102C0] rounded"></div>
+        <div className="mt-6 w-full bg-[#f6e6ff] border border-[#9102C0] text-[#342F76] px-8 py-5 rounded-xl font-semibold shadow flex flex-col sm:flex-row sm:items-center gap-3">
+          <span className="text-base md:text-lg flex-1 text-[#342F76]">
+            <span className="font-bold text-[#9102C0]">Contribute to your class!</span> Share your notes, papers, or materials and help everyone succeed.
+          </span>
+          <button
+            className="px-6 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition text-base shadow-md"
+            onClick={() => navigate(`/class/${classCode}/request-material`)}
+          >
+            Contribute Now
+          </button>
+        </div>
       </section>
       {/* Syllabus Table */}
       <section id="syllabus" className="mb-16" ref={syllabusRef}>
