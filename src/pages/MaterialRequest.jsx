@@ -80,6 +80,11 @@ const MaterialRequest = () => {
             <option value="extra">Extra Material</option>
             <option value="question_paper">Question Paper</option>
           </select>
+          {type === 'extra' && (
+            <div className="bg-[#f3e8ff] border border-[#9102C0] text-[#342F76] rounded-lg px-4 py-3 mb-2 text-sm">
+              <strong>Allowed under Extra Material:</strong> manuals, unit test answers, solved codes, theory questions, solved sums, formula sheets, cheat sheets, and similar resources.
+            </div>
+          )}
           <label className="font-semibold">Title*</label>
           <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="border rounded px-3 py-2" required />
           <label className="font-semibold">Class*</label>
