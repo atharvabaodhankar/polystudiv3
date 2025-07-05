@@ -104,7 +104,10 @@ const Navbar = forwardRef((props, navLogoRef) => {
     <header id="navbar" className="w-full h-20 flex items-center justify-between px-[3.5vw] border-b border-white/20 fixed top-0 left-0 bg-white z-[100] transition-all duration-1000">
       <div className="nav-logo flex items-center gap-4 md:gap-8">
         <Link to="/" className="flex items-center gap-4 md:gap-4">
-          <img ref={navLogoRef} src="/polystudiv3-round.png" alt="PolyStudi Logo" className="w-12 h-12 border border-[#342F76] rounded-full" />
+          <img ref={navLogoRef} src="/polystudiv3-round.png" alt="PolyStudi Logo" 
+            className="w-15 h-15 relative z-10 bg-white rounded-full p-1" 
+            style={{ boxShadow: '0 4px 32px #9102C055' }}
+          />
           <span className="sora-font text-[1.5rem] md:text-[1.7rem] text-black">PolyStudi</span>
         </Link>
       </div>
