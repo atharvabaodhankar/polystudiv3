@@ -53,12 +53,14 @@ const Home = ({ navLogoRef }) => {
             scale: scale,
             duration: 0.9,
             ease: 'power4.inOut',
+            onStart: () => {
+              // Start fading in navbar logo just before the preloader logo arrives
+              gsap.to(navLogoRef.current, { opacity: 1, duration: 0.3, delay: 0.7, ease: 'power2.inOut' });
+            },
             onComplete: () => {
               setPreloaderVisible(false);
               // Reset logo transform for future loads
               gsap.set(logoRef.current, { clearProps: 'all' });
-              // Reveal navbar logo
-              navLogoRef.current.style.opacity = '1';
             },
           });
           // Fade out preloader background
