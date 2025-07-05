@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import atharvaImg from '../assets/Atharva.jpg';
 import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane } from 'react-icons/fa';
 import { supabase } from '../supabaseClient';
+import { gsap } from 'gsap';
 
 const Home = () => {
   const location = useLocation();
@@ -10,6 +11,40 @@ const Home = () => {
   const [contactSuccess, setContactSuccess] = useState('');
   const [contactError, setContactError] = useState('');
   const [showAllCourses, setShowAllCourses] = useState(false);
+  const [preloaderVisible, setPreloaderVisible] = useState(true);
+  const preloaderRef = useRef();
+  const logoRef = useRef();
+  const ringRef = useRef();
+  const textRef = useRef();
+
+  useEffect(() => {
+    if (preloaderVisible) {
+      // Logo fade/scale in
+      gsap.fromTo(
+        logoRef.current,
+        { scale: 0.7, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.6, ease: 'expo.out' }
+      );
+      // Text reveal
+      gsap.fromTo(
+        textRef.current,
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, delay: 0.4, ease: 'power2.out' }
+      );
+      // Slide up and fade out after delay (smoother, no snap)
+      gsap.to(preloaderRef.current, {
+        y: '-100vh',
+        opacity: 0,
+        pointerEvents: 'none',
+        delay: 1.7,
+        duration: 1.2,
+        ease: 'power4.inOut',
+        onComplete: () => {
+          setTimeout(() => setPreloaderVisible(false), 80);
+        },
+      });
+    }
+  }, [preloaderVisible]);
 
   useEffect(() => {
     if (location.state && location.state.scrollTo) {
@@ -44,6 +79,29 @@ const Home = () => {
 
   return (
     <>
+      {/* Sleek Modern Preloader */}
+      {preloaderVisible && (
+        <div ref={preloaderRef} className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-[#f8f6ff] via-[#9102C0] to-[#342F76]">
+          <div className="flex flex-col items-center justify-center relative w-fit">
+            {/* Logo - centered */}
+            <img
+              ref={logoRef}
+              src="/polystudiv3-round.png"
+              alt="PolyStudi Logo"
+              className="w-20 h-20 md:w-24 md:h-24 relative z-10 shadow-xl bg-white rounded-full p-2"
+              style={{ boxShadow: '0 4px 32px #9102C055' }}
+            />
+            {/* Animated Text - more visible, shadow, stronger gradient */}
+            <h1
+              ref={textRef}
+              className="mt-8 text-3xl md:text-4xl sora-font font-extrabold bg-gradient-to-r from-[#fff] via-[#9102C0] to-[#342F76] bg-clip-text text-transparent tracking-tight text-center drop-shadow-[0_2px_8px_rgba(52,47,118,0.25)]"
+              style={{ WebkitBackgroundClip: 'text', backgroundClip: 'text', textShadow: '0 2px 8px #342F7655, 0 1px 0 #fff' }}
+            >
+              Welcome to PolyStudi
+            </h1>
+          </div>
+        </div>
+      )}
       {/* Hero Section */}
       <section id="hero" className="h-[90vh] min-h-[500px] bg-cover bg-center relative flex items-center justify-start overflow-hidden" style={{ backgroundImage: `url('/hero-bg-neon.png')` }}>
         {/* Animated gradient shapes */}
