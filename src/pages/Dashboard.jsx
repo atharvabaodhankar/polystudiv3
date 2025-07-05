@@ -13,6 +13,7 @@ const Dashboard = () => {
   const [userId, setUserId] = useState(null);
   const [reviewers, setReviewers] = useState({});
   const [reviews, setReviews] = useState([]);
+  const [userBranch, setUserBranch] = useState(null);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -20,8 +21,9 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
-        const { data } = await supabase.from('users').select('role').eq('email', user.email).single();
+        const { data } = await supabase.from('users').select('role, branch').eq('email', user.email).single();
         setUserRole(data?.role);
+        setUserBranch(data?.branch);
       }
       setAuthLoading(false);
     };
@@ -34,6 +36,9 @@ const Dashboard = () => {
       setLoading(true);
       let query = supabase.from('material_requests').select('*').order('created_at', { ascending: false });
       if (tab !== 'all') query = query.eq('status', tab);
+      if (userRole === 'admin' && userBranch) {
+        query = query.like('class_code', `${userBranch}%`);
+      }
       const { data } = await query;
       setRequests(data || []);
       // Fetch reviewer names for all reviewed_by ids
@@ -55,7 +60,7 @@ const Dashboard = () => {
       setLoading(false);
     };
     fetchRequests();
-  }, [userRole, tab]);
+  }, [userRole, tab, userBranch]);
 
   useEffect(() => {
     if (userRole === 'superadmin') {
