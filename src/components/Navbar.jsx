@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 
-const Navbar = () => {
+const Navbar = forwardRef((props, navLogoRef) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [adminDropdown, setAdminDropdown] = useState(false);
@@ -104,7 +104,7 @@ const Navbar = () => {
     <header id="navbar" className="w-full h-20 flex items-center justify-between px-[3.5vw] border-b border-white/20 fixed top-0 left-0 bg-white z-[100] transition-all duration-1000">
       <div className="nav-logo flex items-center gap-4 md:gap-8">
         <Link to="/" className="flex items-center gap-4 md:gap-4">
-          <img src="/polystudiv3-round.png" alt="PolyStudi Logo" className="w-12 h-12 border border-[#342F76] rounded-full" />
+          <img ref={navLogoRef} src="/polystudiv3-round.png" alt="PolyStudi Logo" className="w-12 h-12 border border-[#342F76] rounded-full" />
           <span className="sora-font text-[1.5rem] md:text-[1.7rem] text-black">PolyStudi</span>
         </Link>
       </div>
@@ -134,6 +134,6 @@ const Navbar = () => {
       )}
     </header>
   );
-};
+});
 
 export default Navbar; 

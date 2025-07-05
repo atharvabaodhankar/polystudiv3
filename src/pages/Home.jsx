@@ -5,7 +5,7 @@ import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane } from 'react-icons/fa'
 import { supabase } from '../supabaseClient';
 import { gsap } from 'gsap';
 
-const Home = () => {
+const Home = ({ navLogoRef }) => {
   const location = useLocation();
   const [contactLoading, setContactLoading] = useState(false);
   const [contactSuccess, setContactSuccess] = useState('');
@@ -31,20 +31,45 @@ const Home = () => {
         { y: 30, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.5, delay: 0.4, ease: 'power2.out' }
       );
-      // Slide up and fade out after delay (smoother, no snap)
-      gsap.to(preloaderRef.current, {
-        y: '-100vh',
-        opacity: 0,
-        pointerEvents: 'none',
-        delay: 1.7,
-        duration: 1.2,
-        ease: 'power4.inOut',
-        onComplete: () => {
-          setTimeout(() => setPreloaderVisible(false), 80);
-        },
-      });
+      // After delay, animate logo to navbar
+      setTimeout(() => {
+        if (logoRef.current && navLogoRef?.current) {
+          // Hide navbar logo for the transition
+          navLogoRef.current.style.opacity = '0';
+          // Set transform origin to top left for pixel-perfect match
+          logoRef.current.style.transformOrigin = 'top left';
+          const preRect = logoRef.current.getBoundingClientRect();
+          const navRect = navLogoRef.current.getBoundingClientRect();
+          // Account for scroll offset and fixed navbar
+          const dx = navRect.left - preRect.left;
+          const dy = navRect.top - preRect.top + window.scrollY;
+          const scale = navRect.width / preRect.width;
+          // Hide text before transition
+          gsap.to(textRef.current, { opacity: 0, duration: 0.3 });
+          // Animate logo to navbar
+          gsap.to(logoRef.current, {
+            x: dx,
+            y: dy,
+            scale: scale,
+            duration: 0.9,
+            ease: 'power4.inOut',
+            onComplete: () => {
+              setPreloaderVisible(false);
+              // Reset logo transform for future loads
+              gsap.set(logoRef.current, { clearProps: 'all' });
+              // Reveal navbar logo
+              navLogoRef.current.style.opacity = '1';
+            },
+          });
+          // Fade out preloader background
+          gsap.to(preloaderRef.current, { opacity: 0, duration: 0.7, delay: 0.5, pointerEvents: 'none' });
+        } else {
+          // fallback: just hide preloader
+          setPreloaderVisible(false);
+        }
+      }, 1700);
     }
-  }, [preloaderVisible]);
+  }, [preloaderVisible, navLogoRef]);
 
   useEffect(() => {
     if (location.state && location.state.scrollTo) {
@@ -83,7 +108,7 @@ const Home = () => {
       {preloaderVisible && (
         <div ref={preloaderRef} className="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-[#f8f6ff] via-[#9102C0] to-[#342F76]">
           <div className="flex flex-col items-center justify-center relative w-fit">
-            {/* Logo - centered */}
+            {/* Logo - centered, will animate to navbar */}
             <img
               ref={logoRef}
               src="/polystudiv3-round.png"
