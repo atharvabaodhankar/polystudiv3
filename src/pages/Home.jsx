@@ -153,8 +153,6 @@ const Home = ({ navLogoRef }) => {
       {/* Courses Section */}
       <section id="courses" className="py-24 bg-[#f8f6ff] relative overflow-hidden">
         {/* Decorative blurred gradient shapes */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-[#9102C0]/20 via-[#f3e8ff]/40 to-[#342F76]/10 rounded-full blur-3xl z-0 animate-pulse-slow" />
-        <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-tr from-[#342F76]/20 via-[#9102C0]/10 to-[#f3e8ff]/30 rounded-full blur-2xl z-0 animate-pulse-slow" />
         <div className="max-w-5xl mx-auto px-4 relative z-10">
           <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-2 pb-5 font-bold">Courses</h1>
           <p className="text-[#342F76] text-lg mb-2 font-poppins">Select your Course and semester for further guidance and study materials for that specific Course and Semester.</p>
