@@ -6,6 +6,9 @@ import { supabase } from '../supabaseClient';
 import { gsap } from 'gsap';
 
 const Home = ({ navLogoRef }) => {
+  if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+    window.history.scrollRestoration = 'manual';
+  }
   const location = useLocation();
   const [contactLoading, setContactLoading] = useState(false);
   const [contactSuccess, setContactSuccess] = useState('');
