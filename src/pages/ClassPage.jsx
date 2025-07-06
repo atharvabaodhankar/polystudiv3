@@ -171,16 +171,27 @@ const ClassPage = () => {
       <section className="mb-16 flex flex-col items-start bg-gradient-to-r from-[#f3e8ff] via-white to-white rounded-2xl p-8 shadow-lg border-l-8 border-[#9102C0]">
         <h1 className="text-5xl md:text-7xl font-bold text-[#9102C0] mb-2 tracking-tight uppercase drop-shadow-sm">{classCode}</h1>
         <div className="h-1 w-20 bg-[#9102C0] rounded"></div>
-        <div className="mt-6 w-full bg-[#f6e6ff] border border-[#9102C0] text-[#342F76] px-8 py-5 rounded-xl font-semibold shadow flex flex-col sm:flex-row sm:items-center gap-3">
-          <span className="text-base md:text-lg flex-1 text-[#342F76]">
-            <span className="font-bold text-[#9102C0]">Contribute to your class!</span> Share your notes, papers, or materials and help everyone succeed.
-          </span>
-          <button
-            className="px-6 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition text-base shadow-md"
-            onClick={() => navigate(`/class/${classCode}/request-material`)}
-          >
-            Contribute Now
-          </button>
+        <div className="mt-6 w-full flex">
+          <div className="relative bg-white/60 backdrop-blur-md rounded-2xl shadow-xl px-8 py-8 flex flex-col md:flex-row items-start justify-between gap-6 w-full max-w-4xl border border-white/30">
+            {/* Gradient Accent Bar */}
+            <div className="absolute left-0 top-6 bottom-6 w-1 bg-gradient-to-b from-[#9102C0] via-[#E040FB] to-[#342F76] rounded-full opacity-80 hidden md:block"></div>
+            {/* Icon */}
+            <div className="flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-[#9102C0] to-[#E040FB] shadow-md">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" /></svg>
+            </div>
+            {/* Text */}
+            <div className="flex-1 text-left">
+              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#9102C0] to-[#E040FB] bg-clip-text text-transparent mb-2">Contribute to your class!</h2>
+              <p className="text-[#342F76] text-base md:text-lg font-medium">Share your notes, papers, or materials and help everyone succeed.</p>
+            </div>
+            {/* Button */}
+            <button
+              className="px-8 py-3 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold shadow-lg hover:scale-105 transition-all duration-200 text-left"
+              onClick={() => navigate(`/class/${classCode}/request-material`)}
+            >
+              Contribute Now
+            </button>
+          </div>
         </div>
       </section>
       {/* Syllabus Table */}
