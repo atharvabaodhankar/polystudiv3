@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AdminSignup from './pages/AdminSignup';
 import MaterialRequest from './pages/MaterialRequest';
+import NotFound from './pages/NotFound';
 
 const App = () => {
   const navLogoRef = useRef();
@@ -33,6 +34,7 @@ const App = () => {
             <Route path="/class/:classCode/assignments" element={<Assignments />} />
             <Route path="/class/:classCode/extra" element={<ExtraMaterials />} />
             <Route path="/class/:classCode/request-material" element={<MaterialRequest />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
         <Footer />
