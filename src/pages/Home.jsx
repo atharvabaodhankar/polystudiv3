@@ -23,6 +23,7 @@ const Home = ({ navLogoRef }) => {
 
   useEffect(() => {
     if (preloaderVisible) {
+      window.scrollTo(0, 0); // Always scroll to top before animation
       // Logo fade/scale in
       gsap.fromTo(
         logoRef.current,
