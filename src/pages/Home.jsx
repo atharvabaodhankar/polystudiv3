@@ -340,8 +340,15 @@ const Home = ({ navLogoRef }) => {
                         {initial}
                       </span>
                     </div>
-                    {/* Contributor Name */}
-                    <h4 className="text-lg font-bold text-[#342F76] mb-1 group-hover:text-[#9102C0] transition-colors truncate" style={{ letterSpacing: 0.2 }}>{contributor.name}</h4>
+                    {/* Contributor Name with word wrap and fixed height */}
+                    <div className="w-full flex justify-center items-center min-h-[48px]">
+                      <span
+                        className="text-lg font-bold text-[#342F76] mb-1 group-hover:text-[#9102C0] transition-colors break-words text-center w-full"
+                        style={{ letterSpacing: 0.2 }}
+                      >
+                        {contributor.name}
+                      </span>
+                    </div>
                     {/* Divider */}
                     <div className="w-8 h-1 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#342F76] mx-auto mb-2 opacity-60" />
                     {/* Contribution Count */}
