@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import atharvaImg from '../assets/Atharva.jpg';
-import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane } from 'react-icons/fa';
+import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane, FaTrophy, FaUsers, FaStar } from 'react-icons/fa';
 import { supabase } from '../supabaseClient';
 import { gsap } from 'gsap';
 
@@ -12,6 +12,9 @@ const Home = ({ navLogoRef }) => {
   const [contactError, setContactError] = useState('');
   const [showAllCourses, setShowAllCourses] = useState(false);
   const [preloaderVisible, setPreloaderVisible] = useState(true);
+  const [contributors, setContributors] = useState([]);
+  const [topContributors, setTopContributors] = useState([]);
+  const [totalContributions, setTotalContributions] = useState(0);
   const preloaderRef = useRef();
   const logoRef = useRef();
   const ringRef = useRef();
@@ -83,6 +86,44 @@ const Home = ({ navLogoRef }) => {
       }
     }
   }, [location]);
+
+  // Fetch contributors data
+  useEffect(() => {
+    const fetchContributors = async () => {
+      try {
+        // Get all materials and count contributions per uploader
+        const { data: materials } = await supabase
+          .from('materials')
+          .select('uploader, type')
+          .not('uploader', 'is', null);
+
+        if (materials) {
+          // Count contributions per uploader
+          const contributorCounts = {};
+          materials.forEach(material => {
+            if (material.uploader) {
+              contributorCounts[material.uploader] = (contributorCounts[material.uploader] || 0) + 1;
+            }
+          });
+
+          // Convert to array and sort by contribution count
+          const contributorsArray = Object.entries(contributorCounts).map(([name, count]) => ({
+            name,
+            contributions: count,
+            type: count >= 10 ? 'gold' : count >= 5 ? 'silver' : 'bronze'
+          })).sort((a, b) => b.contributions - a.contributions);
+
+          setContributors(contributorsArray);
+          setTopContributors(contributorsArray.slice(0, 5)); // Top 5 contributors
+          setTotalContributions(materials.length);
+        }
+      } catch (error) {
+        console.error('Error fetching contributors:', error);
+      }
+    };
+
+    fetchContributors();
+  }, []);
 
   const handleContactSubmit = async (e) => {
     e.preventDefault();
@@ -235,7 +276,7 @@ const Home = ({ navLogoRef }) => {
                   <a href="https://www.instagram.com/op_athu_/" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#f3e8ff] text-[#9102C0] hover:bg-[#9102C0] hover:text-white transition-all" aria-label="Instagram"><FaInstagram className="text-2xl" /></a>
                   <a href="mailto:baodhankaratharva@gmail.com" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#f3e8ff] text-[#9102C0] hover:bg-[#9102C0] hover:text-white transition-all" aria-label="Email"><FaEnvelope className="text-2xl" /></a>
                 </div>
-                <a href="https://atharvabaodhankar.github.io/portfolio/" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-[#9102C0] to-[#342F76] text-white font-bold text-lg shadow hover:scale-105 hover:shadow-lg transition-all duration-200 border-2 border-[#9102C0]">View Portfolio</a>
+                <a href="https://atharvabaodhankar.github.io/portfolio/" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold hover:scale-105 transition-all duration-200  shadow-lg">View Portfolio</a>
               </div>
             </div>
           </div>
@@ -266,12 +307,134 @@ const Home = ({ navLogoRef }) => {
                 <textarea required className="peer w-full border border-[#e0cafd] rounded-lg px-4 pt-6 pb-2 font-poppins bg-transparent text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition resize-none min-h-[120px]" placeholder=" " name="message" id="contact-message" rows={4}></textarea>
                 <label htmlFor="contact-message" className="absolute left-4 top-2 text-[#9102C0] text-sm font-semibold pointer-events-none transition-all peer-placeholder-shown:top-5 peer-placeholder-shown:text-base peer-placeholder-shown:text-[#342F76]/60 peer-focus:top-2 peer-focus:text-[#9102C0] peer-focus:text-sm">Message</label>
               </div>
-              <button type="submit" className="w-full py-3 rounded-full bg-[#9102C0] text-white font-bold text-lg shadow-sm hover:scale-105 hover:shadow-md transition-all duration-150" disabled={contactLoading}>
+              <button type="submit" className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold hover:scale-105 transition-all duration-200  shadow-lg" disabled={contactLoading}>
                 {contactLoading ? 'Sending...' : 'Send Message'}
               </button>
               {contactSuccess && <div className="text-green-600 text-center font-semibold mt-2">{contactSuccess}</div>}
               {contactError && <div className="text-red-600 text-center font-semibold mt-2">{contactError}</div>}
             </form>
+          </div>
+        </div>
+      </section>
+      {/* Contributors Section */}
+      <section id="contributors" className="py-24 bg-white relative overflow-hidden">
+        {/* Decorative blurred gradient shapes */}
+        <div className="absolute -left-32 top-24 w-96 h-96 bg-gradient-to-br from-[#9102C0]/10 to-[#342F76]/0 rounded-full blur-3xl z-0" />
+        <div className="absolute right-0 top-1/3 w-80 h-80 bg-gradient-to-tr from-[#342F76]/10 via-[#9102C0]/10 to-[#f3e8ff]/20 rounded-full blur-2xl z-0 animate-pulse-slow" />
+        <div className="max-w-5xl mx-auto px-4 relative z-10">
+          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-2 pb-5 font-bold text-center">Our Amazing Contributors</h1>
+          <p className="text-[#342F76] text-lg mb-2 font-poppins text-center">Meet the students who are making PolyStudi better every day by sharing their knowledge and resources.</p>
+          <p className="text-[#9102C0] text-base mb-10 font-baumans italic text-center">Together we learn, together we grow.</p>
+          
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 group">
+              <div className="w-16 h-16 bg-[#9102C0] rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#342F76] transition-colors">
+                <FaUsers className="text-2xl text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#342F76] mb-2">{contributors.length}</h3>
+              <p className="text-[#9102C0] font-semibold">Active Contributors</p>
+            </div>
+            <div className="bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 group">
+              <div className="w-16 h-16 bg-[#342F76] rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#9102C0] transition-colors">
+                <FaStar className="text-2xl text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#342F76] mb-2">{totalContributions}</h3>
+              <p className="text-[#9102C0] font-semibold">Total Contributions</p>
+            </div>
+            <div className="bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 group">
+              <div className="w-16 h-16 bg-gradient-to-r from-[#9102C0] to-[#342F76] rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaTrophy className="text-2xl text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#342F76] mb-2">{topContributors.length > 0 ? topContributors[0]?.contributions || 0 : 0}</h3>
+              <p className="text-[#9102C0] font-semibold">Top Contributor</p>
+            </div>
+          </div>
+
+          {/* Top Contributors */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-baumans text-[#342F76] mb-6 text-center font-semibold">🏆 Top Contributors</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {topContributors.map((contributor, index) => (
+                <div key={contributor.name} className="relative bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group">
+                  {/* Rank Badge */}
+                  <div className={`absolute -top-3 -right-3 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ${
+                    index === 0 ? 'bg-gradient-to-r from-[#9102C0] to-[#E040FB]' :
+                    index === 1 ? 'bg-gradient-to-r from-[#342F76] to-[#9102C0]' :
+                    'bg-gradient-to-r from-[#9102C0] to-[#342F76]'
+                  }`}>
+                    #{index + 1}
+                  </div>
+                  
+                  {/* Contributor Type Badge */}
+                  <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white mb-4 ${
+                    contributor.type === 'gold' ? 'bg-gradient-to-r from-[#9102C0] to-[#E040FB]' :
+                    contributor.type === 'silver' ? 'bg-gradient-to-r from-[#342F76] to-[#9102C0]' :
+                    'bg-gradient-to-r from-[#9102C0] to-[#342F76]'
+                  }`}>
+                    {contributor.type === 'gold' ? '🥇 Gold' : contributor.type === 'silver' ? '🥈 Silver' : '🥉 Bronze'}
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-[#342F76] mb-2 group-hover:text-[#9102C0] transition-colors">
+                    {contributor.name}
+                  </h3>
+                  <p className="text-[#9102C0] font-semibold mb-2">
+                    {contributor.contributions} {contributor.contributions === 1 ? 'Contribution' : 'Contributions'}
+                  </p>
+                  <div className="w-full bg-[#f3e8ff] rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-500 ${
+                        contributor.type === 'gold' ? 'bg-gradient-to-r from-[#9102C0] to-[#E040FB]' :
+                        contributor.type === 'silver' ? 'bg-gradient-to-r from-[#342F76] to-[#9102C0]' :
+                        'bg-gradient-to-r from-[#9102C0] to-[#342F76]'
+                      }`}
+                      style={{ width: `${Math.min((contributor.contributions / (topContributors[0]?.contributions || 1)) * 100, 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* All Contributors Grid */}
+          {contributors.length > 5 && (
+            <div>
+              <h2 className="text-2xl font-baumans text-[#342F76] mb-6 text-center font-semibold">🌟 All Contributors</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {contributors.slice(5).map((contributor, index) => (
+                  <div key={contributor.name} className="bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 text-center group">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold mx-auto mb-2 ${
+                      contributor.type === 'gold' ? 'bg-gradient-to-r from-[#9102C0] to-[#E040FB]' :
+                      contributor.type === 'silver' ? 'bg-gradient-to-r from-[#342F76] to-[#9102C0]' :
+                      'bg-gradient-to-r from-[#9102C0] to-[#342F76]'
+                    }`}>
+                      {contributor.type === 'gold' ? '🥇' : contributor.type === 'silver' ? '🥈' : '🥉'}
+                    </div>
+                    <h4 className="text-sm font-semibold text-[#342F76] mb-1 group-hover:text-[#9102C0] transition-colors truncate">
+                      {contributor.name}
+                    </h4>
+                    <p className="text-xs text-[#9102C0] font-medium">
+                      {contributor.contributions} {contributor.contributions === 1 ? 'item' : 'items'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Call to Action */}
+          <div className="mt-12 text-center">
+            <div className="bg-white/80 backdrop-blur-2xl border-2 border-[#9102C0] text-[#342F76] px-8 py-6 rounded-2xl font-semibold shadow-lg">
+              <p className="text-lg mb-4">
+                <span className="font-bold text-[#9102C0]">Join our community!</span> Share your notes, papers, or materials and help your fellow students succeed.
+              </p>
+              <a 
+                href="#courses" 
+                className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold hover:scale-105 transition-all duration-200 shadow-lg"
+              >
+                Start Contributing
+              </a>
+            </div>
           </div>
         </div>
       </section>
