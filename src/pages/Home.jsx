@@ -15,6 +15,7 @@ const Home = ({ navLogoRef }) => {
   const [contributors, setContributors] = useState([]);
   const [topContributors, setTopContributors] = useState([]);
   const [totalContributions, setTotalContributions] = useState(0);
+  const [showAllContributors, setShowAllContributors] = useState(false);
   const preloaderRef = useRef();
   const logoRef = useRef();
   const ringRef = useRef();
@@ -326,101 +327,40 @@ const Home = ({ navLogoRef }) => {
           <p className="text-[#342F76] text-lg mb-2 font-poppins text-center">Meet the students who are making PolyStudi better every day by sharing their knowledge and resources.</p>
           <p className="text-[#9102C0] text-base mb-10 font-baumans italic text-center">Together we learn, together we grow.</p>
           
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 group">
-              <div className="w-16 h-16 bg-[#9102C0] rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#342F76] transition-colors">
-                <FaUsers className="text-2xl text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-[#342F76] mb-2">{contributors.length}</h3>
-              <p className="text-[#9102C0] font-semibold">Active Contributors</p>
-            </div>
-            <div className="bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 group">
-              <div className="w-16 h-16 bg-[#342F76] rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#9102C0] transition-colors">
-                <FaStar className="text-2xl text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-[#342F76] mb-2">{totalContributions}</h3>
-              <p className="text-[#9102C0] font-semibold">Total Contributions</p>
-            </div>
-            <div className="bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-2xl p-6 text-center shadow-lg hover:shadow-xl transition-all duration-300 group">
-              <div className="w-16 h-16 bg-gradient-to-r from-[#9102C0] to-[#342F76] rounded-full flex items-center justify-center mx-auto mb-4">
-                <FaTrophy className="text-2xl text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-[#342F76] mb-2">{topContributors.length > 0 ? topContributors[0]?.contributions || 0 : 0}</h3>
-              <p className="text-[#9102C0] font-semibold">Top Contributor</p>
-            </div>
-          </div>
-
-          {/* Top Contributors */}
+          {/* All Contributors Grid */}
           <div className="mb-12">
-            <h2 className="text-2xl font-baumans text-[#342F76] mb-6 text-center font-semibold">🏆 Top Contributors</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {topContributors.map((contributor, index) => (
-                <div key={contributor.name} className="relative bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 group">
-                  {/* Rank Badge */}
-                  <div className={`absolute -top-3 -right-3 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ${
-                    index === 0 ? 'bg-gradient-to-r from-[#9102C0] to-[#E040FB]' :
-                    index === 1 ? 'bg-gradient-to-r from-[#342F76] to-[#9102C0]' :
-                    'bg-gradient-to-r from-[#9102C0] to-[#342F76]'
-                  }`}>
-                    #{index + 1}
-                  </div>
-                  
-                  {/* Contributor Type Badge */}
-                  <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold text-white mb-4 ${
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {(showAllContributors ? contributors : contributors.slice(0, 5)).map((contributor, index) => (
+                <div key={contributor.name} className="bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 text-center group">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold mx-auto mb-2 ${
                     contributor.type === 'gold' ? 'bg-gradient-to-r from-[#9102C0] to-[#E040FB]' :
                     contributor.type === 'silver' ? 'bg-gradient-to-r from-[#342F76] to-[#9102C0]' :
                     'bg-gradient-to-r from-[#9102C0] to-[#342F76]'
                   }`}>
-                    {contributor.type === 'gold' ? '🥇 Gold' : contributor.type === 'silver' ? '🥈 Silver' : '🥉 Bronze'}
+                    {contributor.type === 'gold' ? '🥇' : contributor.type === 'silver' ? '🥈' : '🥉'}
                   </div>
-                  
-                  <h3 className="text-xl font-bold text-[#342F76] mb-2 group-hover:text-[#9102C0] transition-colors">
+                  <h4 className="text-sm font-semibold text-[#342F76] mb-1 group-hover:text-[#9102C0] transition-colors truncate">
                     {contributor.name}
-                  </h3>
-                  <p className="text-[#9102C0] font-semibold mb-2">
-                    {contributor.contributions} {contributor.contributions === 1 ? 'Contribution' : 'Contributions'}
+                  </h4>
+                  <p className="text-xs text-[#9102C0] font-medium">
+                    {contributor.contributions} {contributor.contributions === 1 ? 'contribution' : 'contributions'}
                   </p>
-                  <div className="w-full bg-[#f3e8ff] rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full transition-all duration-500 ${
-                        contributor.type === 'gold' ? 'bg-gradient-to-r from-[#9102C0] to-[#E040FB]' :
-                        contributor.type === 'silver' ? 'bg-gradient-to-r from-[#342F76] to-[#9102C0]' :
-                        'bg-gradient-to-r from-[#9102C0] to-[#342F76]'
-                      }`}
-                      style={{ width: `${Math.min((contributor.contributions / (topContributors[0]?.contributions || 1)) * 100, 100)}%` }}
-                    ></div>
-                  </div>
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* All Contributors Grid */}
-          {contributors.length > 5 && (
-            <div>
-              <h2 className="text-2xl font-baumans text-[#342F76] mb-6 text-center font-semibold">🌟 All Contributors</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {contributors.slice(5).map((contributor, index) => (
-                  <div key={contributor.name} className="bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 text-center group">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold mx-auto mb-2 ${
-                      contributor.type === 'gold' ? 'bg-gradient-to-r from-[#9102C0] to-[#E040FB]' :
-                      contributor.type === 'silver' ? 'bg-gradient-to-r from-[#342F76] to-[#9102C0]' :
-                      'bg-gradient-to-r from-[#9102C0] to-[#342F76]'
-                    }`}>
-                      {contributor.type === 'gold' ? '🥇' : contributor.type === 'silver' ? '🥈' : '🥉'}
-                    </div>
-                    <h4 className="text-sm font-semibold text-[#342F76] mb-1 group-hover:text-[#9102C0] transition-colors truncate">
-                      {contributor.name}
-                    </h4>
-                    <p className="text-xs text-[#9102C0] font-medium">
-                      {contributor.contributions} {contributor.contributions === 1 ? 'item' : 'items'}
-                    </p>
-                  </div>
-                ))}
+            
+            {/* Show All Button */}
+            {contributors.length > 5 && (
+              <div className="text-center mt-8">
+                <button
+                  onClick={() => setShowAllContributors(!showAllContributors)}
+                  className="px-8 py-3 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold hover:scale-105 transition-all duration-200 shadow-lg"
+                >
+                  {showAllContributors ? 'Show Less' : `Show All (${contributors.length - 5} more)`}
+                </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Call to Action */}
           <div className="mt-12 text-center">
