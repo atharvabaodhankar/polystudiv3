@@ -330,23 +330,27 @@ const Home = ({ navLogoRef }) => {
           {/* All Contributors Grid */}
           <div className="mb-12">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {(showAllContributors ? contributors : contributors.slice(0, 5)).map((contributor, index) => (
-                <div key={contributor.name} className="bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-xl p-4 shadow-md hover:shadow-lg transition-all duration-300 text-center group">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold mx-auto mb-2 ${
-                    contributor.type === 'gold' ? 'bg-gradient-to-r from-[#9102C0] to-[#E040FB]' :
-                    contributor.type === 'silver' ? 'bg-gradient-to-r from-[#342F76] to-[#9102C0]' :
-                    'bg-gradient-to-r from-[#9102C0] to-[#342F76]'
-                  }`}>
-                    {contributor.type === 'gold' ? '🥇' : contributor.type === 'silver' ? '🥈' : '🥉'}
+              {(showAllContributors ? contributors : contributors.slice(0, 5)).map((contributor, index) => {
+                const initial = contributor.name?.charAt(0)?.toUpperCase() || '?';
+                return (
+                  <div key={contributor.name} className="bg-white/60 backdrop-blur-xl border border-[#ede9fe] rounded-2xl p-7 shadow-md hover:shadow-lg transition-all duration-200 text-center group flex flex-col items-center relative overflow-hidden" style={{ minHeight: 160 }}>
+                    {/* Simple Avatar */}
+                    <div className="mb-4 flex items-center justify-center">
+                      <span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-[#f3e8ff] via-[#9102C0]/10 to-[#342F76]/10 shadow-sm text-3xl font-bold text-[#9102C0]">
+                        {initial}
+                      </span>
+                    </div>
+                    {/* Contributor Name */}
+                    <h4 className="text-lg font-bold text-[#342F76] mb-1 group-hover:text-[#9102C0] transition-colors truncate" style={{ letterSpacing: 0.2 }}>{contributor.name}</h4>
+                    {/* Divider */}
+                    <div className="w-8 h-1 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#342F76] mx-auto mb-2 opacity-60" />
+                    {/* Contribution Count */}
+                    <p className="text-base font-semibold text-[#9102C0] mb-0.5">
+                      {contributor.contributions} {contributor.contributions === 1 ? 'contribution' : 'contributions'}
+                    </p>
                   </div>
-                  <h4 className="text-sm font-semibold text-[#342F76] mb-1 group-hover:text-[#9102C0] transition-colors truncate">
-                    {contributor.name}
-                  </h4>
-                  <p className="text-xs text-[#9102C0] font-medium">
-                    {contributor.contributions} {contributor.contributions === 1 ? 'contribution' : 'contributions'}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
             
             {/* Show All Button */}
