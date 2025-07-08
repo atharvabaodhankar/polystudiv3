@@ -14,6 +14,7 @@ dist-ssr
 .env
 context.md
 polystudiv2
+gdrive-converter
 
 # Editor directories and files
 .vscode/*

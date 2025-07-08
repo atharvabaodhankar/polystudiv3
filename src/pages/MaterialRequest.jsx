@@ -9,10 +9,11 @@ const MaterialRequest = () => {
   const [title, setTitle] = useState('');
   const [selectedClass, setSelectedClass] = useState(classCode || '');
   const [selectedSubject, setSelectedSubject] = useState('');
-  const [fileUrl, setFileUrl] = useState('');
+  const [file, setFile] = useState(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [classes, setClasses] = useState([]);
@@ -40,27 +41,54 @@ const MaterialRequest = () => {
     setLoading(true);
     setError('');
     setSuccess('');
-    if (!title || !selectedClass || !selectedSubject || !name || !email) {
-      setError('Please fill in all required fields.');
+    if (!title || !selectedClass || !selectedSubject || !name || !email || !file) {
+      setError('Please fill in all required fields and select a file.');
       setLoading(false);
       return;
     }
-    const { error: reqError } = await supabase.from('material_requests').insert({
-      type,
-      title,
-      class_code: selectedClass,
-      subject_code: selectedSubject,
-      file_url: fileUrl,
-      uploader: name,
-      creator: email,
-      status: 'pending',
-    });
-    if (reqError) {
-      setError('Failed to submit request. Please try again.');
-    } else {
-      setShowSuccessModal(true);
+    if (file.size > 50 * 1024 * 1024) {
+      setError('File size must be under 50MB.');
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+    setUploading(true);
+    try {
+      // Upload file to backend
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch('http://localhost:3001/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to upload file to server.');
+      }
+      const data = await res.json();
+      const fileUrl = data.webViewLink || data.webContentLink;
+      if (!fileUrl) throw new Error('No public link returned from backend.');
+      // Store in Supabase
+      const { error: reqError } = await supabase.from('material_requests').insert({
+        type,
+        title,
+        class_code: selectedClass,
+        subject_code: selectedSubject,
+        file_url: fileUrl,
+        uploader: name,
+        creator: email,
+        status: 'pending',
+      });
+      if (reqError) {
+        setError('Failed to submit request. Please try again.');
+      } else {
+        setShowSuccessModal(true);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploading(false);
+      setLoading(false);
+    }
   };
 
   return (
@@ -102,13 +130,13 @@ const MaterialRequest = () => {
               <option key={s.subject_code} value={s.subject_code}>{s.subject_name} ({s.subject_code})</option>
             ))}
           </select>
-          <label className="font-semibold">File URL*</label>
-          <input type="text" value={fileUrl} onChange={e => setFileUrl(e.target.value)}  className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required/>
+          <label className="font-semibold">File*</label>
+          <input type="file" accept="*" onChange={e => setFile(e.target.files[0])} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
           <label className="font-semibold">Your Name*</label>
           <input type="text" value={name} onChange={e => setName(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
           <label className="font-semibold">Your Email*</label>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
-          <button type="submit" className="cursor-pointer w-full py-3 rounded-xl bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold text-lg mt-2 shadow-lg hover:scale-105 transition" disabled={loading}>{loading ? 'Submitting...' : 'Submit Request'}</button>
+          <button type="submit" className="cursor-pointer w-full py-3 rounded-xl bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold text-lg mt-2 shadow-lg hover:scale-105 transition" disabled={loading || uploading}>{uploading ? 'Uploading...' : loading ? 'Submitting...' : 'Submit Request'}</button>
           {error && <div className="text-red-600 text-center font-semibold">{error}</div>}
           {success && <div className="text-green-600 text-center font-semibold">{success}</div>}
         </form>
@@ -128,7 +156,7 @@ const MaterialRequest = () => {
                   setTitle('');
                   setSelectedClass(classCode || '');
                   setSelectedSubject('');
-                  setFileUrl('');
+                  setFile(null);
                   setName('');
                   setEmail('');
                   setError('');
