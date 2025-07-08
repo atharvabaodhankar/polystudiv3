@@ -79,7 +79,14 @@ async function setFilePublic(fileId) {
 
 app.post('/api/upload', upload.single('file'), async (req, res) => {
   try {
-    const fileId = await uploadFile(req.file.path, req.file.originalname, req.file.mimetype);
+    // Get title from form data
+    let fileName = req.file.originalname;
+    if (req.body && req.body.title) {
+      // Preserve original extension if present
+      const ext = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
+      fileName = req.body.title + ext;
+    }
+    const fileId = await uploadFile(req.file.path, fileName, req.file.mimetype);
     if (!fileId) {
       return res.status(500).json({ error: 'Failed to upload file to Google Drive.' });
     }
