@@ -6,7 +6,19 @@ const cors = require('cors');
 const fs = require('fs');
 
 const app = express();
-app.use(cors());
+
+// Allow both local dev and production frontend
+const prodOrigin = process.env.CORS_ORIGIN;
+let allowedOrigins;
+if (prodOrigin) {
+  allowedOrigins = [prodOrigin, 'http://localhost:5173'];
+} else {
+  allowedOrigins = '*';
+}
+
+app.use(cors({
+  origin: allowedOrigins,
+}));
 
 const upload = multer({ 
   dest: 'uploads/',
