@@ -131,7 +131,26 @@ const MaterialRequest = () => {
             ))}
           </select>
           <label className="font-semibold">File*</label>
-          <input type="file" accept="*" onChange={e => setFile(e.target.files[0])} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
+          <div className="relative flex items-center gap-3">
+            <input
+              id="material-file-input"
+              type="file"
+              accept="*"
+              onChange={e => setFile(e.target.files[0])}
+              className="hidden"
+              required
+            />
+            <label
+              htmlFor="material-file-input"
+              className="cursor-pointer px-6 py-2 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold shadow-lg hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#9102C0]"
+              tabIndex={0}
+            >
+              {file ? 'Change File' : 'Choose File'}
+            </label>
+            {file && (
+              <span className="text-[#342F76] font-medium truncate max-w-[180px]" title={file.name}>{file.name}</span>
+            )}
+          </div>
           <label className="font-semibold">Your Name*</label>
           <input type="text" value={name} onChange={e => setName(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
           <label className="font-semibold">Your Email*</label>
