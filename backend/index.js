@@ -38,6 +38,54 @@ const drive = google.drive({
   auth: oauth2Client,
 });
 
+// Helper: Find or create a folder by name under a parent
+async function getOrCreateFolder(name, parentId = null) {
+  // Search for folder
+  const q = [
+    `name = '${name.replace(/'/g, "\\'")}'`,
+    "mimeType = 'application/vnd.google-apps.folder'",
+    parentId ? `'${parentId}' in parents` : "'root' in parents"
+  ].join(' and ');
+  const res = await drive.files.list({
+    q,
+    fields: 'files(id, name)',
+    spaces: 'drive',
+  });
+  if (res.data.files && res.data.files.length > 0) {
+    return res.data.files[0].id;
+  }
+  // Create folder
+  const fileMetadata = {
+    name,
+    mimeType: 'application/vnd.google-apps.folder',
+    parents: parentId ? [parentId] : undefined,
+  };
+  const folder = await drive.files.create({
+    requestBody: fileMetadata,
+    fields: 'id',
+  });
+  return folder.data.id;
+}
+
+async function uploadFileToFolder(filePath, fileName, mimeType, classCode, type) {
+  // Find or create class folder
+  const classFolderId = await getOrCreateFolder(classCode);
+  // Find or create type subfolder
+  const typeFolderId = await getOrCreateFolder(type, classFolderId);
+  // Upload file to type subfolder
+  const response = await drive.files.create({
+    requestBody: {
+      name: fileName,
+      mimeType: mimeType,
+      parents: [typeFolderId],
+    },
+    media: {
+      body: fs.createReadStream(filePath),
+    },
+  });
+  return response.data.id;
+}
+
 async function uploadFile(filePath, fileName, mimeType) {
   try {
     const response = await drive.files.create({
@@ -79,14 +127,20 @@ async function setFilePublic(fileId) {
 
 app.post('/api/upload', upload.single('file'), async (req, res) => {
   try {
-    // Get title from form data
+    // Get title, class_code, and type from form data
     let fileName = req.file.originalname;
     if (req.body && req.body.title) {
-      // Preserve original extension if present
       const ext = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
       fileName = req.body.title + ext;
     }
-    const fileId = await uploadFile(req.file.path, fileName, req.file.mimetype);
+    const classCode = req.body.class_code;
+    const type = req.body.type;
+    let fileId;
+    if (classCode && type) {
+      fileId = await uploadFileToFolder(req.file.path, fileName, req.file.mimetype, classCode, type);
+    } else {
+      fileId = await uploadFile(req.file.path, fileName, req.file.mimetype);
+    }
     if (!fileId) {
       return res.status(500).json({ error: 'Failed to upload file to Google Drive.' });
     }

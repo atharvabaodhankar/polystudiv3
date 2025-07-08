@@ -57,6 +57,8 @@ const MaterialRequest = () => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('title', title);
+      formData.append('class_code', selectedClass);
+      formData.append('type', type);
       const res = await fetch('http://localhost:3001/api/upload', {
         method: 'POST',
         body: formData,
