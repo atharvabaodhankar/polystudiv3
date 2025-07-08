@@ -20,6 +20,7 @@ const MaterialRequest = () => {
   const [subjects, setSubjects] = useState([]);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -41,6 +42,7 @@ const MaterialRequest = () => {
     setLoading(true);
     setError('');
     setSuccess('');
+    setUploadProgress(0);
     if (!title || !selectedClass || !selectedSubject || !name || !email || !file) {
       setError('Please fill in all required fields and select a file.');
       setLoading(false);
@@ -53,21 +55,42 @@ const MaterialRequest = () => {
     }
     setUploading(true);
     try {
-      // Upload file to backend
+      // Upload file to backend with progress
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('title', title);
-      formData.append('class_code', selectedClass);
-      formData.append('type', type);
-      const res = await fetch('http://localhost:3001/api/upload', {
-        method: 'POST',
-        body: formData,
+      formData.append('title', title); // Send title for renaming
+      formData.append('class_code', selectedClass); // Send class code for folder
+      formData.append('type', type); // Send type for subfolder
+
+      // Use XMLHttpRequest for progress
+      const xhr = new window.XMLHttpRequest();
+      xhr.open('POST', 'http://localhost:3001/api/upload');
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          setUploadProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+      const uploadPromise = new Promise((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(xhr.responseText);
+          } else {
+            reject(xhr.responseText);
+          }
+        };
+        xhr.onerror = () => reject(xhr.responseText);
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
+      xhr.send(formData);
+      const responseText = await uploadPromise;
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch {
+        throw new Error('Invalid response from server.');
+      }
+      if (!xhr.status || xhr.status < 200 || xhr.status >= 300) {
         throw new Error(data.error || 'Failed to upload file to server.');
       }
-      const data = await res.json();
       const fileUrl = data.webViewLink || data.webContentLink;
       if (!fileUrl) throw new Error('No public link returned from backend.');
       // Store in Supabase
@@ -91,6 +114,7 @@ const MaterialRequest = () => {
     } finally {
       setUploading(false);
       setLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -159,6 +183,11 @@ const MaterialRequest = () => {
           <label className="font-semibold">Your Email*</label>
           <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
           <button type="submit" className="cursor-pointer w-full py-3 rounded-xl bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold text-lg mt-2 shadow-lg hover:scale-105 transition" disabled={loading || uploading}>{uploading ? 'Uploading...' : loading ? 'Submitting...' : 'Submit Request'}</button>
+          {uploading && (
+            <div className="flex justify-center mt-4">
+              <span className="inline-block w-10 h-10 border-4 border-[#9102C0] border-t-transparent border-b-[#E040FB] rounded-full animate-spin"></span>
+            </div>
+          )}
           {error && <div className="text-red-600 text-center font-semibold">{error}</div>}
           {success && <div className="text-green-600 text-center font-semibold">{success}</div>}
         </form>
