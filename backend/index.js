@@ -7,17 +7,20 @@ const fs = require('fs');
 
 const app = express();
 
-// Allow both local dev and production frontend
-const prodOrigin = process.env.CORS_ORIGIN;
-let allowedOrigins;
-if (prodOrigin) {
-  allowedOrigins = [prodOrigin, 'http://localhost:5173'];
-} else {
-  allowedOrigins = '*';
+// Multi-origin CORS support from env (comma-separated)
+let allowedOrigins = [];
+if (process.env.CORS_ORIGIN) {
+  allowedOrigins = process.env.CORS_ORIGIN.split(',').map(o => o.trim());
 }
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
 }));
 
 const upload = multer({ 
