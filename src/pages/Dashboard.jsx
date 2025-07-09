@@ -93,6 +93,26 @@ const Dashboard = () => {
         }
       }
     } else if (action === 'decline') {
+      // Get file_url before updating status
+      const { data: req } = await supabase.from('material_requests').select('file_url').eq('id', id).single();
+      if (req && req.file_url) {
+        try {
+          const API_URL = import.meta.env.VITE_API_URL;
+          const res = await fetch(`${API_URL}/api/delete-drive-file`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file_url: req.file_url }),
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || 'Failed to delete file from Google Drive.');
+          }
+        } catch (err) {
+          setActionLoading(null);
+          alert('Error deleting file from Google Drive: ' + err.message);
+          return;
+        }
+      }
       const { error } = await supabase.from('material_requests').update({ status: 'declined', reviewed_by: userId }).eq('id', id);
       if (!error) {
         setRequests((prev) => prev.filter((r) => r.id !== id));

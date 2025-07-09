@@ -125,6 +125,38 @@ async function setFilePublic(fileId) {
   }
 }
 
+// Helper: Extract Google Drive file ID from file_url
+function extractDriveFileId(fileUrl) {
+  // Handles URLs like https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+  // and https://drive.google.com/uc?id=FILE_ID&export=download
+  const fileIdMatch = fileUrl.match(/\/d\/([\w-]+)/) || fileUrl.match(/[?&]id=([\w-]+)/);
+  return fileIdMatch ? fileIdMatch[1] : null;
+}
+
+// Endpoint to delete a file from Google Drive by file_url
+app.post('/api/delete-drive-file', express.json(), async (req, res) => {
+  const { file_url } = req.body;
+  console.log('[DELETE] Received file_url:', file_url);
+  if (!file_url) {
+    console.log('[DELETE] file_url missing');
+    return res.status(400).json({ error: 'file_url is required' });
+  }
+  const fileId = extractDriveFileId(file_url);
+  console.log('[DELETE] Extracted fileId:', fileId);
+  if (!fileId) {
+    console.log('[DELETE] Could not extract fileId from file_url');
+    return res.status(400).json({ error: 'Invalid file_url, could not extract file ID' });
+  }
+  try {
+    await drive.files.delete({ fileId });
+    console.log('[DELETE] Successfully deleted file from Google Drive:', fileId);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('[DELETE] Error deleting file from Google Drive:', error.message);
+    res.status(500).json({ error: 'Failed to delete file from Google Drive.' });
+  }
+});
+
 app.post('/api/upload', upload.single('file'), async (req, res) => {
   try {
     // Get title, class_code, and type from form data

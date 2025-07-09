@@ -63,8 +63,9 @@ const MaterialRequest = () => {
       formData.append('type', type); // Send type for subfolder
 
       // Use XMLHttpRequest for progress
+      const API_URL = import.meta.env.VITE_API_URL;
       const xhr = new window.XMLHttpRequest();
-      xhr.open('POST', 'http://localhost:3001/api/upload');
+      xhr.open('POST', `${API_URL}/api/upload`);
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           setUploadProgress(Math.round((event.loaded / event.total) * 100));
