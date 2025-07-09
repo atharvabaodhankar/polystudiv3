@@ -21,6 +21,7 @@ const MaterialRequest = () => {
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [serverStarting, setServerStarting] = useState(false);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -54,7 +55,11 @@ const MaterialRequest = () => {
       return;
     }
     setUploading(true);
+    setServerStarting(false);
+    let serverTimeout;
     try {
+      // Show server starting message if upload takes >3s
+      serverTimeout = setTimeout(() => setServerStarting(true), 3000);
       // Upload file to backend with progress
       const formData = new FormData();
       formData.append('file', file);
@@ -113,9 +118,11 @@ const MaterialRequest = () => {
     } catch (err) {
       setError(err.message);
     } finally {
+      clearTimeout(serverTimeout);
       setUploading(false);
       setLoading(false);
       setUploadProgress(0);
+      setServerStarting(false);
     }
   };
 
@@ -162,11 +169,11 @@ const MaterialRequest = () => {
           <div className="relative flex items-center gap-3">
             <input
               id="material-file-input"
+              name="file"
               type="file"
               accept="*"
               onChange={e => setFile(e.target.files[0])}
               className="hidden"
-              required
             />
             <label
               htmlFor="material-file-input"
@@ -185,8 +192,11 @@ const MaterialRequest = () => {
           <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required />
           <button type="submit" className="cursor-pointer w-full py-3 rounded-xl bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold text-lg mt-2 shadow-lg hover:scale-105 transition" disabled={loading || uploading}>{uploading ? 'Uploading...' : loading ? 'Submitting...' : 'Submit Request'}</button>
           {uploading && (
-            <div className="flex justify-center mt-4">
+            <div className="flex flex-col items-center justify-center mt-4 gap-2">
               <span className="inline-block w-10 h-10 border-4 border-[#9102C0] border-t-transparent border-b-[#E040FB] rounded-full animate-spin"></span>
+              {serverStarting && (
+                <span className="text-[#9102C0] text-sm font-semibold mt-2 text-center">The server may be starting up. Please wait a few seconds...</span>
+              )}
             </div>
           )}
           {error && <div className="text-red-600 text-center font-semibold">{error}</div>}
