@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 
+const Modal = ({ open, onClose, children }) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full relative">
+        <button className="absolute top-3 right-3 text-2xl text-[#9102C0] font-bold" onClick={onClose}>&times;</button>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 const MaterialDeletion = () => {
   const [userRole, setUserRole] = useState(null);
   const [userBranch, setUserBranch] = useState(null);
@@ -10,6 +22,9 @@ const MaterialDeletion = () => {
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [modalMaterial, setModalMaterial] = useState(null);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -56,10 +71,15 @@ const MaterialDeletion = () => {
       });
   }, [selectedSection]);
 
-  const handleDelete = async (id) => {
-    const mat = materials.find(m => m.id === id);
-    if (!window.confirm('Are you sure you want to delete this material? This action cannot be undone.')) return;
-    setDeletingId(id);
+  const handleDeleteClick = (id) => {
+    setModalMaterial(materials.find(m => m.id === id));
+    setShowConfirmModal(true);
+  };
+
+  const handleDelete = async () => {
+    const mat = modalMaterial;
+    setDeletingId(mat.id);
+    setShowConfirmModal(false);
     // Delete from Google Drive first
     if (mat && mat.file_url) {
       try {
@@ -78,11 +98,13 @@ const MaterialDeletion = () => {
       }
     }
     // Delete from materials
-    await supabase.from('materials').delete().eq('id', id);
+    await supabase.from('materials').delete().eq('id', mat.id);
     // Optionally: delete from material_requests as well
     await supabase.from('material_requests').delete().eq('file_url', mat?.file_url);
-    setMaterials((prev) => prev.filter((m) => m.id !== id));
+    setMaterials((prev) => prev.filter((m) => m.id !== mat.id));
     setDeletingId(null);
+    setShowSuccessModal(true);
+    setModalMaterial(null);
   };
 
   if (authLoading) return <div className="max-w-5xl mx-auto py-12 px-4 text-lg text-[#342F76]">Checking authorization...</div>;
@@ -144,7 +166,7 @@ const MaterialDeletion = () => {
                             <button
                               className="px-4 py-1 rounded-full bg-red-600 text-white font-bold hover:bg-red-800 transition disabled:opacity-60"
                               disabled={deletingId === mat.id}
-                              onClick={() => handleDelete(mat.id)}
+                              onClick={() => handleDeleteClick(mat.id)}
                             >
                               {deletingId === mat.id ? 'Deleting...' : 'Delete'}
                             </button>
@@ -159,6 +181,23 @@ const MaterialDeletion = () => {
           )}
         </>
       )}
+      {/* Confirmation Modal */}
+      <Modal open={showConfirmModal} onClose={() => setShowConfirmModal(false)}>
+        <h2 className="text-2xl font-bold text-[#9102C0] mb-4">Confirm Deletion</h2>
+        <p className="mb-6 text-[#342F76]">Are you sure you want to delete <span className="font-bold">{modalMaterial?.title}</span>? This action cannot be undone.</p>
+        <div className="flex gap-4 justify-end">
+          <button className="px-6 py-2 rounded-full bg-gray-200 text-[#342F76] font-bold" onClick={() => setShowConfirmModal(false)}>Cancel</button>
+          <button className="px-6 py-2 rounded-full bg-red-600 text-white font-bold" onClick={handleDelete}>Delete</button>
+        </div>
+      </Modal>
+      {/* Success Modal */}
+      <Modal open={showSuccessModal} onClose={() => setShowSuccessModal(false)}>
+        <h2 className="text-2xl font-bold text-green-600 mb-4">Material Deleted</h2>
+        <p className="mb-6 text-[#342F76]">The material has been successfully deleted.</p>
+        <div className="flex justify-end">
+          <button className="px-6 py-2 rounded-full bg-[#9102C0] text-white font-bold" onClick={() => setShowSuccessModal(false)}>OK</button>
+        </div>
+      </Modal>
     </div>
   );
 };
