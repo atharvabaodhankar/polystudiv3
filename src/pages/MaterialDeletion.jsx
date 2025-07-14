@@ -46,12 +46,30 @@ const MaterialDeletion = () => {
   }, {});
 
   const handleDelete = async (id) => {
+    const mat = materials.find(m => m.id === id);
     if (!window.confirm('Are you sure you want to delete this material? This action cannot be undone.')) return;
     setDeletingId(id);
+    // Delete from Google Drive first
+    if (mat && mat.file_url) {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL;
+        const res = await fetch(`${API_URL}/api/delete-drive-file`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file_url: mat.file_url }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Failed to delete file from Google Drive.');
+        }
+      } catch (err) {
+        alert('Error deleting file from Google Drive: ' + err.message);
+      }
+    }
     // Delete from materials
     await supabase.from('materials').delete().eq('id', id);
     // Optionally: delete from material_requests as well
-    await supabase.from('material_requests').delete().eq('file_url', materials.find(m => m.id === id)?.file_url);
+    await supabase.from('material_requests').delete().eq('file_url', mat?.file_url);
     setMaterials((prev) => prev.filter((m) => m.id !== id));
     setDeletingId(null);
   };
