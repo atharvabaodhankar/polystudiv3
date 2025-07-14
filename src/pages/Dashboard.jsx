@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import MaterialDeletion from './MaterialDeletion';
 
 const Dashboard = () => {
   const [requests, setRequests] = useState([]);
@@ -276,8 +277,13 @@ const Dashboard = () => {
           )}
         </div>
       )}
-  </div>
-);
+      {/* Deletion Section for Admins */}
+      <div className="mt-16">
+        <h2 className="text-2xl font-baumans text-[#9102C0] mb-6">Delete Materials</h2>
+        <MaterialDeletion />
+      </div>
+    </div>
+  );
 };
 
 export default Dashboard; 
