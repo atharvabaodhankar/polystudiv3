@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AdminSignup from './pages/AdminSignup';
 import MaterialRequest from './pages/MaterialRequest';
+import MaterialDeletion from './pages/MaterialDeletion';
 import NotFound from './pages/NotFound';
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/admin-signup" element={<AdminSignup />} />
+            <Route path="/delete-materials" element={<MaterialDeletion />} />
             <Route path="/class/:classCode" element={<ClassPage />} />
             <Route path="/class/:classCode/solved" element={<SolvedPapers />} />
             <Route path="/class/:classCode/notes" element={<Notes />} />

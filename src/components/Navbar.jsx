@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 const Navbar = forwardRef((props, navLogoRef) => {
   const location = useLocation();
@@ -12,6 +13,20 @@ const Navbar = forwardRef((props, navLogoRef) => {
   const match = location.pathname.match(/^\/class\/([^\/]+)/);
   const classCode = match ? match[1] : null;
   const homeLink = classCode ? `/class/${classCode}` : '/';
+
+  const [userRole, setUserRole] = useState(null);
+  const [userBranch, setUserBranch] = useState(null);
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase.from('users').select('role, branch').eq('email', user.email).single();
+        setUserRole(data?.role);
+        setUserBranch(data?.branch);
+      }
+    };
+    fetchUserRole();
+  }, []);
 
   // Helper to navigate to home and scroll to section
   const handleNavSection = (sectionId) => (e) => {
@@ -86,7 +101,10 @@ const Navbar = forwardRef((props, navLogoRef) => {
         {adminDropdown && (
           <div className="absolute right-0 mt-2 w-44 bg-white border border-[#ede9fe] rounded-xl shadow-lg z-50 flex flex-col animate-fadeIn">
             <Link to="/login" onClick={() => { setAdminDropdown(false); setMobileMenuOpen(false); }} className="px-5 py-3 text-[#9102C0] font-semibold hover:bg-[#f3e8ff] rounded-t-xl transition">Admin Login</Link>
-            <Link to="/admin-signup" onClick={() => { setAdminDropdown(false); setMobileMenuOpen(false); }} className="px-5 py-3 text-[#342F76] font-semibold hover:bg-[#f3e8ff] rounded-b-xl transition">Admin Signup</Link>
+            <Link to="/admin-signup" onClick={() => { setAdminDropdown(false); setMobileMenuOpen(false); }} className="px-5 py-3 text-[#342F76] font-semibold hover:bg-[#f3e8ff] transition">Admin Signup</Link>
+            {userRole && (userRole === 'admin' || userRole === 'superadmin') && (
+              <Link to="/delete-materials" onClick={() => { setAdminDropdown(false); setMobileMenuOpen(false); }} className="px-5 py-3 text-red-600 font-semibold hover:bg-[#f3e8ff] rounded-b-xl transition">Delete Materials</Link>
+            )}
           </div>
         )}
       </li>
