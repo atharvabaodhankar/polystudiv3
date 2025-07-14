@@ -5,6 +5,8 @@ const MaterialDeletion = () => {
   const [userRole, setUserRole] = useState(null);
   const [userBranch, setUserBranch] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [sections, setSections] = useState([]); // all available class_code
+  const [selectedSection, setSelectedSection] = useState(null);
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
@@ -23,27 +25,36 @@ const MaterialDeletion = () => {
     fetchUserRole();
   }, []);
 
+  // Fetch all available sections for this department
   useEffect(() => {
     if (!userRole || !userBranch) return;
     if (userRole !== 'admin' && userRole !== 'superadmin') return;
-    const fetchMaterials = async () => {
+    const fetchSections = async () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('materials')
-        .select('*')
+        .select('class_code')
         .like('class_code', `${userBranch}%`);
-      setMaterials(data || []);
+      const uniqueSections = Array.from(new Set((data || []).map(m => m.class_code))).sort();
+      setSections(uniqueSections);
       setLoading(false);
     };
-    fetchMaterials();
+    fetchSections();
   }, [userRole, userBranch]);
 
-  // Group materials by section (class_code)
-  const grouped = materials.reduce((acc, mat) => {
-    if (!acc[mat.class_code]) acc[mat.class_code] = [];
-    acc[mat.class_code].push(mat);
-    return acc;
-  }, {});
+  // Fetch materials for the selected section
+  useEffect(() => {
+    if (!selectedSection) return;
+    setLoading(true);
+    supabase
+      .from('materials')
+      .select('*')
+      .eq('class_code', selectedSection)
+      .then(({ data }) => {
+        setMaterials(data || []);
+        setLoading(false);
+      });
+  }, [selectedSection]);
 
   const handleDelete = async (id) => {
     const mat = materials.find(m => m.id === id);
@@ -83,51 +94,70 @@ const MaterialDeletion = () => {
     <div className="max-w-5xl mx-auto py-12 px-4">
       <h1 className="text-3xl font-baumans text-[#9102C0] mb-8">Delete Materials ({userBranch} Dept)</h1>
       {loading ? (
-        <div className="text-lg text-[#342F76]">Loading materials...</div>
-      ) : Object.keys(grouped).length === 0 ? (
-        <div className="text-[#342F76]">No materials found for your department.</div>
+        <div className="text-lg text-[#342F76]">Loading...</div>
+      ) : sections.length === 0 ? (
+        <div className="text-[#342F76]">No sections found for your department.</div>
       ) : (
-        Object.entries(grouped).sort().map(([section, mats]) => (
-          <div key={section} className="mb-12">
-            <h2 className="text-2xl font-baumans text-[#342F76] mb-4">Section: {section}</h2>
-            <div className="overflow-x-auto rounded-xl shadow border border-[#ede9fe] bg-white mb-6">
-              <table className="min-w-full text-left text-sm font-poppins">
-                <thead className="bg-[#9102C0] text-white">
-                  <tr>
-                    <th className="py-3 px-4">Title</th>
-                    <th className="py-3 px-4">Type</th>
-                    <th className="py-3 px-4">Uploader</th>
-                    <th className="py-3 px-4">Subject</th>
-                    <th className="py-3 px-4">File</th>
-                    <th className="py-3 px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mats.map((mat) => (
-                    <tr key={mat.id} className="border-b hover:bg-[#f3e8ff]/40 transition">
-                      <td className="py-2 px-4 font-semibold text-[#342F76]">{mat.title}</td>
-                      <td className="py-2 px-4 text-[#9102C0]">{mat.type}</td>
-                      <td className="py-2 px-4">{mat.uploader}</td>
-                      <td className="py-2 px-4">{mat.subject_code}</td>
-                      <td className="py-2 px-4">
-                        <a href={mat.file_url} target="_blank" rel="noopener noreferrer" className="text-[#9102C0] underline font-semibold">View</a>
-                      </td>
-                      <td className="py-2 px-4">
-                        <button
-                          className="px-4 py-1 rounded-full bg-red-600 text-white font-bold hover:bg-red-800 transition disabled:opacity-60"
-                          disabled={deletingId === mat.id}
-                          onClick={() => handleDelete(mat.id)}
-                        >
-                          {deletingId === mat.id ? 'Deleting...' : 'Delete'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <>
+          <div className="mb-8 flex flex-wrap gap-4">
+            {sections.map(section => (
+              <button
+                key={section}
+                className={`px-6 py-2 rounded-full font-bold border ${selectedSection === section ? 'bg-[#9102C0] text-white border-[#9102C0]' : 'bg-white text-[#9102C0] border-[#9102C0]'} transition`}
+                onClick={() => setSelectedSection(section)}
+              >
+                {section}
+              </button>
+            ))}
           </div>
-        ))
+          {selectedSection && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-baumans text-[#342F76] mb-4">Section: {selectedSection}</h2>
+              {loading ? (
+                <div className="text-lg text-[#342F76]">Loading materials...</div>
+              ) : materials.length === 0 ? (
+                <div className="text-[#342F76]">No materials found for this section.</div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl shadow border border-[#ede9fe] bg-white mb-6">
+                  <table className="min-w-full text-left text-sm font-poppins">
+                    <thead className="bg-[#9102C0] text-white">
+                      <tr>
+                        <th className="py-3 px-4">Title</th>
+                        <th className="py-3 px-4">Type</th>
+                        <th className="py-3 px-4">Uploader</th>
+                        <th className="py-3 px-4">Subject</th>
+                        <th className="py-3 px-4">File</th>
+                        <th className="py-3 px-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {materials.map((mat) => (
+                        <tr key={mat.id} className="border-b hover:bg-[#f3e8ff]/40 transition">
+                          <td className="py-2 px-4 font-semibold text-[#342F76]">{mat.title}</td>
+                          <td className="py-2 px-4 text-[#9102C0]">{mat.type}</td>
+                          <td className="py-2 px-4">{mat.uploader}</td>
+                          <td className="py-2 px-4">{mat.subject_code}</td>
+                          <td className="py-2 px-4">
+                            <a href={mat.file_url} target="_blank" rel="noopener noreferrer" className="text-[#9102C0] underline font-semibold">View</a>
+                          </td>
+                          <td className="py-2 px-4">
+                            <button
+                              className="px-4 py-1 rounded-full bg-red-600 text-white font-bold hover:bg-red-800 transition disabled:opacity-60"
+                              disabled={deletingId === mat.id}
+                              onClick={() => handleDelete(mat.id)}
+                            >
+                              {deletingId === mat.id ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
