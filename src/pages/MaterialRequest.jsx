@@ -24,6 +24,10 @@ const MaterialRequest = () => {
   const [serverStarting, setServerStarting] = useState(false);
 
   useEffect(() => {
+    // Ping backend to trigger spin-up
+    const API_URL = import.meta.env.VITE_API_URL;
+    fetch(`${API_URL}/health`).catch(() => {});
+    // Fetch options as before
     const fetchOptions = async () => {
       setOptionsLoading(true);
       const { data: classData } = await supabase.from('classes').select('code, name');

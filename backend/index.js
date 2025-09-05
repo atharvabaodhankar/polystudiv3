@@ -87,7 +87,12 @@ async function uploadFileToFolder(filePath, fileName, mimeType, classCode, type)
     },
   });
   return response.data.id;
+
+// Health check endpoint for backend spin-up
 }
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 async function uploadFile(filePath, fileName, mimeType) {
   try {
