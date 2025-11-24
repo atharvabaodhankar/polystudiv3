@@ -205,7 +205,7 @@ const Home = ({ navLogoRef }) => {
           <p className="text-[#9102C0] text-base mb-10 font-baumans italic">Empowering Polytechnic Students, One Click at a Time.</p>
           {/* Computer Technology (CM) always visible */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-8">
-            {Array.from({ length: 5 }, (_, i) => ({
+            {Array.from({ length: 6 }, (_, i) => ({
               code: `CM${i + 1}K`,
               label: `CM ${i + 1} K`,
               icon: <svg className="w-7 h-7 text-[#9102C0]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>,
