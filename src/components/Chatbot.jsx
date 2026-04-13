@@ -84,7 +84,7 @@ const Chatbot = () => {
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-t-2xl">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🤖</span>
+            <img src="/polybot.png" alt="PolyBot" className="w-8 h-8 rounded-full object-cover" />
             <div>
               <p className="text-white font-semibold text-sm leading-none">PolyBot</p>
               <p className="text-purple-200 text-xs">PolyStudi Assistant</p>
@@ -94,7 +94,7 @@ const Chatbot = () => {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
           {messages.map((msg, i) => (
             <div key={i}>
               {msg.role === 'user' && (
@@ -104,7 +104,7 @@ const Chatbot = () => {
               )}
               {msg.role === 'bot' && (
                 <div className="flex items-start gap-2">
-                  <span className="text-lg mt-0.5 shrink-0">🤖</span>
+                  <img src="/polybot.png" alt="PolyBot" className="w-6 h-6 rounded-full object-cover mt-0.5 shrink-0" />
                   <div className="max-w-[85%] flex flex-col gap-2">
                     <div className="bg-gray-100 text-gray-800 text-sm rounded-2xl rounded-bl-sm px-4 py-2 whitespace-pre-line">{msg.content}</div>
                     {msg.materials && msg.materials.map((mat, mi) => (
@@ -134,7 +134,7 @@ const Chatbot = () => {
           ))}
           {loading && (
             <div className="flex items-start gap-2">
-              <span className="text-lg mt-0.5 shrink-0">🤖</span>
+              <img src="/polybot.png" alt="PolyBot" className="w-6 h-6 rounded-full object-cover mt-0.5 shrink-0" />
               <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-3 py-1"><TypingDots /></div>
             </div>
           )}
@@ -171,10 +171,13 @@ const Chatbot = () => {
       {/* Toggle Button */}
       <button onClick={() => setIsOpen(o => !o)}
         className={`fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full
-          bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-2xl shadow-lg
+          bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg overflow-hidden
           flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200
           ${!isOpen ? 'animate-bounce' : ''}`}>
-        {isOpen ? '✕' : '🤖'}
+        {isOpen
+          ? <span className="text-white text-2xl">✕</span>
+          : <img src="/polybot.png" alt="PolyBot" className="w-full h-full object-cover" />
+        }
       </button>
     </>
   );
