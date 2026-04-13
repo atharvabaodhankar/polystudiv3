@@ -23,7 +23,10 @@ const TypingDots = () => (
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'bot', content: "Hi! I'm PolyBot 🤖\nAsk me to find notes, solved papers, navigate to a page, or anything about PolyStudi!" },
+    {
+      role: 'bot',
+      content: `👋 Hey there! I'm PolyBot, your PolyStudi assistant.\n\nHere's what I can do for you:\n📚 Find notes, solved papers & assignments\n🔍 Search by subject name (e.g. "DBMS notes", "Java solved papers")\n🧭 Navigate to any class or section\n❓ Answer questions about PolyStudi\n\nJust type your question or pick one below!`,
+    },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
