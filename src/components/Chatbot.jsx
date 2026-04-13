@@ -31,6 +31,7 @@ const Chatbot = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [showChips, setShowChips] = useState(true);
+  const [showTooltip, setShowTooltip] = useState(true);
   const [history, setHistory] = useState([]);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -172,16 +173,23 @@ const Chatbot = () => {
       </div>
 
       {/* Toggle Button */}
-      <button onClick={() => setIsOpen(o => !o)}
-        className={`fixed bottom-6 right-4 sm:right-6 z-50 w-14 h-14 rounded-full
-          bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg overflow-hidden
-          flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200
-          ${!isOpen ? 'animate-bounce' : ''}`}>
-        {isOpen
-          ? <span className="text-white text-2xl">✕</span>
-          : <img src="/polybot.png" alt="PolyBot" className="w-full h-full object-cover" />
-        }
-      </button>
+      <div className="fixed bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end gap-2">
+        {!isOpen && showTooltip && (
+          <div className="relative bg-white text-[#342F76] text-xs font-medium px-3 py-2 rounded-xl shadow-lg border border-purple-100 whitespace-nowrap">
+            👋 Hi! Need help finding notes?
+            <div className="absolute bottom-[-6px] right-5 w-3 h-3 bg-white border-r border-b border-purple-100 rotate-45" />
+          </div>
+        )}
+        <button onClick={() => { setIsOpen(o => !o); setShowTooltip(false); }}
+          className={`w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg overflow-hidden
+            flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200
+            ${!isOpen ? 'animate-bounce' : ''}`}>
+          {isOpen
+            ? <span className="text-white text-2xl">✕</span>
+            : <img src="/polybot.png" alt="PolyBot" className="w-full h-full object-cover" />
+          }
+        </button>
+      </div>
     </>
   );
 };
