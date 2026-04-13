@@ -58,8 +58,8 @@ const Chatbot = () => {
       const json = await res.json();
       if (!json.success) throw new Error(json.error);
 
-      const { reply, navigateTo } = json.data;
-      setMessages(prev => [...prev, { role: 'bot', content: reply }]);
+      const { reply, navigateTo, materials } = json.data;
+      setMessages(prev => [...prev, { role: 'bot', content: reply, materials: materials?.length ? materials : null }]);
       setHistory(prev => [...prev, { role: 'user', content: userText }, { role: 'assistant', content: reply }]);
 
       if (navigateTo) {
@@ -105,7 +105,24 @@ const Chatbot = () => {
               {msg.role === 'bot' && (
                 <div className="flex items-start gap-2">
                   <span className="text-lg mt-0.5 shrink-0">🤖</span>
-                  <div className="max-w-[85%] bg-gray-100 text-gray-800 text-sm rounded-2xl rounded-bl-sm px-4 py-2 whitespace-pre-line">{msg.content}</div>
+                  <div className="max-w-[85%] flex flex-col gap-2">
+                    <div className="bg-gray-100 text-gray-800 text-sm rounded-2xl rounded-bl-sm px-4 py-2 whitespace-pre-line">{msg.content}</div>
+                    {msg.materials && msg.materials.map((mat, mi) => (
+                      <div key={mi} className="bg-white border border-purple-100 rounded-xl px-3 py-2 flex items-center justify-between gap-2 shadow-sm">
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-semibold text-[#342F76] truncate">{mat.title}</span>
+                          <span className="text-[10px] text-gray-400">by {mat.uploader || 'Unknown'}</span>
+                        </div>
+                        <a href={mat.file_url} target="_blank" rel="noopener noreferrer"
+                          className="shrink-0 flex items-center gap-1 px-3 py-1 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-semibold hover:opacity-90 transition">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3 h-3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4m-8 8h8" />
+                          </svg>
+                          Open
+                        </a>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
               {msg.role === 'nav' && (
