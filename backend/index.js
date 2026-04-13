@@ -214,6 +214,15 @@ const supabaseAdmin = createClient(
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
+// Round-robin key rotation
+const GROQ_KEYS = (process.env.GROQ_API_KEY || '').split(',').map(k => k.trim()).filter(Boolean);
+let groqKeyIndex = 0;
+const nextGroqKey = () => {
+  const key = GROQ_KEYS[groqKeyIndex % GROQ_KEYS.length];
+  groqKeyIndex++;
+  return key;
+};
+
 const CLASSIFIER_PROMPT = `
 You are an intent classifier for PolyStudi, an academic resource hub.
 Return ONLY valid JSON — no markdown, no explanation.
@@ -266,7 +275,7 @@ async function callGroq(messages, maxTokens = 1024, temperature = 0.4) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+      'Authorization': `Bearer ${nextGroqKey()}`,
     },
     body: JSON.stringify({ model: GROQ_MODEL, messages, max_tokens: maxTokens, temperature }),
   });
