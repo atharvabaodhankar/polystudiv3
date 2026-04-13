@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import Chatbot from './components/Chatbot';
 import Home from './pages/Home';
 import ClassPage from './pages/ClassPage';
 import SolvedPapers from './pages/SolvedPapers';
@@ -39,6 +40,7 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
+        <Chatbot />
         <Footer />
       </div>
     </Router>
