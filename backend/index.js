@@ -285,16 +285,54 @@ async function classifyIntent(userMessage) {
   }
 }
 
+// Call 2: Given real subjects from DB, resolve user's fuzzy query to actual subject_codes
+async function resolveSubjectCodes(subjectQuery, classCode) {
+  if (!subjectQuery) return null;
+  try {
+    // Fetch all subjects (scoped to class if known)
+    let q = supabaseAdmin.from('subjects').select('subject_name, subject_code');
+    if (classCode) q = q.eq('class_code', classCode);
+    const { data: subjects } = await q;
+    if (!subjects || subjects.length === 0) return null;
+
+    const subjectList = subjects.map(s => `${s.subject_name} (${s.subject_code})`).join(', ');
+    const resolverPrompt = `You are a subject name resolver for a polytechnic academic platform.
+Given a user's query and a list of real subjects, return ONLY a JSON array of matching subject_codes.
+Be smart: "C programming" → "PIC", "MAD" → "Mobile App Development", "Java" → any Java subject, etc.
+If nothing matches, return [].
+Return ONLY valid JSON array, no explanation.
+
+Real subjects: ${subjectList}
+User query: "${subjectQuery}"`;
+
+    const raw = await callGroq(
+      [{ role: 'user', content: resolverPrompt }],
+      128, 0.1
+    );
+    const codes = JSON.parse(raw.replace(/```json|```/g, '').trim());
+    return Array.isArray(codes) && codes.length > 0 ? codes : null;
+  } catch (err) {
+    console.error('[Chatbot] Subject resolve error:', err.message);
+    return null;
+  }
+}
+
 async function fetchDBContext(intent, classCode, subjectQuery) {
   const results = {};
   try {
+    // Resolve fuzzy subject query to real subject_codes via AI (Call 2)
+    const resolvedCodes = await resolveSubjectCodes(subjectQuery, classCode);
+
     const materialQuery = async (type) => {
       let q = supabaseAdmin.from('materials')
         .select('title, subject_code, uploader, file_url, created_at')
         .eq('type', type).limit(10);
       if (classCode) q = q.eq('class_code', classCode);
-      if (subjectQuery) {
-        q = q.or(`title.ilike.%${subjectQuery}%,subject_code.ilike.%${subjectQuery}%`);
+      if (resolvedCodes) {
+        q = q.in('subject_code', resolvedCodes);
+      } else if (subjectQuery) {
+        // fallback: loose title match
+        q = q.ilike('title', `%${subjectQuery}%`);
       }
       const { data } = await q;
       return data || [];
@@ -309,14 +347,16 @@ async function fetchDBContext(intent, classCode, subjectQuery) {
       let q = supabaseAdmin.from('subjects')
         .select('subject_name, subject_code, total_marks, syllabus_pdf');
       if (classCode) q = q.eq('class_code', classCode);
-      if (subjectQuery) q = q.ilike('subject_name', `%${subjectQuery}%`);
+      if (resolvedCodes) q = q.in('subject_code', resolvedCodes);
+      else if (subjectQuery) q = q.ilike('subject_name', `%${subjectQuery}%`);
       const { data } = await q;
       results.subjects = data || [];
     } else if (intent === 'general' && subjectQuery) {
-      const { data } = await supabaseAdmin.from('materials')
-        .select('title, class_code, type, subject_code, file_url')
-        .or(`title.ilike.%${subjectQuery}%,subject_code.ilike.%${subjectQuery}%`)
-        .limit(8);
+      let q = supabaseAdmin.from('materials')
+        .select('title, class_code, type, subject_code, file_url').limit(8);
+      if (resolvedCodes) q = q.in('subject_code', resolvedCodes);
+      else q = q.ilike('title', `%${subjectQuery}%`);
+      const { data } = await q;
       results.generalSearch = data || [];
     }
   } catch (err) {
@@ -330,12 +370,18 @@ app.post('/api/chat', express.json(), async (req, res) => {
   if (!message || typeof message !== 'string')
     return res.status(400).json({ success: false, error: 'message is required' });
 
+  // Intents that need subject resolution + DB fetch
+  const NEEDS_DB = ['search_notes','search_solved','search_assignments','search_extra','search_question_papers','subject_info','general'];
+
   try {
     const { intent, classCode, subjectQuery, navigateTo } = await classifyIntent(message);
-    const dbData = await fetchDBContext(intent, classCode, subjectQuery);
-    const dbContext = Object.keys(dbData).length
-      ? JSON.stringify(dbData, null, 2)
-      : 'No specific DB data available.';
+
+    let dbContext = 'No specific DB data available.';
+    if (NEEDS_DB.includes(intent)) {
+      const dbData = await fetchDBContext(intent, classCode, subjectQuery);
+      if (Object.keys(dbData).length)
+        dbContext = JSON.stringify(dbData, null, 2);
+    }
 
     const messages = [
       { role: 'system', content: BOT_SYSTEM_PROMPT + `\n\n## Live DB Results\n\`\`\`json\n${dbContext}\n\`\`\`` },
