@@ -1,70 +1,97 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
-
-const dummyNotes = [
-  { title: 'MIC UT2 QNAs', uploader: 'Shubham Masali', url: '#', date: '2024-01-05' },
-  { title: 'JPR Important Qs', uploader: 'Atharva', url: '#', date: '2024-01-07' },
-  { title: 'OS Short Notes', uploader: 'Priya', url: '#', date: '2024-01-09' },
-  { title: 'DSA Cheat Sheet', uploader: 'Rahul', url: '#', date: '2024-01-11' },
-  { title: 'Microprocessor Lab Manual', uploader: 'Faculty', url: '#', date: '2024-01-13' },
-  { title: 'Java Programs Collection', uploader: 'Student', url: '#', date: '2024-01-15' },
-  { title: 'Data Structures Diagrams', uploader: 'Library', url: '#', date: '2024-01-17' },
-  { title: 'OS Previous Year Qs', uploader: 'Priya', url: '#', date: '2024-01-19' },
-  { title: 'JPR Viva Questions', uploader: 'Atharva', url: '#', date: '2024-01-21' },
-];
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 const Notes = () => {
   const { classCode } = useParams();
+  const navigate = useNavigate();
+  const [notes, setNotes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    document.title = `PolyStudi || ${classCode} Notes`;
+    const fetchNotes = async () => {
+      const { data, error } = await supabase
+        .from('materials')
+        .select('*')
+        .eq('class_code', classCode)
+        .eq('type', 'note')
+        .order('created_at', { ascending: false });
+      if (!error) setNotes(data || []);
+      setLoading(false);
+    };
+    fetchNotes();
+  }, [classCode]);
+
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
-      <h1 className="text-4xl font-baumans text-[#9102C0] mb-8 text-center drop-shadow">Notes for <span className="text-[#342F76]">{classCode}</span></h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-        {dummyNotes.map((note, i) => (
-          <div
-            key={i}
-            className="relative rounded-3xl shadow-2xl p-0 flex flex-col min-h-[320px] overflow-hidden group"
-            style={{
-              background: 'rgba(255,255,255,0.7)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: '1.5px solid #e0d7f7',
-              transform: i % 2 === 0 ? 'rotate(-1.5deg)' : 'rotate(1.5deg)'
-            }}
-          >
-            {/* Vertical Ribbon */}
-            <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-[#9102C0] to-[#342F76] rounded-tr-2xl rounded-br-2xl shadow-md"></div>
-            {/* Note Icon */}
-            <div className="flex justify-center items-center pt-6 pb-2">
-              <span className="text-5xl drop-shadow-sm">📝</span>
-            </div>
-            {/* Date Badge */}
-            <div className="flex justify-center">
-              <span className="inline-block px-3 py-1 text-xs rounded-full bg-[#342F76]/90 text-white font-bold w-fit mb-2 shadow">{note.date}</span>
-            </div>
-            {/* Title */}
-            <h3 className="text-lg font-extrabold text-center text-[#342F76] group-hover:text-[#9102C0] transition mb-1 px-4 line-clamp-2 font-baumans">{note.title}</h3>
-            {/* Uploader */}
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <span className="text-xs text-[#9102C0] font-semibold">By {note.uploader}</span>
-            </div>
-            {/* Download Button */}
-            <div className="mt-auto w-full flex justify-center pb-6">
-              <a
-                href={note.url}
-                className="w-11/12 bg-gradient-to-r from-[#9102C0] to-[#342F76] hover:from-[#342F76] hover:to-[#9102C0] text-white py-3 rounded-full shadow-lg transition-all duration-200 font-bold text-center flex items-center justify-center gap-2 text-base"
-                title="Download Note"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4m-8 8h8" />
-                </svg>
-                Download
-              </a>
-            </div>
-          </div>
-        ))}
+      <h1 className="text-4xl font-baumans text-[#9102C0] mb-2 text-center drop-shadow">
+        Notes — <span className="text-[#342F76]">{classCode}</span>
+      </h1>
+      <p className="text-center text-gray-500 mb-8 text-sm">All approved notes for this class</p>
+
+      <div className="flex justify-center mb-8">
+        <button
+          onClick={() => navigate(`/class/${classCode}/request-material`)}
+          className="px-6 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
+        >
+          + Contribute a Note
+        </button>
       </div>
+
+      {loading ? (
+        <div className="flex justify-center items-center py-24">
+          <div className="w-10 h-10 border-4 border-[#9102C0] border-t-transparent rounded-full animate-spin" />
+        </div>
+      ) : notes.length === 0 ? (
+        <div className="text-center py-24 text-[#342F76] text-lg font-poppins">
+          No notes found for {classCode} yet.{' '}
+          <button
+            onClick={() => navigate(`/class/${classCode}/request-material`)}
+            className="text-[#9102C0] font-bold underline hover:text-[#342F76]"
+          >
+            Be the first to contribute!
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+          {notes.map((note) => (
+            <div
+              key={note.id}
+              className="relative bg-white/80 rounded-2xl shadow-md p-6 flex flex-col min-h-[240px] border border-[#ede9fe] hover:shadow-lg transition-all duration-200 group"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f3e8ff] text-2xl text-[#9102C0] shadow-sm mr-2">
+                  📝
+                </span>
+                <span className="text-xs text-[#342F76] font-semibold">
+                  {note.created_at ? new Date(note.created_at).toLocaleDateString() : ''}
+                </span>
+              </div>
+              <h3 className="text-lg font-bold text-[#342F76] mb-2 line-clamp-2 font-baumans">{note.title}</h3>
+              {note.subject_code && (
+                <span className="text-xs text-gray-400 mb-1">Subject: {note.subject_code}</span>
+              )}
+              <div className="text-sm text-[#9102C0] font-medium mb-4">By {note.uploader || 'Unknown'}</div>
+              <div className="mt-auto">
+                <a
+                  href={note.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[#9102C0] text-[#9102C0] hover:bg-[#9102C0] hover:text-white font-semibold transition-all duration-200 shadow-sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4m-8 8h8" />
+                  </svg>
+                  Download
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
-export default Notes; 
+export default Notes;
