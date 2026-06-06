@@ -64,17 +64,20 @@ const MaterialRequest = () => {
     try {
       // Show server starting message if upload takes >3s
       serverTimeout = setTimeout(() => setServerStarting(true), 3000);
-      // Upload file to backend with progress
+      // Upload file and details to backend
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('title', title); // Send title for renaming
-      formData.append('class_code', selectedClass); // Send class code for folder
-      formData.append('type', type); // Send type for subfolder
+      formData.append('title', title);
+      formData.append('class_code', selectedClass);
+      formData.append('type', type);
+      formData.append('subject_code', selectedSubject);
+      formData.append('uploader', name);
+      formData.append('creator', email);
 
       // Use XMLHttpRequest for progress
       const API_URL = import.meta.env.VITE_API_URL;
       const xhr = new window.XMLHttpRequest();
-      xhr.open('POST', `${API_URL}/api/upload`);
+      xhr.open('POST', `${API_URL}/api/submit-material-request`);
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
           setUploadProgress(Math.round((event.loaded / event.total) * 100));
@@ -99,25 +102,12 @@ const MaterialRequest = () => {
         throw new Error('Invalid response from server.');
       }
       if (!xhr.status || xhr.status < 200 || xhr.status >= 300) {
-        throw new Error(data.error || 'Failed to upload file to server.');
+        throw new Error(data.error || 'Failed to submit request to server.');
       }
-      const fileUrl = data.webViewLink || data.webContentLink;
-      if (!fileUrl) throw new Error('No public link returned from backend.');
-      // Store in Supabase
-      const { error: reqError } = await supabase.from('material_requests').insert({
-        type,
-        title,
-        class_code: selectedClass,
-        subject_code: selectedSubject,
-        file_url: fileUrl,
-        uploader: name,
-        creator: email,
-        status: 'pending',
-      });
-      if (reqError) {
-        setError('Failed to submit request. Please try again.');
-      } else {
+      if (data.success) {
         setShowSuccessModal(true);
+      } else {
+        throw new Error(data.error || 'Failed to submit request.');
       }
     } catch (err) {
       setError(err.message);

@@ -75,51 +75,23 @@ const Dashboard = () => {
 
   const handleAction = async (id, action) => {
     setActionLoading(id + action);
-    if (action === 'approve') {
-      const { data: req } = await supabase.from('material_requests').select('*').eq('id', id).single();
-      if (req) {
-        await supabase.from('materials').insert([{
-          class_code: req.class_code,
-          subject_code: req.subject_code,
-          type: req.type,
-          title: req.title,
-          file_url: req.file_url,
-          uploader: req.uploader,
-          creator: req.creator,
-          created_at: req.created_at,
-        }]);
-        const { error } = await supabase.from('material_requests').update({ status: 'approved', reviewed_by: userId }).eq('id', id);
-        if (!error) {
-          setRequests((prev) => prev.filter((r) => r.id !== id));
-        }
+    try {
+      const API_URL = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API_URL}/api/review-material-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action, userId })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to review material request.');
       }
-    } else if (action === 'decline') {
-      // Get file_url before updating status
-      const { data: req } = await supabase.from('material_requests').select('file_url').eq('id', id).single();
-      if (req && req.file_url) {
-        try {
-          const API_URL = import.meta.env.VITE_API_URL;
-          const res = await fetch(`${API_URL}/api/delete-drive-file`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ file_url: req.file_url }),
-          });
-          if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(data.error || 'Failed to delete file from Google Drive.');
-          }
-        } catch (err) {
-          setActionLoading(null);
-          alert('Error deleting file from Google Drive: ' + err.message);
-          return;
-        }
-      }
-      const { error } = await supabase.from('material_requests').update({ status: 'declined', reviewed_by: userId }).eq('id', id);
-      if (!error) {
-        setRequests((prev) => prev.filter((r) => r.id !== id));
-      }
+      setRequests((prev) => prev.filter((r) => r.id !== id));
+    } catch (err) {
+      alert('Error reviewing request: ' + err.message);
+    } finally {
+      setActionLoading(null);
     }
-    setActionLoading(null);
   };
 
   const handleApproveAdmin = async (id) => {

@@ -211,6 +211,240 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// ── PlugMail & Material Request flows ──────────────────────────────────────────
+async function sendPlugMail(to, template, variables) {
+  const apiKey = process.env.PLUGMAIL_API_KEY;
+  if (!apiKey) {
+    console.error('[PlugMail] API key not found in env variables.');
+    return;
+  }
+  try {
+    const res = await fetch('https://api.plugmail.me/send', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ to, template, variables }),
+    });
+    const data = await res.json();
+    console.log(`[PlugMail] Sent "${template}" to ${to}. Response:`, data);
+    return data;
+  } catch (error) {
+    console.error(`[PlugMail] Error sending "${template}" to ${to}:`, error.message);
+  }
+}
+
+app.post('/api/submit-material-request', upload.single('file'), async (req, res) => {
+  try {
+    const { title, class_code, subject_code, type, uploader, creator } = req.body;
+    if (!req.file || !title || !class_code || !subject_code || !type || !uploader || !creator) {
+      return res.status(400).json({ error: 'All fields and file are required.' });
+    }
+
+    let fileName = req.file.originalname;
+    const ext = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')) : '';
+    fileName = title + ext;
+
+    // Upload to Google Drive
+    const fileId = await uploadFileToFolder(req.file.path, fileName, req.file.mimetype, class_code, type);
+    if (!fileId) {
+      return res.status(500).json({ error: 'Failed to upload file to Google Drive.' });
+    }
+
+    const publicUrl = await setFilePublic(fileId);
+    if (!publicUrl) {
+      return res.status(500).json({ error: 'Failed to set file public.' });
+    }
+
+    const fileUrl = publicUrl.webViewLink || publicUrl.webContentLink;
+
+    // Insert request into Supabase material_requests
+    const { data: requestRecord, error: dbError } = await supabaseAdmin
+      .from('material_requests')
+      .insert([{
+        type,
+        title,
+        class_code,
+        subject_code,
+        file_url: fileUrl,
+        uploader,
+        creator,
+        status: 'pending',
+      }])
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('Error inserting material request into Supabase:', dbError);
+      return res.status(500).json({ error: 'Failed to store request in database.' });
+    }
+
+    // Clean up uploaded temp file
+    fs.unlink(req.file.path, () => {});
+
+    // Send emails (asynchronously, do not block response)
+    const logoUrl = 'https://polystudi.com/polystudiv3-round.png';
+    const siteUrl = req.headers.origin || 'https://polystudi.com';
+    const dashboardUrl = `${siteUrl}/dashboard`;
+
+    // 1. Admin notification
+    sendPlugMail('baodhankartharva@gmail.com', 'Admin New Materal', {
+      logo_url: logoUrl,
+      title: title,
+      type: type,
+      class_code: class_code,
+      subject_code: subject_code,
+      uploader: uploader,
+      creator: creator,
+      file_url: fileUrl,
+      dashboard_url: dashboardUrl
+    });
+
+    // 2. User thank you
+    sendPlugMail(creator, 'user thank you', {
+      logo_url: logoUrl,
+      uploader: uploader,
+      title: title,
+      type: type,
+      class_code: class_code,
+      subject_code: subject_code,
+      site_url: siteUrl
+    });
+
+    res.json({ success: true, request: requestRecord });
+  } catch (error) {
+    console.error('Error in submit-material-request:', error);
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'File size exceeds 50MB limit.' });
+    }
+    res.status(500).json({ error: 'Internal server error during material submission.' });
+  }
+});
+
+app.post('/api/review-material-request', express.json(), async (req, res) => {
+  const { id, action, userId } = req.body;
+  if (!id || !action) {
+    return res.status(400).json({ error: 'id and action are required.' });
+  }
+
+  try {
+    // 1. Fetch the request
+    const { data: requestData, error: fetchError } = await supabaseAdmin
+      .from('material_requests')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !requestData) {
+      return res.status(404).json({ error: 'Material request not found.' });
+    }
+
+    const logoUrl = 'https://polystudi.com/polystudiv3-round.png';
+    const siteUrl = req.headers.origin || 'https://polystudi.com';
+
+    if (action === 'approve') {
+      // 2. Insert into materials
+      const { error: insertError } = await supabaseAdmin.from('materials').insert([{
+        class_code: requestData.class_code,
+        subject_code: requestData.subject_code,
+        type: requestData.type,
+        title: requestData.title,
+        file_url: requestData.file_url,
+        uploader: requestData.uploader,
+        creator: requestData.creator,
+        created_at: requestData.created_at,
+      }]);
+
+      if (insertError) {
+        console.error('Error inserting approved material:', insertError);
+        return res.status(500).json({ error: 'Failed to insert material.' });
+      }
+
+      // 3. Update status in material_requests
+      const { error: updateError } = await supabaseAdmin
+        .from('material_requests')
+        .update({ status: 'approved', reviewed_by: userId })
+        .eq('id', id);
+
+      if (updateError) {
+        console.error('Error updating material request status:', updateError);
+        return res.status(500).json({ error: 'Failed to update request status.' });
+      }
+
+      // 4. Send approval email via PlugMail
+      sendPlugMail(requestData.creator, 'user status update', {
+        status_badge_text: 'APPROVED',
+        status_badge_bg: '#d1fae5',
+        status_badge_color: '#065f46',
+        status_title: 'Material Approved & Published!',
+        status_message: 'Excellent news! Your contribution has been approved and is now live. Students can access and download it from the course page. Thank you for helping your peers succeed!',
+        btn_bg_gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+        btn_shadow_color: 'rgba(16, 185, 129, 0.3)',
+        action_text: 'View Live Material',
+        action_url: `${siteUrl}/class/${requestData.class_code}`,
+        class_code: requestData.class_code,
+        logo_url: logoUrl,
+        uploader: requestData.uploader,
+        title: requestData.title,
+        type: requestData.type,
+        subject_code: requestData.subject_code
+      });
+
+    } else if (action === 'decline') {
+      // 2. Delete file from Google Drive
+      if (requestData.file_url) {
+        const fileId = extractDriveFileId(requestData.file_url);
+        if (fileId) {
+          try {
+            await drive.files.delete({ fileId });
+            console.log('[Review] Deleted file from Google Drive:', fileId);
+          } catch (err) {
+            console.error('[Review] Error deleting file from Google Drive:', err.message);
+          }
+        }
+      }
+
+      // 3. Update status in material_requests
+      const { error: updateError } = await supabaseAdmin
+        .from('material_requests')
+        .update({ status: 'declined', reviewed_by: userId })
+        .eq('id', id);
+
+      if (updateError) {
+        console.error('Error updating material request status:', updateError);
+        return res.status(500).json({ error: 'Failed to update request status.' });
+      }
+
+      // 4. Send decline email via PlugMail
+      sendPlugMail(requestData.creator, 'user status update', {
+        status_badge_text: 'DECLINED',
+        status_badge_bg: '#fee2e2',
+        status_badge_color: '#991b1b',
+        status_title: 'Submission Update',
+        status_message: 'We appreciate your effort to share this study material. Unfortunately, your submission could not be approved at this time. This is usually due to duplicate files, incorrect category/subject, formatting issues, or irrelevant content. We welcome you to check and submit again!',
+        btn_bg_gradient: 'linear-gradient(135deg, #9102C0 0%, #ac01e6 100%)',
+        btn_shadow_color: 'rgba(145, 2, 192, 0.3)',
+        action_text: 'Try Again / Submit New',
+        action_url: `${siteUrl}/class/${requestData.class_code}/request-material`,
+        class_code: requestData.class_code,
+        logo_url: logoUrl,
+        uploader: requestData.uploader,
+        title: requestData.title,
+        type: requestData.type,
+        subject_code: requestData.subject_code
+      });
+    } else {
+      return res.status(400).json({ error: 'Invalid action. Must be approve or decline.' });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error in review-material-request:', error);
+    res.status(500).json({ error: 'Internal server error during material request review.' });
+  }
+});
+
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
