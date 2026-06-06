@@ -284,33 +284,57 @@ app.post('/api/submit-material-request', upload.single('file'), async (req, res)
     fs.unlink(req.file.path, () => {});
 
     // Send emails (asynchronously, do not block response)
-    const logoUrl = 'https://polystudi.com/polystudiv3-round.png';
-    const siteUrl = req.headers.origin || 'https://polystudi.com';
-    const dashboardUrl = `${siteUrl}/dashboard`;
+    (async () => {
+      try {
+        const logoUrl = 'https://polystudi.com/polystudiv3-round.png';
+        const siteUrl = req.headers.origin || 'https://polystudi.com';
+        const dashboardUrl = `${siteUrl}/dashboard`;
 
-    // 1. Admin notification
-    sendPlugMail('baodhankartharva@gmail.com', 'Admin New Materal', {
-      logo_url: logoUrl,
-      title: title,
-      type: type,
-      class_code: class_code,
-      subject_code: subject_code,
-      uploader: uploader,
-      creator: creator,
-      file_url: fileUrl,
-      dashboard_url: dashboardUrl
-    });
+        // Fetch admins and superadmins dynamically
+        const { data: admins } = await supabaseAdmin
+          .from('users')
+          .select('email, role, branch')
+          .in('role', ['admin', 'superadmin']);
 
-    // 2. User thank you
-    sendPlugMail(creator, 'user thank you', {
-      logo_url: logoUrl,
-      uploader: uploader,
-      title: title,
-      type: type,
-      class_code: class_code,
-      subject_code: subject_code,
-      site_url: siteUrl
-    });
+        const branchCode = class_code.match(/^[A-Za-z]+/)?.[0] || '';
+        const recipientEmails = (admins || [])
+          .filter(u => u.role === 'superadmin' || (u.role === 'admin' && u.branch === branchCode))
+          .map(u => u.email);
+
+        // Fallback safety net if no matching admins found
+        if (recipientEmails.length === 0) {
+          recipientEmails.push('baodhankartharva@gmail.com');
+        }
+
+        // 1. Admin notifications
+        for (const recipient of recipientEmails) {
+          sendPlugMail(recipient, 'Admin New Materal', {
+            logo_url: logoUrl,
+            title: title,
+            type: type,
+            class_code: class_code,
+            subject_code: subject_code,
+            uploader: uploader,
+            creator: creator,
+            file_url: fileUrl,
+            dashboard_url: dashboardUrl
+          });
+        }
+
+        // 2. User thank you
+        sendPlugMail(creator, 'user thank you', {
+          logo_url: logoUrl,
+          uploader: uploader,
+          title: title,
+          type: type,
+          class_code: class_code,
+          subject_code: subject_code,
+          site_url: siteUrl
+        });
+      } catch (err) {
+        console.error('Error sending emails in background:', err);
+      }
+    })();
 
     res.json({ success: true, request: requestRecord });
   } catch (error) {
