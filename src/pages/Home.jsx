@@ -271,17 +271,17 @@ const Home = ({ navLogoRef }) => {
               <div className="absolute inset-0 rounded-3xl pointer-events-none z-0 border-2 border-transparent group-hover:border-[#9102C0] group-hover:shadow-[0_0_32px_0_#9102C0] transition-all duration-300" style={{ boxShadow: '0 0 0 4px #f3e8ff44, 0 0 32px 0 #9102C0' }} />
               <div className="relative z-10 flex flex-col items-center">
                 <div className="inline-block h-[120px] w-[120px] mb-6 rounded-full border-4 border-[#9102C0]/30 shadow-lg overflow-hidden bg-gradient-to-br from-[#9102C0]/10 to-[#f3e8ff]/30">
-                  <img className="w-full h-full object-cover" src={atharvaImg} alt="Atharva Baodhankar" />
+                  <img className="w-full h-full object-cover" src="https://avatars.githubusercontent.com/u/108174720?v=4" alt="Atharva Baodhankar" />
                 </div>
                 <h3 className="text-2xl font-bold leading-tight font-baumans text-[#342F76] mb-1">Atharva Baodhankar</h3>
-                <h4 className="text-lg text-[#9102C0] font-poppins mb-2">Web Designer & Developer</h4>
-                <p className="text-[#342F76] text-base font-poppins mb-4">I bring sites to life with clean, user-friendly interfaces and captivating animations. Over 50+ websites built. Always learning, always innovating.</p>
+                <h4 className="text-base text-[#9102C0] font-poppins mb-2 font-semibold">Software Engineer | Platform Engineering • Blockchain • System Design</h4>
+                <p className="text-[#342F76] text-sm font-poppins mb-4 leading-relaxed">I build scalable software, cloud platforms, and Web3 applications with a focus on system design, performance, and developer experience. Always learning, always building.</p>
                 <div className="flex justify-center gap-4 mt-2 mb-6">
                   <a href="https://github.com/atharvabaodhankar" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#f3e8ff] text-[#9102C0] hover:bg-[#9102C0] hover:text-white transition-all" aria-label="GitHub"><FaGithub className="text-2xl" /></a>
-                  <a href="https://www.instagram.com/op_athu_/" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#f3e8ff] text-[#9102C0] hover:bg-[#9102C0] hover:text-white transition-all" aria-label="Instagram"><FaInstagram className="text-2xl" /></a>
+                  <a href="https://www.instagram.com/atharvabaodhankar/" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#f3e8ff] text-[#9102C0] hover:bg-[#9102C0] hover:text-white transition-all" aria-label="Instagram"><FaInstagram className="text-2xl" /></a>
                   <a href="mailto:baodhankaratharva@gmail.com" className="w-10 h-10 flex items-center justify-center rounded-full bg-[#f3e8ff] text-[#9102C0] hover:bg-[#9102C0] hover:text-white transition-all" aria-label="Email"><FaEnvelope className="text-2xl" /></a>
                 </div>
-                <a href="https://atharvabaodhankar.github.io/portfolio/" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold hover:scale-105 transition-all duration-200  shadow-lg">View Portfolio</a>
+                <a href="https://atharvabaodhankar.me" target="_blank" rel="noopener noreferrer" className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold hover:scale-105 transition-all duration-200  shadow-lg">View Portfolio</a>
               </div>
             </div>
           </div>
