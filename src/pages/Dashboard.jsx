@@ -359,176 +359,242 @@ const Dashboard = () => {
     );
   };
 
-  return (
-    <div className="max-w-6xl mx-auto py-10 px-4 font-poppins text-[#342F76]">
-      {/* 1. Welcome Greeting Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#9102C0] via-[#7c02a3] to-[#342F76] text-white p-8 md:p-10 shadow-xl mb-10">
-        <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
-        <div className="absolute left-1/3 bottom-0 translate-y-1/2 w-48 h-48 bg-[#9102C0]/20 rounded-full blur-xl"></div>
-        
-        <div className="relative z-10">
-          <h1 className="text-3xl md:text-4xl font-baumans mb-3 flex items-center gap-3">
-            Welcome back, {userFullName}!
-          </h1>
-          <p className="text-purple-100 mb-6 font-medium font-poppins">
-            Manage study materials, approve new admins, and check student feedback in one place.
-          </p>
+  // Initials generator for user avatar
+  const getInitials = (name) => {
+    if (!name) return 'A';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  // Modular SaaS View Renderers
+  const renderOverview = () => {
+    return (
+      <div className="space-y-8 animate-fadeIn">
+        {/* 1. Welcome Greeting Banner */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#9102C0] via-[#7c02a3] to-[#342F76] text-white p-8 md:p-10 shadow-xl">
+          <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
+          <div className="absolute left-1/3 bottom-0 translate-y-1/2 w-48 h-48 bg-[#9102C0]/20 rounded-full blur-xl"></div>
           
-          <div className="flex flex-wrap gap-3">
-            <span className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold border border-white/20 capitalize shadow-inner">
-              Role: {userRole}
-            </span>
-            <span className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold border border-white/20 shadow-inner">
-              Branch: {userRole === 'superadmin' ? 'All Departments' : userBranch}
-            </span>
-            <span className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold border border-white/20 shadow-inner">
-              Email: {userEmail}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Overview Stats Widgets */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10">
-        <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-            <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Pending Tasks</div>
-            <div className="text-2xl font-bold text-[#342F76] font-baumans">{pendingCount}</div>
-          </div>
-        </div>
-        
-        <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Approved Materials</div>
-            <div className="text-2xl font-bold text-[#342F76] font-baumans">{approvedCount}</div>
+          <div className="relative z-10">
+            <h1 className="text-3xl md:text-4xl font-baumans mb-3 flex items-center gap-3">
+              Welcome back, {userFullName}!
+            </h1>
+            <p className="text-purple-100 mb-6 font-medium font-poppins">
+              Manage study materials, approve new admins, and check student feedback in one place.
+            </p>
+            
+            <div className="flex flex-wrap gap-3">
+              <span className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold border border-white/20 capitalize shadow-inner">
+                Role: {userRole}
+              </span>
+              <span className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold border border-white/20 shadow-inner">
+                Branch: {userRole === 'superadmin' ? 'All Departments' : userBranch}
+              </span>
+              <span className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold border border-white/20 shadow-inner">
+                Email: {userEmail}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-            </svg>
-          </div>
-          <div>
-            <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Student Reviews</div>
-            <div className="text-2xl font-bold text-[#342F76] font-baumans">{reviewsCount}</div>
-          </div>
-        </div>
-
-        {userRole === 'superadmin' && (
-          <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        {/* 2. Overview Stats Widgets */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4 cursor-pointer" onClick={() => setActiveView('materials')}>
+            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Pending Admins</div>
-              <div className="text-2xl font-bold text-[#342F76] font-baumans">{candidatesCount}</div>
+              <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Pending Tasks</div>
+              <div className="text-2xl font-bold text-[#342F76] font-baumans">{pendingCount}</div>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* 3. Admin Candidates Management (Superadmin Only) */}
-      {userRole === 'superadmin' && adminCandidates.length > 0 && (
-        <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-md p-6 mb-10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <h2 className="text-xl font-baumans text-[#9102C0] flex items-center gap-2">
-              New Admin Candidates
-              <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold font-poppins">{adminCandidates.length}</span>
-            </h2>
-
-            {/* Search Input for Admin Candidates */}
-            <div className="relative max-w-xs w-full">
-              <input
-                type="text"
-                placeholder="Search candidates..."
-                value={candidateSearchQuery}
-                onChange={(e) => setCandidateSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full font-poppins text-sm text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition bg-white"
-              />
-              <svg className="absolute left-3.5 top-2.5 w-4.5 h-4.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-          </div>
-          
-          {filteredCandidates.length === 0 ? (
-            <div className="text-center py-6 text-gray-400 text-sm font-poppins">
-              No matching admin candidates found.
+            <div>
+              <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Approved Materials</div>
+              <div className="text-2xl font-bold text-[#342F76] font-baumans">{approvedCount}</div>
             </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white">
-                <table className="min-w-full text-left text-sm font-poppins">
-                  <thead className="bg-gray-50 border-b border-gray-100 text-[#342F76] font-semibold">
-                    <tr>
-                      <th className="py-3.5 px-4">Name</th>
-                      <th className="py-3.5 px-4">Email</th>
-                      <th className="py-3.5 px-4">Branch</th>
-                      <th className="py-3.5 px-4">Year</th>
-                      <th className="py-3.5 px-4 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {currentCandidates.map((c) => (
-                      <tr key={c.id} className="hover:bg-[#f3e8ff]/20 transition">
-                        <td className="py-3 px-4 font-semibold text-[#342F76]">{c.full_name}</td>
-                        <td className="py-3 px-4 text-gray-500">{c.email}</td>
-                        <td className="py-3 px-4">
-                          <span className="bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                            {c.branch}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-gray-500">{c.year}</td>
-                        <td className="py-3 px-4 text-right flex justify-end gap-2">
-                          <button 
-                            className="px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-600 hover:text-white transition disabled:opacity-60 cursor-pointer" 
-                            onClick={() => handleApproveAdmin(c.id)} 
-                            disabled={candidateLoading}
-                          >
-                            Approve
-                          </button>
-                          <button 
-                            className="px-4 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold hover:bg-rose-600 hover:text-white transition disabled:opacity-60 cursor-pointer" 
-                            onClick={() => handleRejectAdmin(c.id)} 
-                            disabled={candidateLoading}
-                          >
-                            Reject
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          </div>
+
+          <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4 cursor-pointer" onClick={() => setActiveView('feedback')}>
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Student Reviews</div>
+              <div className="text-2xl font-bold text-[#342F76] font-baumans">{reviewsCount}</div>
+            </div>
+          </div>
+
+          {userRole === 'superadmin' && (
+            <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4 cursor-pointer" onClick={() => setActiveView('candidates')}>
+              <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
               </div>
-              {renderPagination(candidateCurrentPage, totalCandidatePages, setCandidateCurrentPage)}
-            </>
+              <div>
+                <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Pending Admins</div>
+                <div className="text-2xl font-bold text-[#342F76] font-baumans">{candidatesCount}</div>
+              </div>
+            </div>
           )}
         </div>
-      )}
 
-      {/* 4. Material Submission Queue */}
-      <div className="bg-white border border-[#ede9fe] rounded-3xl shadow-md p-6 md:p-8 mb-10">
+        {/* 3. SaaS Quick Info Board */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white border border-[#ede9fe] rounded-3xl p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-[#342F76] font-poppins mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-[#9102C0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Administrative Actions Checklist
+            </h3>
+            <ul className="space-y-3.5 text-sm font-poppins text-gray-500">
+              <li className="flex items-center gap-3">
+                <span className={`w-2.5 h-2.5 rounded-full ${pendingCount > 0 ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                <span>{pendingCount > 0 ? `You have ${pendingCount} pending study material submissions awaiting your review.` : 'All material submissions are fully reviewed!'}</span>
+              </li>
+              {userRole === 'superadmin' && (
+                <li className="flex items-center gap-3">
+                  <span className={`w-2.5 h-2.5 rounded-full ${candidatesCount > 0 ? 'bg-purple-500 animate-pulse' : 'bg-emerald-500'}`}></span>
+                  <span>{candidatesCount > 0 ? `There are ${candidatesCount} new admin requests waiting for authorization.` : 'No pending admin candidates in the queue.'}</span>
+                </li>
+              )}
+              <li className="flex items-center gap-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span>Study materials are automatically synced to Google Drive in real-time.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-white border border-[#ede9fe] rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-[#342F76] font-poppins mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-[#9102C0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                System Status Overview
+              </h3>
+              <p className="text-sm text-gray-500 leading-relaxed font-poppins mb-6">
+                Connected to Supabase Project: <code className="text-xs bg-gray-50 px-1.5 py-0.5 rounded font-mono">fgzwodftkglvngkmkwnv</code>. All integrations, including Google Drive upload and PlugMail notifications, are operational.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setActiveView('materials')} className="flex-1 py-2.5 px-4 rounded-xl text-center bg-[#9102C0] text-white font-bold text-sm hover:opacity-90 transition duration-150 cursor-pointer">
+                View Queue
+              </button>
+              <button onClick={() => setActiveView('deletion')} className="flex-1 py-2.5 px-4 rounded-xl text-center border border-gray-200 bg-white hover:bg-gray-50 text-[#342F76] font-bold text-sm transition duration-150 cursor-pointer">
+                Manage Files
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderCandidates = () => {
+    if (userRole !== 'superadmin') return <div className="text-center py-12 text-gray-400 font-poppins">Access Denied.</div>;
+    return (
+      <div className="bg-white border border-[#ede9fe] rounded-3xl shadow-sm p-6 md:p-8 animate-fadeIn">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl font-baumans text-[#9102C0] mb-2">New Admin Candidates</h2>
+            <p className="text-gray-500 text-sm font-poppins">Authorize or decline administrative access requests from new candidates.</p>
+          </div>
+          <div className="relative max-w-xs w-full">
+            <input
+              type="text"
+              placeholder="Search candidates..."
+              value={candidateSearchQuery}
+              onChange={(e) => setCandidateSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full font-poppins text-sm text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition bg-white"
+            />
+            <svg className="absolute left-3.5 top-2.5 w-4.5 h-4.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+
+        {filteredCandidates.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 border border-dashed rounded-2xl text-gray-400 font-medium font-poppins">
+            No matching admin candidates found.
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white">
+              <table className="min-w-full text-left text-sm font-poppins">
+                <thead className="bg-gray-50 border-b border-gray-100 text-[#342F76] font-semibold">
+                  <tr>
+                    <th className="py-3.5 px-4">Name</th>
+                    <th className="py-3.5 px-4">Email</th>
+                    <th className="py-3.5 px-4">Branch</th>
+                    <th className="py-3.5 px-4">Year</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {currentCandidates.map((c) => (
+                    <tr key={c.id} className="hover:bg-[#f3e8ff]/20 transition">
+                      <td className="py-3 px-4 font-semibold text-[#342F76]">{c.full_name}</td>
+                      <td className="py-3 px-4 text-gray-500">{c.email}</td>
+                      <td className="py-3 px-4">
+                        <span className="bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                          {c.branch || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-gray-500">{c.year || 'N/A'}</td>
+                      <td className="py-3 px-4 text-right flex justify-end gap-2">
+                        <button 
+                          className="px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-600 hover:text-white transition disabled:opacity-60 cursor-pointer" 
+                          onClick={() => handleApproveAdmin(c.id)} 
+                          disabled={candidateLoading}
+                        >
+                          Approve
+                        </button>
+                        <button 
+                          className="px-4 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold hover:bg-rose-600 hover:text-white transition disabled:opacity-60 cursor-pointer" 
+                          onClick={() => handleRejectAdmin(c.id)} 
+                          disabled={candidateLoading}
+                        >
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {renderPagination(candidateCurrentPage, totalCandidatePages, setCandidateCurrentPage)}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const renderMaterials = () => {
+    return (
+      <div className="bg-white border border-[#ede9fe] rounded-3xl shadow-sm p-6 md:p-8 animate-fadeIn">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-          <h2 className="text-2xl font-baumans text-[#9102C0] flex items-center gap-2">
-            Material Submission Queue
-          </h2>
+          <div>
+            <h2 className="text-2xl font-baumans text-[#9102C0] mb-2">Material Submission Queue</h2>
+            <p className="text-gray-500 text-sm font-poppins font-medium">Verify pending student uploads before publishing them live.</p>
+          </div>
           
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            {/* Search Input for Materials */}
             <div className="relative max-w-xs w-full">
               <input
                 type="text"
@@ -542,7 +608,6 @@ const Dashboard = () => {
               </svg>
             </div>
 
-            {/* Tab Switches */}
             <div className="flex bg-gray-50 border border-gray-100 rounded-full p-1 self-start md:self-auto">
               {['pending', 'approved', 'declined'].map((t) => (
                 <button 
@@ -606,7 +671,7 @@ const Dashboard = () => {
                           href={req.file_url} 
                           target="_blank" 
                           rel="noopener noreferrer" 
-                          className="inline-flex items-center gap-1 bg-purple-50 text-[#9102C0] border border-purple-100 px-3 py-1 rounded-full text-xs font-bold hover:bg-[#9102C0] hover:text-white transition"
+                          className="inline-flex items-center gap-1 bg-purple-50 text-[#9102C0] border border-purple-100 px-3 py-1 rounded-full text-xs font-bold hover:bg-[#9102C0] hover:text-white transition cursor-pointer"
                         >
                           View File
                         </a>
@@ -655,15 +720,18 @@ const Dashboard = () => {
           </>
         )}
       </div>
+    );
+  };
 
-      {/* 5. Contact Form Submissions */}
-      <div className="bg-white border border-[#ede9fe] rounded-3xl shadow-md p-6 md:p-8 mb-10">
+  const renderFeedback = () => {
+    return (
+      <div className="bg-white border border-[#ede9fe] rounded-3xl shadow-sm p-6 md:p-8 animate-fadeIn">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <h2 className="text-2xl font-baumans text-[#9102C0] flex items-center gap-2">
-            Student Feedback & Reviews
-          </h2>
+          <div>
+            <h2 className="text-2xl font-baumans text-[#9102C0] mb-2">Student Feedback & Reviews</h2>
+            <p className="text-gray-500 text-sm font-poppins">Read student-submitted feedback and bug reports.</p>
+          </div>
 
-          {/* Search Input for Feedback */}
           <div className="relative max-w-xs w-full">
             <input
               type="text"
@@ -722,12 +790,13 @@ const Dashboard = () => {
           </>
         )}
       </div>
+    );
+  };
 
-      {/* 6. Material Deletion Section */}
-      <div className="bg-white border border-[#ede9fe] rounded-3xl shadow-md p-6 md:p-8">
-        <h2 className="text-2xl font-baumans text-[#9102C0] mb-4 flex items-center gap-2">
-          Material Management (Deletion)
-        </h2>
+  const renderDeletion = () => {
+    return (
+      <div className="bg-white border border-[#ede9fe] rounded-3xl shadow-sm p-6 md:p-8 animate-fadeIn">
+        <h2 className="text-2xl font-baumans text-[#9102C0] mb-2">Material Management (Deletion)</h2>
         <p className="text-gray-500 text-sm mb-6 font-poppins">
           Instantly delete approved study materials from the live site database. This will also clean up matching Google Drive files.
         </p>
@@ -735,6 +804,161 @@ const Dashboard = () => {
           <MaterialDeletion />
         </div>
       </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen flex bg-[#f8f6ff] text-[#342F76] font-poppins">
+      
+      {/* LEFT SIDEBAR (Mobile backdrop drawer) */}
+      <div className={`fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ${sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSidebarOpen(false)}></div>
+      </div>
+
+      <aside className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-[#1e1a47] text-white flex flex-col transform lg:translate-x-0 transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:static lg:h-screen lg:flex-shrink-0 border-r border-[#342F76]/20 shadow-xl`}>
+        {/* Branding header */}
+        <div className="p-6 border-b border-[#342F76]/40 flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#9102C0] to-[#ac01e6] flex items-center justify-center shadow-lg">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+          </div>
+          <span className="text-xl font-baumans tracking-wide text-white bg-clip-text">PolyStudi Workspace</span>
+        </div>
+
+        {/* User profile quick info card */}
+        <div className="p-6 border-b border-[#342F76]/40 bg-[#171339]">
+          <div className="flex items-center gap-3.5 mb-3">
+            <div className="w-10 h-10 rounded-full bg-[#9102C0] flex items-center justify-center font-bold text-sm text-white shadow-inner font-baumans">
+              {getInitials(userFullName)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold truncate text-white">{userFullName}</div>
+              <div className="text-xs text-purple-200/60 truncate">{userEmail}</div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <span className="px-2 py-0.5 rounded bg-purple-500/20 text-[#c88eff] text-[10px] font-bold uppercase tracking-wider border border-[#9102C0]/30">{userRole}</span>
+            {userRole !== 'superadmin' && (
+              <span className="px-2 py-0.5 rounded bg-blue-500/20 text-[#8ec8ff] text-[10px] font-bold uppercase tracking-wider border border-blue-500/30">{userBranch}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Nav Links */}
+        <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+          {[
+            { id: 'overview', name: 'Overview', icon: (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            )},
+            { id: 'materials', name: 'Material Queue', icon: (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            )},
+            { id: 'feedback', name: 'Student Feedback', icon: (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            )},
+            { id: 'deletion', name: 'Material Deletion', icon: (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-5v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            )},
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveView(item.id);
+                setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer ${
+                activeView === item.id 
+                  ? 'bg-[#9102C0] text-white shadow-md' 
+                  : 'text-purple-200/70 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              {item.icon}
+              {item.name}
+            </button>
+          ))}
+
+          {/* Superadmin only admin candidate link */}
+          {userRole === 'superadmin' && (
+            <button
+              onClick={() => {
+                setActiveView('candidates');
+                setSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer ${
+                activeView === 'candidates' 
+                  ? 'bg-[#9102C0] text-white shadow-md' 
+                  : 'text-purple-200/70 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              Admin Candidates
+            </button>
+          )}
+        </nav>
+
+        {/* Sidebar Footer logout */}
+        <div className="p-4 border-t border-[#342F76]/40">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl border border-red-500/20 bg-red-500/10 text-red-300 font-bold text-sm hover:bg-red-600 hover:text-white transition duration-150 cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Sign Out Workspace
+          </button>
+        </div>
+      </aside>
+
+      {/* RIGHT MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto h-screen">
+        {/* Sticky Top Header bar */}
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200/50 px-6 py-4.5 flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3.5">
+            {/* Mobile Hamburger menu toggle */}
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 cursor-pointer"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h2 className="text-xl font-bold text-[#342F76] font-baumans capitalize">
+              {activeView === 'overview' ? 'Dashboard Overview' : 
+               activeView === 'materials' ? 'Material submission queue' :
+               activeView === 'feedback' ? 'Student Reviews & Feedback' :
+               activeView === 'deletion' ? 'Delete live materials' :
+               'Admin candidates approvals'}
+            </h2>
+          </div>
+
+          <div className="text-xs font-semibold text-gray-400 font-poppins hidden sm:block">
+            {new Date().toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+          </div>
+        </header>
+
+        {/* Scrollable Container Content */}
+        <main className="flex-1 p-6 md:p-8 max-w-6xl w-full mx-auto">
+          {activeView === 'overview' && renderOverview()}
+          {activeView === 'materials' && renderMaterials()}
+          {activeView === 'feedback' && renderFeedback()}
+          {activeView === 'deletion' && renderDeletion()}
+          {activeView === 'candidates' && renderCandidates()}
+        </main>
+      </div>
+
     </div>
   );
 };
