@@ -46,25 +46,41 @@ const Dashboard = () => {
           .maybeSingle();
 
         if (!userRow) {
-          // If the profile does not exist, check if user has branch/name metadata from Google Auth signup
-          if (user.user_metadata?.branch && user.user_metadata?.full_name) {
-            const { data: newRow } = await supabase
-              .from('users')
-              .insert([{
-                id: user.id,
-                email: user.email,
-                full_name: user.user_metadata.full_name,
-                branch: user.user_metadata.branch,
-                year: user.user_metadata.year || 'N/A',
-                role: 'admin_candidate',
-                approved: false
-              }])
-              .select('full_name, role, branch')
-              .maybeSingle();
+          // If the profile does not exist, check if user has branch/name metadata stored in localStorage from Google Auth signup
+          const storedBranch = localStorage.getItem('admin_signup_branch');
+          const storedYear = localStorage.getItem('admin_signup_year');
+          const storedName = localStorage.getItem('admin_signup_name') || user.user_metadata?.full_name || 'Admin';
 
-            setUserFullName(newRow?.full_name || user.user_metadata.full_name || 'Admin');
-            setUserRole(newRow?.role || 'admin_candidate');
-            setUserBranch(newRow?.branch || user.user_metadata.branch);
+          if (storedBranch) {
+            try {
+              const API_URL = import.meta.env.VITE_API_URL;
+              const res = await fetch(`${API_URL}/api/register-admin-candidate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  id: user.id,
+                  email: user.email,
+                  fullName: storedName,
+                  branch: storedBranch,
+                  year: storedYear || 'N/A'
+                })
+              });
+              if (!res.ok) {
+                const resData = await res.json().catch(() => ({}));
+                throw new Error(resData.error || 'Failed to complete Google registration.');
+              }
+              setUserFullName(storedName);
+              setUserRole('admin_candidate');
+              setUserBranch(storedBranch);
+            } catch (regErr) {
+              console.error('Error during Google admin candidate registration:', regErr);
+              setUserRole(null);
+              setUserBranch(null);
+            } finally {
+              localStorage.removeItem('admin_signup_name');
+              localStorage.removeItem('admin_signup_branch');
+              localStorage.removeItem('admin_signup_year');
+            }
           } else {
             setUserFullName(user.user_metadata?.full_name || 'Admin');
             setUserRole(null);
@@ -166,16 +182,44 @@ const Dashboard = () => {
 
   const handleApproveAdmin = async (id) => {
     setCandidateLoading(true);
-    await supabase.from('users').update({ role: 'admin', approved: true }).eq('id', id);
-    setAdminCandidates((prev) => prev.filter((c) => c.id !== id));
-    setCandidateLoading(false);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API_URL}/api/approve-admin-candidate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (!res.ok) {
+        const resData = await res.json().catch(() => ({}));
+        throw new Error(resData.error || 'Failed to approve candidate.');
+      }
+      setAdminCandidates((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      alert('Error approving candidate: ' + err.message);
+    } finally {
+      setCandidateLoading(false);
+    }
   };
 
   const handleRejectAdmin = async (id) => {
     setCandidateLoading(true);
-    await supabase.from('users').delete().eq('id', id);
-    setAdminCandidates((prev) => prev.filter((c) => c.id !== id));
-    setCandidateLoading(false);
+    try {
+      const API_URL = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API_URL}/api/reject-admin-candidate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+      if (!res.ok) {
+        const resData = await res.json().catch(() => ({}));
+        throw new Error(resData.error || 'Failed to reject candidate.');
+      }
+      setAdminCandidates((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      alert('Error rejecting candidate: ' + err.message);
+    } finally {
+      setCandidateLoading(false);
+    }
   };
 
   if (authLoading) {

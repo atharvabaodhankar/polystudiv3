@@ -676,6 +676,157 @@ app.post('/api/chat', express.json(), async (req, res) => {
   }
 });
 
+// ── Admin candidate signup and approvals notifications flows ──────────────────
+
+app.post('/api/register-admin-candidate', express.json(), async (req, res) => {
+  try {
+    const { id, email, fullName, branch, year } = req.body;
+    if (!id || !email || !fullName || !branch) {
+      return res.status(400).json({ error: 'Missing required registration parameters.' });
+    }
+
+    // Insert user row into db using admin permissions (bypassing RLS)
+    const { data: userRow, error: dbError } = await supabaseAdmin
+      .from('users')
+      .upsert({
+        id,
+        email,
+        full_name: fullName,
+        branch,
+        year: year || 'N/A',
+        role: 'admin_candidate',
+        approved: false
+      })
+      .select('*')
+      .maybeSingle();
+
+    if (dbError) {
+      throw dbError;
+    }
+
+    // 1. Email Superadmin about new registration
+    await sendPlugMail('baodhankaratharva@gmail.com', 'user status update', {
+      status_badge_text: 'NEW ADMIN SIGNUP',
+      status_badge_bg: '#f3e8ff',
+      status_badge_color: '#9102C0',
+      status_title: 'New Admin Candidate Registered',
+      status_message: `A new candidate has requested admin access for the ${branch} department. Name: ${fullName}, Email: ${email}, Year: ${year || 'N/A'}. Please review and approve this candidate in the admin dashboard.`,
+      btn_bg_gradient: 'linear-gradient(135deg, #9102C0 0%, #342F76 100%)',
+      btn_shadow_color: 'rgba(145, 2, 192, 0.3)',
+      action_text: 'Go to Admin Dashboard',
+      action_url: 'https://polystudi.com/dashboard',
+      logo_url: 'https://polystudi.com/polystudiv3-round.png',
+      uploader: fullName,
+      title: 'Admin Candidate: ' + fullName,
+      type: 'admin',
+      class_code: branch,
+      subject_code: year || 'N/A'
+    });
+
+    // 2. Email candidate user thanking them
+    await sendPlugMail(email, 'user status update', {
+      status_badge_text: 'PENDING REVIEW',
+      status_badge_bg: '#fef3c7',
+      status_badge_color: '#d97706',
+      status_title: 'Admin Access Request Received',
+      status_message: `Thank you for requesting admin access for the ${branch} department on PolyStudi! Your details have been submitted and are pending review by a superadmin. You will receive an email as soon as your account is approved.`,
+      btn_bg_gradient: 'linear-gradient(135deg, #9102C0 0%, #342F76 100%)',
+      btn_shadow_color: 'rgba(145, 2, 192, 0.3)',
+      action_text: 'Visit PolyStudi',
+      action_url: 'https://polystudi.com',
+      logo_url: 'https://polystudi.com/polystudiv3-round.png',
+      uploader: fullName,
+      title: 'Admin Candidate: ' + fullName,
+      type: 'admin',
+      class_code: branch,
+      subject_code: year || 'N/A'
+    });
+
+    res.json({ success: true, data: userRow });
+  } catch (err) {
+    console.error('Error registering admin candidate:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/approve-admin-candidate', express.json(), async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) {
+      return res.status(400).json({ error: 'Missing candidate ID.' });
+    }
+
+    // Fetch details first
+    const { data: userRow, error: fetchError } = await supabaseAdmin
+      .from('users')
+      .select('email, full_name, branch, year')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !userRow) {
+      return res.status(404).json({ error: 'Candidate profile not found.' });
+    }
+
+    // Update in database
+    const { error: updateError } = await supabaseAdmin
+      .from('users')
+      .update({ role: 'admin', approved: true })
+      .eq('id', id);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    // Email approved candidate
+    await sendPlugMail(userRow.email, 'user status update', {
+      status_badge_text: 'APPROVED',
+      status_badge_bg: '#d1fae5',
+      status_badge_color: '#065f46',
+      status_title: 'Admin Account Approved!',
+      status_message: `Congratulations! Your admin account has been approved by the superadmin. You now have full access to manage study materials and reviews for the ${userRow.branch} department. Click below to enter the dashboard.`,
+      btn_bg_gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+      btn_shadow_color: 'rgba(16, 185, 129, 0.3)',
+      action_text: 'Go to Dashboard',
+      action_url: 'https://polystudi.com/dashboard',
+      logo_url: 'https://polystudi.com/polystudiv3-round.png',
+      uploader: userRow.full_name,
+      title: 'Admin Account Approved',
+      type: 'admin',
+      class_code: userRow.branch,
+      subject_code: userRow.year || 'N/A'
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error approving admin candidate:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/reject-admin-candidate', express.json(), async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id) {
+      return res.status(400).json({ error: 'Missing candidate ID.' });
+    }
+
+    // Delete candidate profile
+    const { error } = await supabaseAdmin
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error rejecting admin candidate:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Backend server is running on port ${PORT}`);

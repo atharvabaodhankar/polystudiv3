@@ -51,18 +51,31 @@ const AdminSignup = () => {
       setLoading(false);
       return;
     }
-    // Insert into users table as admin_candidate with all info
+    // Insert into users table as admin_candidate with all info via secure backend
     const user = data.user;
     if (user) {
-      await supabase.from('users').upsert({
-        id: user.id,
-        email: user.email,
-        full_name: fullName,
-        branch,
-        year,
-        role: 'admin_candidate',
-        approved: false,
-      });
+      try {
+        const API_URL = import.meta.env.VITE_API_URL;
+        const res = await fetch(`${API_URL}/api/register-admin-candidate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: user.id,
+            email: user.email,
+            fullName,
+            branch,
+            year
+          })
+        });
+        if (!res.ok) {
+          const resData = await res.json().catch(() => ({}));
+          throw new Error(resData.error || 'Failed to complete registration.');
+        }
+      } catch (regError) {
+        setError(regError.message);
+        setLoading(false);
+        return;
+      }
     }
     setMessage('Signup successful! Please verify your email. After verification and superadmin approval, you will be able to log in.');
     setLoading(false);
@@ -96,14 +109,18 @@ const AdminSignup = () => {
             ))}
           </select>
         )}
-        <input
-          type="text"
+        <select
           required
-          className="border border-[#ede9fe] rounded-lg px-4 py-3 font-poppins text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition"
-          placeholder="Year (or N/A)"
+          className="border border-[#ede9fe] rounded-lg px-4 py-3 font-poppins text-[#342F76] bg-white focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition"
           value={year}
           onChange={e => setYear(e.target.value)}
-        />
+        >
+          <option value="">Select Year</option>
+          <option value="1">1st Year</option>
+          <option value="2">2nd Year</option>
+          <option value="3">3rd Year</option>
+          <option value="N/A">N/A</option>
+        </select>
         <input
           type="email"
           required
@@ -144,15 +161,16 @@ const AdminSignup = () => {
             setLoading(true);
             setError('');
             setMessage('');
+
+            // Store registration info in localStorage because Supabase OAuth ignores options.data user metadata
+            localStorage.setItem('admin_signup_name', fullName);
+            localStorage.setItem('admin_signup_branch', branch);
+            localStorage.setItem('admin_signup_year', year);
+
             const { error: googleError } = await supabase.auth.signInWithOAuth({
               provider: 'google',
               options: {
                 redirectTo: window.location.origin + '/dashboard',
-                data: {
-                  full_name: fullName,
-                  branch,
-                  year,
-                }
               }
             });
             if (googleError) {
