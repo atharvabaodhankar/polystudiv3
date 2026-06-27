@@ -22,9 +22,39 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
-        const { data } = await supabase.from('users').select('role, branch').eq('email', user.email).single();
-        setUserRole(data?.role);
-        setUserBranch(data?.branch);
+        const { data: userRow } = await supabase
+          .from('users')
+          .select('role, branch')
+          .eq('email', user.email)
+          .maybeSingle();
+
+        if (!userRow) {
+          // If the profile does not exist, check if user has branch/name metadata from Google Auth signup
+          if (user.user_metadata?.branch && user.user_metadata?.full_name) {
+            const { data: newRow } = await supabase
+              .from('users')
+              .insert([{
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata.full_name,
+                branch: user.user_metadata.branch,
+                year: user.user_metadata.year || 'N/A',
+                role: 'admin_candidate',
+                approved: false
+              }])
+              .select('role, branch')
+              .maybeSingle();
+
+            setUserRole(newRow?.role || 'admin_candidate');
+            setUserBranch(newRow?.branch || user.user_metadata.branch);
+          } else {
+            setUserRole(null);
+            setUserBranch(null);
+          }
+        } else {
+          setUserRole(userRow.role);
+          setUserBranch(userRow.branch);
+        }
       }
       setAuthLoading(false);
     };
@@ -109,6 +139,17 @@ const Dashboard = () => {
   };
 
   if (authLoading) return <div className="max-w-5xl mx-auto py-12 px-4 text-lg text-[#342F76]">Checking authorization...</div>;
+  if (userRole === 'admin_candidate') {
+    return (
+      <div className="max-w-5xl mx-auto py-24 px-4 text-center">
+        <h1 className="text-4xl font-baumans text-[#9102C0] mb-4">Pending Approval</h1>
+        <p className="text-[#342F76] text-lg font-poppins">
+          Your admin account request has been successfully submitted.<br />
+          Please wait for a superadmin to approve your registration before you can access the dashboard.
+        </p>
+      </div>
+    );
+  }
   if (userRole !== 'admin' && userRole !== 'superadmin') {
     return <div className="max-w-5xl mx-auto py-12 px-4 text-lg text-[#9102C0]">Not authorized to view this page.</div>;
   }
