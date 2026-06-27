@@ -53,6 +53,7 @@ const dummyNotes = [
 const ClassPage = () => {
   const { classCode } = useParams();
   const [syllabus, setSyllabus] = useState([]);
+  const [contributorStats, setContributorStats] = useState({});
   const [extraMaterials, setExtraMaterials] = useState([]);
   const [notes, setNotes] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -80,7 +81,8 @@ const ClassPage = () => {
         { data: notesData },
         { data: subjectsData },
         { data: questionPapersData },
-        { data: solvedPapersData }
+        { data: solvedPapersData },
+        { data: allMaterialsData }
       ] = await Promise.all([
         supabase.from('subjects').select('*').eq('class_code', classCode),
         supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'extra'),
@@ -88,11 +90,23 @@ const ClassPage = () => {
         supabase.from('subjects').select('*').eq('class_code', classCode),
         supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'question_paper'),
         supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'solved'),
+        supabase.from('materials').select('uploader').not('uploader', 'is', null),
       ]);
       setSyllabus(syllabusData || []);
       setExtraMaterials(extraData || []);
       setNotes(notesData || []);
       setSubjects(subjectsData || []);
+
+      // Aggregate contributor statistics
+      const counts = {};
+      if (allMaterialsData) {
+        allMaterialsData.forEach(m => {
+          if (m.uploader) {
+            counts[m.uploader] = (counts[m.uploader] || 0) + 1;
+          }
+        });
+      }
+      setContributorStats(counts);
       // Group question papers by subject
       if (questionPapersData) {
         const groupedQ = {};
@@ -165,6 +179,19 @@ const ClassPage = () => {
     };
   }, [loading]);
 
+    const renderContributorBadge = (uploader) => {
+      if (!uploader) return null;
+      const count = contributorStats[uploader];
+      if (!count) return null;
+      const label = count >= 10 ? 'Master Scholar' : count >= 5 ? 'Gold Contributor' : count >= 3 ? 'Silver Contributor' : 'Bronze Contributor';
+      const badgeClass = count >= 10 ? 'bg-purple-100 text-purple-700 border-purple-200' : count >= 5 ? 'bg-amber-100 text-amber-700 border-amber-200' : count >= 3 ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-orange-100 text-orange-700 border-orange-200';
+      return (
+        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border capitalize tracking-wide ${badgeClass}`}>
+          {label}
+        </span>
+      );
+    };
+
   return (
     <div className="max-w-7xl mx-auto py-12 px-4">
       {/* Class Welcome Section */}
@@ -232,7 +259,10 @@ const ClassPage = () => {
                 </div>
                 <h3 className="text-lg font-bold text-[#342F76] group-hover:text-[#9102C0] transition">{mat.title}</h3>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-sm text-gray-500">By {mat.uploader || 'Unknown'}</span>
+                  <div className="flex flex-col items-start gap-1">
+                    <span className="text-sm text-gray-500">By {mat.uploader || 'Unknown'}</span>
+                    {renderContributorBadge(mat.uploader)}
+                  </div>
                   <a href={mat.file_url} className="text-[#9102C0] hover:underline font-bold" target="_blank" rel="noopener noreferrer">Download</a>
                 </div>
               </div>
@@ -266,7 +296,10 @@ const ClassPage = () => {
                   <span className="text-xs text-[#342F76] font-semibold">{note.created_at ? new Date(note.created_at).toLocaleDateString() : ''}</span>
                 </div>
                 <h3 className="text-lg font-bold text-[#342F76] mb-2 line-clamp-2 font-baumans">{note.title}</h3>
-                <div className="text-sm text-[#9102C0] font-medium mb-4">By {note.uploader || 'Unknown'}</div>
+                <div className="flex flex-col items-start gap-1 mb-4">
+                  <div className="text-sm text-[#9102C0] font-medium">By {note.uploader || 'Unknown'}</div>
+                  {renderContributorBadge(note.uploader)}
+                </div>
                 <div className="mt-auto">
                   <a
                     href={note.file_url}

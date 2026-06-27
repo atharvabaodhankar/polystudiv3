@@ -7,21 +7,51 @@ const Notes = () => {
   const navigate = useNavigate();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [contributorStats, setContributorStats] = useState({});
 
   useEffect(() => {
     document.title = `PolyStudi || ${classCode} Notes`;
     const fetchNotes = async () => {
-      const { data, error } = await supabase
-        .from('materials')
-        .select('*')
-        .eq('class_code', classCode)
-        .eq('type', 'note')
-        .order('created_at', { ascending: false });
-      if (!error) setNotes(data || []);
+      const [
+        { data: notesData },
+        { data: allMaterialsData }
+      ] = await Promise.all([
+        supabase
+          .from('materials')
+          .select('*')
+          .eq('class_code', classCode)
+          .eq('type', 'note')
+          .order('created_at', { ascending: false }),
+        supabase.from('materials').select('uploader').not('uploader', 'is', null)
+      ]);
+      if (notesData) setNotes(notesData);
+
+      const counts = {};
+      if (allMaterialsData) {
+        allMaterialsData.forEach(m => {
+          if (m.uploader) {
+            counts[m.uploader] = (counts[m.uploader] || 0) + 1;
+          }
+        });
+      }
+      setContributorStats(counts);
       setLoading(false);
     };
     fetchNotes();
   }, [classCode]);
+
+  const renderContributorBadge = (uploader) => {
+    if (!uploader) return null;
+    const count = contributorStats[uploader];
+    if (!count) return null;
+    const label = count >= 10 ? 'Master Scholar' : count >= 5 ? 'Gold Contributor' : count >= 3 ? 'Silver Contributor' : 'Bronze Contributor';
+    const badgeClass = count >= 10 ? 'bg-purple-100 text-purple-700 border-purple-200' : count >= 5 ? 'bg-amber-100 text-amber-700 border-amber-200' : count >= 3 ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-orange-100 text-orange-700 border-orange-200';
+    return (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border capitalize tracking-wide ${badgeClass}`}>
+        {label}
+      </span>
+    );
+  };
 
   return (
     <div className="max-w-6xl mx-auto py-12 px-4">
@@ -72,7 +102,10 @@ const Notes = () => {
               {note.subject_code && (
                 <span className="text-xs text-gray-400 mb-1">Subject: {note.subject_code}</span>
               )}
-              <div className="text-sm text-[#9102C0] font-medium mb-4">By {note.uploader || 'Unknown'}</div>
+              <div className="flex flex-col items-start gap-1 mb-4">
+                <div className="text-sm text-[#9102C0] font-medium">By {note.uploader || 'Unknown'}</div>
+                {renderContributorBadge(note.uploader)}
+              </div>
               <div className="mt-auto">
                 <a
                   href={note.file_url}

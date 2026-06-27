@@ -82,6 +82,9 @@ const Navbar = forwardRef((props, navLogoRef) => {
         <a href="#courses" onClick={handleNavSection('courses')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all duration-300 text-lg md:text-xl text-black block">Courses</a>
       </li>
       <li>
+        <a href="#leaderboard" onClick={handleNavSection('leaderboard')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all duration-300 text-lg md:text-xl text-black block">Leaderboard</a>
+      </li>
+      <li>
         <a href="#aboutus" onClick={handleNavSection('aboutus')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all duration-300 text-lg md:text-xl text-black block">AboutUs</a>
       </li>
       <li>

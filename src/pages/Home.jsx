@@ -256,6 +256,95 @@ const Home = ({ navLogoRef }) => {
           )}
         </div>
       </section>
+
+      {/* Student Contributors Leaderboard Section */}
+      <section id="leaderboard" className="py-24 bg-white relative overflow-hidden border-t border-b border-[#ede9fe]">
+        <div className="absolute -right-32 top-24 w-96 h-96 bg-gradient-to-br from-[#9102C0]/5 to-[#342F76]/0 rounded-full blur-3xl z-0" />
+        <div className="absolute -left-32 bottom-24 w-96 h-96 bg-gradient-to-br from-[#342F76]/5 to-[#9102C0]/0 rounded-full blur-3xl z-0" />
+        
+        <div className="max-w-5xl mx-auto px-4 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-baumans text-[#9102C0] mb-2 font-bold flex items-center gap-3">
+                <FaTrophy className="text-[#d97706] text-2xl md:text-3xl" />
+                Contributors Leaderboard
+              </h2>
+              <p className="text-[#342F76] text-lg font-poppins max-w-xl">
+                Honoring the top contributors who shared study materials to help their peers succeed.
+              </p>
+            </div>
+            <div className="mt-4 md:mt-0 bg-[#f8f6ff] border border-[#ede9fe] rounded-2xl px-6 py-4 flex items-center gap-4 self-start md:self-auto">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#9102C0] flex items-center justify-center">
+                <FaUsers className="text-xl" />
+              </div>
+              <div>
+                <div className="text-xs text-gray-400 font-semibold uppercase tracking-wider">Total Materials Shared</div>
+                <div className="text-2xl font-bold text-[#342F76] font-baumans">{totalContributions} files</div>
+              </div>
+            </div>
+          </div>
+
+          {contributors.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 border border-dashed rounded-2xl text-gray-400 font-medium font-poppins">
+              No contributions recorded yet. Be the first to upload study notes!
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {(showAllContributors ? contributors : topContributors).map((c, index) => {
+                  const points = c.contributions * 10;
+                  const badgeLabel = c.contributions >= 10 ? 'Master Scholar' : c.contributions >= 5 ? 'Gold Contributor' : c.contributions >= 3 ? 'Silver Contributor' : 'Bronze Contributor';
+                  const badgeBg = c.contributions >= 10 ? 'bg-purple-100 text-purple-700 border-purple-200' : c.contributions >= 5 ? 'bg-amber-100 text-amber-700 border-amber-200' : c.contributions >= 3 ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-orange-100 text-orange-700 border-orange-200';
+                  const medalColor = index === 0 ? 'text-[#d97706]' : index === 1 ? 'text-[#9ca3af]' : index === 2 ? 'text-[#b45309]' : 'text-purple-300';
+                  
+                  return (
+                    <div 
+                      key={c.name} 
+                      className="bg-[#fcfaff] border border-[#ede9fe] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition duration-200 group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-white border border-[#ede9fe] flex items-center justify-center font-bold text-[#342F76] text-lg font-baumans shadow-inner relative">
+                          {index < 3 ? (
+                            <FaTrophy className={`text-xl ${medalColor}`} />
+                          ) : (
+                            `#${index + 1}`
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-bold text-[#342F76] text-lg font-poppins flex items-center gap-2">
+                            {c.name}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${badgeBg}`}>
+                              {badgeLabel}
+                            </span>
+                            <span className="text-xs text-gray-400 font-semibold font-poppins">{c.contributions} files</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-[#9102C0] font-baumans">{points} pts</div>
+                        <div className="text-xs text-gray-400 font-poppins">Earned</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {contributors.length > 5 && (
+                <button
+                  onClick={() => setShowAllContributors(!showAllContributors)}
+                  className="mx-auto block px-8 py-2.5 rounded-full border border-[#9102C0] text-[#9102C0] bg-white font-bold text-base hover:bg-[#9102C0] hover:text-white transition duration-200 cursor-pointer shadow-sm"
+                >
+                  {showAllContributors ? 'Show Top 5' : 'Show All Contributors'}
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      </section>
+
       {/* About Us Section */}
       <section id="aboutus" className="bg-[#f8f6ff] py-24 relative overflow-x-hidden">
         {/* Decorative blurred gradient shapes */}
