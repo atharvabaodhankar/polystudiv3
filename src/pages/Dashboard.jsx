@@ -18,6 +18,10 @@ const Dashboard = () => {
   const [reviewers, setReviewers] = useState({});
   const [reviews, setReviews] = useState([]);
 
+  // Active SaaS View & Mobile Sidebar toggles
+  const [activeView, setActiveView] = useState('overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   // Search States
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewSearchQuery, setReviewSearchQuery] = useState('');
