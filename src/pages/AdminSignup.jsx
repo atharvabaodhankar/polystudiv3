@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 const AdminSignup = () => {
@@ -10,6 +10,24 @@ const AdminSignup = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [departments, setDepartments] = useState([]);
+  const [loadingDeps, setLoadingDeps] = useState(true);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const { data, error } = await supabase.from('departments').select('name, code').order('name');
+        if (!error && data) {
+          setDepartments(data);
+        }
+      } catch (err) {
+        console.error('Error fetching departments:', err);
+      } finally {
+        setLoadingDeps(false);
+      }
+    };
+    fetchDepartments();
+  }, []);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -63,14 +81,21 @@ const AdminSignup = () => {
           value={fullName}
           onChange={e => setFullName(e.target.value)}
         />
-        <input
-          type="text"
-          required
-          className="border border-[#ede9fe] rounded-lg px-4 py-3 font-poppins text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition"
-          placeholder="Branch / Department"
-          value={branch}
-          onChange={e => setBranch(e.target.value)}
-        />
+        {loadingDeps ? (
+          <div className="text-[#342F76] text-sm font-poppins py-2">Loading departments...</div>
+        ) : (
+          <select
+            required
+            className="border border-[#ede9fe] rounded-lg px-4 py-3 font-poppins text-[#342F76] bg-white focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition"
+            value={branch}
+            onChange={e => setBranch(e.target.value)}
+          >
+            <option value="">Select Branch / Department</option>
+            {departments.map(d => (
+              <option key={d.code} value={d.code}>{d.name} ({d.code})</option>
+            ))}
+          </select>
+        )}
         <input
           type="text"
           required
