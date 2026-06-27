@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import MaterialDeletion from './MaterialDeletion';
 
 const Dashboard = () => {
-  const [requests, setRequests] = useState([]);
+  const [allRequests, setAllRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
   const [userRole, setUserRole] = useState(null);
@@ -12,9 +12,11 @@ const Dashboard = () => {
   const [adminCandidates, setAdminCandidates] = useState([]);
   const [candidateLoading, setCandidateLoading] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [userFullName, setUserFullName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [userBranch, setUserBranch] = useState(null);
   const [reviewers, setReviewers] = useState({});
   const [reviews, setReviews] = useState([]);
-  const [userBranch, setUserBranch] = useState(null);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -22,9 +24,10 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setUserId(user.id);
+        setUserEmail(user.email);
         const { data: userRow } = await supabase
           .from('users')
-          .select('role, branch')
+          .select('full_name, role, branch')
           .eq('email', user.email)
           .maybeSingle();
 
@@ -42,16 +45,19 @@ const Dashboard = () => {
                 role: 'admin_candidate',
                 approved: false
               }])
-              .select('role, branch')
+              .select('full_name, role, branch')
               .maybeSingle();
 
+            setUserFullName(newRow?.full_name || user.user_metadata.full_name || 'Admin');
             setUserRole(newRow?.role || 'admin_candidate');
             setUserBranch(newRow?.branch || user.user_metadata.branch);
           } else {
+            setUserFullName(user.user_metadata?.full_name || 'Admin');
             setUserRole(null);
             setUserBranch(null);
           }
         } else {
+          setUserFullName(userRow.full_name || 'Admin');
           setUserRole(userRow.role);
           setUserBranch(userRow.branch);
         }
@@ -63,35 +69,39 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!userRole) return;
-    const fetchRequests = async () => {
+    const fetchRequestsAndReviews = async () => {
       setLoading(true);
-      let query = supabase.from('material_requests').select('*').order('created_at', { ascending: false });
-      if (tab !== 'all') query = query.eq('status', tab);
-      if (userRole === 'admin' && userBranch) {
-        query = query.like('class_code', `${userBranch}%`);
+      try {
+        // Fetch all material requests for branch matching
+        let query = supabase.from('material_requests').select('*').order('created_at', { ascending: false });
+        if (userRole === 'admin' && userBranch) {
+          query = query.like('class_code', `${userBranch}%`);
+        }
+        const { data } = await query;
+        setAllRequests(data || []);
+
+        // Fetch reviewer mapping
+        const reviewerIds = (data || []).map(r => r.reviewed_by).filter(Boolean);
+        if (reviewerIds.length > 0) {
+          const { data: reviewerUsers } = await supabase.from('users').select('id, full_name').in('id', reviewerIds);
+          const reviewerMap = {};
+          (reviewerUsers || []).forEach(u => { reviewerMap[u.id] = u.full_name; });
+          setReviewers(reviewerMap);
+        } else {
+          setReviewers({});
+        }
+
+        // Fetch reviews
+        const { data: revData } = await supabase.from('reviews').select('*').order('submitted_at', { ascending: false });
+        setReviews(revData || []);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+      } finally {
+        setLoading(false);
       }
-      const { data } = await query;
-      setRequests(data || []);
-      // Fetch reviewer names for all reviewed_by ids
-      const reviewerIds = (data || []).map(r => r.reviewed_by).filter(Boolean);
-      if (reviewerIds.length > 0) {
-        const { data: reviewerUsers } = await supabase.from('users').select('id, full_name').in('id', reviewerIds);
-        const reviewerMap = {};
-        (reviewerUsers || []).forEach(u => { reviewerMap[u.id] = u.full_name; });
-        setReviewers(reviewerMap);
-      } else {
-        setReviewers({});
-      }
-      // Fetch reviews for admin panel
-      const fetchReviews = async () => {
-        const { data } = await supabase.from('reviews').select('*').order('submitted_at', { ascending: false });
-        setReviews(data || []);
-      };
-      fetchReviews();
-      setLoading(false);
     };
-    fetchRequests();
-  }, [userRole, tab, userBranch]);
+    fetchRequestsAndReviews();
+  }, [userRole, userBranch]);
 
   useEffect(() => {
     if (userRole === 'superadmin') {
@@ -116,7 +126,11 @@ const Dashboard = () => {
       if (!res.ok) {
         throw new Error(data.error || 'Failed to review material request.');
       }
-      setRequests((prev) => prev.filter((r) => r.id !== id));
+      
+      // Update local state without fetching again
+      setAllRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: action === 'approve' ? 'approved' : 'declined', reviewed_by: userId } : r)
+      );
     } catch (err) {
       alert('Error reviewing request: ' + err.message);
     } finally {
@@ -138,165 +152,347 @@ const Dashboard = () => {
     setCandidateLoading(false);
   };
 
-  if (authLoading) return <div className="max-w-5xl mx-auto py-12 px-4 text-lg text-[#342F76]">Checking authorization...</div>;
-  if (userRole === 'admin_candidate') {
+  if (authLoading) {
     return (
-      <div className="max-w-5xl mx-auto py-24 px-4 text-center">
-        <h1 className="text-4xl font-baumans text-[#9102C0] mb-4">Pending Approval</h1>
-        <p className="text-[#342F76] text-lg font-poppins">
-          Your admin account request has been successfully submitted.<br />
-          Please wait for a superadmin to approve your registration before you can access the dashboard.
-        </p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-[#9102C0] border-t-transparent rounded-full animate-spin"></div>
+        <div className="text-[#342F76] font-semibold text-lg font-poppins animate-pulse">Verifying credentials...</div>
       </div>
     );
   }
-  if (userRole !== 'admin' && userRole !== 'superadmin') {
-    return <div className="max-w-5xl mx-auto py-12 px-4 text-lg text-[#9102C0]">Not authorized to view this page.</div>;
+
+  if (userRole === 'admin_candidate') {
+    return (
+      <div className="max-w-xl mx-auto py-24 px-6 text-center">
+        <div className="bg-white border border-[#9102C0]/20 rounded-2xl shadow-xl p-10 flex flex-col items-center gap-6">
+          <div className="w-20 h-20 rounded-full bg-[#f3e8ff] flex items-center justify-center text-[#9102C0] text-4xl animate-pulse">⏰</div>
+          <h1 className="text-4xl font-baumans text-[#9102C0]">Registration Pending</h1>
+          <p className="text-[#342F76] text-lg font-poppins leading-relaxed">
+            Hi <strong>{userFullName}</strong>, your request for admin access has been successfully submitted.
+          </p>
+          <div className="w-full h-px bg-[#ede9fe]"></div>
+          <p className="text-sm text-gray-500 font-poppins">
+            A superadmin is reviewing your account. Once approved, you will have access to the dashboard. Feel free to refresh this page.
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  return (
-    <div className="max-w-5xl mx-auto py-12 px-4">
-      <h1 className="text-3xl font-baumans text-[#9102C0] mb-8">Admin Review Queue</h1>
-      {userRole === 'superadmin' && (
-        <div className="mb-10">
-          <h2 className="text-2xl font-baumans text-[#342F76] mb-4">Admin Candidates</h2>
-          {candidateLoading ? (
-            <div className="text-lg text-[#342F76]">Loading...</div>
-          ) : adminCandidates.length === 0 ? (
-            <div className="text-[#342F76]">No admin candidates pending approval.</div>
-          ) : (
-            <div className="overflow-x-auto rounded-xl shadow border border-[#ede9fe] bg-white mb-6">
-              <table className="min-w-full text-left text-sm font-poppins">
-                <thead className="bg-[#342F76] text-white">
-                  <tr>
-                    <th className="py-3 px-4">Name</th>
-                    <th className="py-3 px-4">Email</th>
-                    <th className="py-3 px-4">Branch</th>
-                    <th className="py-3 px-4">Year</th>
-                    <th className="py-3 px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {adminCandidates.map((c) => (
-                    <tr key={c.id} className="border-b hover:bg-[#f3e8ff]/40 transition">
-                      <td className="py-2 px-4 font-semibold text-[#342F76]">{c.full_name}</td>
-                      <td className="py-2 px-4">{c.email}</td>
-                      <td className="py-2 px-4">{c.branch}</td>
-                      <td className="py-2 px-4">{c.year}</td>
-                      <td className="py-2 px-4 flex gap-2">
-                        <button className="px-4 py-1 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition disabled:opacity-60" onClick={() => handleApproveAdmin(c.id)} disabled={candidateLoading}>Approve</button>
-                        <button className="px-4 py-1 rounded-full bg-[#f3e8ff] text-[#9102C0] font-bold border border-[#9102C0] hover:bg-[#9102C0] hover:text-white transition disabled:opacity-60" onClick={() => handleRejectAdmin(c.id)} disabled={candidateLoading}>Reject</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+  if (userRole !== 'admin' && userRole !== 'superadmin') {
+    return (
+      <div className="max-w-md mx-auto py-24 px-6 text-center">
+        <div className="bg-white border border-red-200 rounded-2xl shadow-lg p-10 flex flex-col items-center gap-6">
+          <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center text-red-500 text-3xl">🚫</div>
+          <h1 className="text-2xl font-bold text-red-600 font-poppins">Access Denied</h1>
+          <p className="text-gray-600 font-poppins">You do not have administrative privileges to view this page.</p>
         </div>
-      )}
-      <div className="flex gap-4 mb-6">
-        <button onClick={() => setTab('pending')} className={`px-4 py-2 rounded-full font-bold border ${tab==='pending' ? 'bg-[#9102C0] text-white border-[#9102C0]' : 'bg-white text-[#9102C0] border-[#9102C0]'}`}>Pending</button>
-        <button onClick={() => setTab('approved')} className={`px-4 py-2 rounded-full font-bold border ${tab==='approved' ? 'bg-[#9102C0] text-white border-[#9102C0]' : 'bg-white text-[#9102C0] border-[#9102C0]'}`}>Approved</button>
-        <button onClick={() => setTab('declined')} className={`px-4 py-2 rounded-full font-bold border ${tab==='declined' ? 'bg-[#9102C0] text-white border-[#9102C0]' : 'bg-white text-[#9102C0] border-[#9102C0]'}`}>Declined</button>
       </div>
-      {loading ? (
-        <div className="text-lg text-[#342F76]">Loading...</div>
-      ) : requests.length === 0 ? (
-        <div className="text-[#342F76]">No {tab} material requests.</div>
-      ) : (
-        <div className="overflow-x-auto rounded-xl shadow border border-[#ede9fe] bg-white">
-          <table className="min-w-full text-left text-sm font-poppins">
-            <thead className="bg-[#9102C0] text-white">
-              <tr>
-                <th className="py-3 px-4">Title</th>
-                <th className="py-3 px-4">Type</th>
-                <th className="py-3 px-4">Uploader</th>
-                <th className="py-3 px-4">Class</th>
-                <th className="py-3 px-4">Subject</th>
-                <th className="py-3 px-4">File</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Reviewed By</th>
-                <th className="py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((req) => (
-                <tr key={req.id} className="border-b hover:bg-[#f3e8ff]/40 transition">
-                  <td className="py-2 px-4 font-semibold text-[#342F76]">{req.title}</td>
-                  <td className="py-2 px-4 text-[#9102C0]">{req.type}</td>
-                  <td className="py-2 px-4">{req.uploader}</td>
-                  <td className="py-2 px-4">{req.class_code}</td>
-                  <td className="py-2 px-4">{req.subject_code}</td>
-                  <td className="py-2 px-4">
-                    <a href={req.file_url} target="_blank" rel="noopener noreferrer" className="text-[#9102C0] underline font-semibold">View</a>
-                  </td>
-                  <td className="py-2 px-4 capitalize">{req.status}</td>
-                  <td className="py-2 px-4">{req.reviewed_by ? (reviewers[req.reviewed_by] || req.reviewed_by) : '-'}</td>
-                  <td className="py-2 px-4 flex gap-2">
-                    {tab === 'pending' && <>
-                      <button
-                        className="px-4 py-1 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition disabled:opacity-60"
-                        disabled={actionLoading === req.id + 'approve'}
-                        onClick={() => handleAction(req.id, 'approve')}
-                      >
-                        {actionLoading === req.id + 'approve' ? 'Approving...' : 'Approve'}
-                      </button>
-                      <button
-                        className="px-4 py-1 rounded-full bg-[#f3e8ff] text-[#9102C0] font-bold border border-[#9102C0] hover:bg-[#9102C0] hover:text-white transition disabled:opacity-60"
-                        disabled={actionLoading === req.id + 'decline'}
-                        onClick={() => handleAction(req.id, 'decline')}
-                      >
-                        {actionLoading === req.id + 'decline' ? 'Declining...' : 'Decline'}
-                      </button>
-                    </>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    );
+  }
+
+  // Filter requests based on tab
+  const filteredRequests = allRequests.filter(r => tab === 'all' ? true : r.status === tab);
+
+  // Statistics counts
+  const pendingCount = allRequests.filter(r => r.status === 'pending').length;
+  const approvedCount = allRequests.filter(r => r.status === 'approved').length;
+  const reviewsCount = reviews.length;
+  const candidatesCount = adminCandidates.length;
+
+  return (
+    <div className="max-w-6xl mx-auto py-10 px-4 font-poppins text-[#342F76]">
+      {/* 1. Welcome Greeting Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#9102C0] via-[#7c02a3] to-[#342F76] text-white p-8 md:p-10 shadow-xl mb-10">
+        <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-64 h-64 bg-white/10 rounded-full blur-2xl"></div>
+        <div className="absolute left-1/3 bottom-0 translate-y-1/2 w-48 h-48 bg-[#9102C0]/20 rounded-full blur-xl animate-pulse"></div>
+        
+        <div className="relative z-10">
+          <h1 className="text-3xl md:text-4xl font-baumans mb-3 flex items-center gap-3">
+            Welcome back, {userFullName}! <span className="animate-bounce">👋</span>
+          </h1>
+          <p className="text-purple-100 mb-6 font-medium font-poppins">
+            Manage study materials, approve new admins, and check student feedback in one place.
+          </p>
+          
+          <div className="flex flex-wrap gap-3">
+            <span className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold border border-white/20 capitalize shadow-inner">
+              🛡️ {userRole}
+            </span>
+            <span className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold border border-white/20 shadow-inner">
+              🏢 Branch: {userRole === 'superadmin' ? 'All Departments' : userBranch}
+            </span>
+            <span className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full text-sm font-semibold border border-white/20 shadow-inner">
+              📧 {userEmail}
+            </span>
+          </div>
         </div>
-      )}
-      {(userRole === 'admin' || userRole === 'superadmin') && (
-        <div className="mb-10 mt-12">
-          <h2 className="text-3xl font-baumans text-[#9102C0] mb-8">Contact Form Submissions</h2>
-          {reviews.length === 0 ? (
-            <div className="text-[#342F76]">No reviews submitted yet.</div>
-          ) : (
-            <div className="overflow-x-auto rounded-xl shadow border border-[#ede9fe] bg-white mb-6">
-              <table className="min-w-full text-left text-sm font-poppins">
-                <thead className="bg-[#9102C0] text-white">
-                  <tr>
-                    <th className="py-3 px-4">Name</th>
-                    <th className="py-3 px-4">Roll No</th>
-                    <th className="py-3 px-4">Email</th>
-                    <th className="py-3 px-4">Message</th>
-                    <th className="py-3 px-4">Submitted At</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reviews.map((r) => (
-                    <tr key={r.id} className="border-b hover:bg-[#f3e8ff]/40 transition">
-                      <td className="py-2 px-4 font-semibold text-[#342F76]">{r.name}</td>
-                      <td className="py-2 px-4">{r.rollno}</td>
-                      <td className="py-2 px-4">{r.email}</td>
-                      <td className="py-2 px-4">{r.message}</td>
-                      <td className="py-2 px-4">{r.submitted_at ? new Date(r.submitted_at).toLocaleString() : '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      </div>
+
+      {/* 2. Overview Stats Widgets */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-10">
+        <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl font-bold">⏳</div>
+          <div>
+            <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Pending Tasks</div>
+            <div className="text-2xl font-bold text-[#342F76] font-baumans">{pendingCount}</div>
+          </div>
+        </div>
+        
+        <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-bold">✅</div>
+          <div>
+            <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Approved Materials</div>
+            <div className="text-2xl font-bold text-[#342F76] font-baumans">{approvedCount}</div>
+          </div>
+        </div>
+
+        <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl font-bold">💬</div>
+          <div>
+            <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Student Reviews</div>
+            <div className="text-2xl font-bold text-[#342F76] font-baumans">{reviewsCount}</div>
+          </div>
+        </div>
+
+        {userRole === 'superadmin' && (
+          <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm hover:shadow-md transition p-6 flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl font-bold">👤</div>
+            <div>
+              <div className="text-gray-400 text-sm font-semibold uppercase tracking-wider">Pending Admins</div>
+              <div className="text-2xl font-bold text-[#342F76] font-baumans">{candidatesCount}</div>
             </div>
-          )}
+          </div>
+        )}
+      </div>
+
+      {/* 3. Admin Candidates Management (Superadmin Only) */}
+      {userRole === 'superadmin' && adminCandidates.length > 0 && (
+        <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-md p-6 mb-10">
+          <h2 className="text-xl font-baumans text-[#9102C0] mb-4 flex items-center gap-2">
+            👤 New Admin Candidates
+            <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold font-poppins">{adminCandidates.length}</span>
+          </h2>
+          
+          <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white">
+            <table className="min-w-full text-left text-sm font-poppins">
+              <thead className="bg-gray-50 border-b border-gray-100 text-[#342F76] font-semibold">
+                <tr>
+                  <th className="py-3.5 px-4">Name</th>
+                  <th className="py-3.5 px-4">Email</th>
+                  <th className="py-3.5 px-4">Branch</th>
+                  <th className="py-3.5 px-4">Year</th>
+                  <th className="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {adminCandidates.map((c) => (
+                  <tr key={c.id} className="hover:bg-[#f3e8ff]/20 transition">
+                    <td className="py-3 px-4 font-semibold text-[#342F76]">{c.full_name}</td>
+                    <td className="py-3 px-4 text-gray-500">{c.email}</td>
+                    <td className="py-3 px-4">
+                      <span className="bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                        {c.branch}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-gray-500">{c.year}</td>
+                    <td className="py-3 px-4 text-right flex justify-end gap-2">
+                      <button 
+                        className="px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-600 hover:text-white transition disabled:opacity-60 cursor-pointer" 
+                        onClick={() => handleApproveAdmin(c.id)} 
+                        disabled={candidateLoading}
+                      >
+                        Approve
+                      </button>
+                      <button 
+                        className="px-4 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold hover:bg-rose-600 hover:text-white transition disabled:opacity-60 cursor-pointer" 
+                        onClick={() => handleRejectAdmin(c.id)} 
+                        disabled={candidateLoading}
+                      >
+                        Reject
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
-      {/* Deletion Section for Admins */}
-      <div className="mt-16">
-        <h2 className="text-2xl font-baumans text-[#9102C0] mb-6">Delete Materials</h2>
-        <MaterialDeletion />
+
+      {/* 4. Material Submission Queue */}
+      <div className="bg-white border border-[#ede9fe] rounded-3xl shadow-md p-6 md:p-8 mb-10">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <h2 className="text-2xl font-baumans text-[#9102C0] flex items-center gap-2">
+            📂 Material Submission Queue
+          </h2>
+          
+          <div className="flex bg-gray-50 border border-gray-100 rounded-full p-1 self-start md:self-auto">
+            {['pending', 'approved', 'declined'].map((t) => (
+              <button 
+                key={t}
+                onClick={() => setTab(t)} 
+                className={`px-5 py-2 rounded-full font-semibold text-sm capitalize transition cursor-pointer ${tab === t ? 'bg-[#9102C0] text-white shadow-sm' : 'text-gray-500 hover:text-[#9102C0]'}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="py-12 flex justify-center items-center">
+            <div className="w-8 h-8 border-3 border-[#9102C0] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : filteredRequests.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 border border-dashed rounded-2xl text-gray-400 font-medium">
+            No {tab} material requests found for your branch.
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border border-gray-100">
+            <table className="min-w-full text-left text-sm font-poppins">
+              <thead className="bg-gray-50 border-b border-gray-100 text-[#342F76] font-semibold">
+                <tr>
+                  <th className="py-3.5 px-4">Title</th>
+                  <th className="py-3.5 px-4">Type</th>
+                  <th className="py-3.5 px-4">Contributor</th>
+                  <th className="py-3.5 px-4">Class</th>
+                  <th className="py-3.5 px-4">Subject</th>
+                  <th className="py-3.5 px-4">File</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4">Reviewed By</th>
+                  {tab === 'pending' && <th className="py-3.5 px-4 text-right">Actions</th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredRequests.map((req) => (
+                  <tr key={req.id} className="hover:bg-[#f3e8ff]/20 transition">
+                    <td className="py-3.5 px-4 font-semibold text-[#342F76]">{req.title}</td>
+                    <td className="py-3.5 px-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
+                        req.type === 'note' ? 'bg-purple-100 text-purple-700' :
+                        req.type === 'paper' ? 'bg-blue-100 text-blue-700' :
+                        'bg-amber-100 text-amber-700'
+                      }`}>
+                        {req.type}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="font-semibold text-gray-700">{req.uploader}</div>
+                      <div className="text-xs text-gray-400">{req.email}</div>
+                    </td>
+                    <td className="py-3.5 px-4 text-gray-500 font-semibold">{req.class_code}</td>
+                    <td className="py-3.5 px-4 text-gray-500">{req.subject_code}</td>
+                    <td className="py-3.5 px-4">
+                      <a 
+                        href={req.file_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center gap-1 bg-purple-50 text-[#9102C0] border border-purple-100 px-3 py-1 rounded-full text-xs font-bold hover:bg-[#9102C0] hover:text-white transition"
+                      >
+                        🔗 View File
+                      </a>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
+                        req.status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                        req.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                        'bg-rose-50 text-rose-700 border border-rose-200'
+                      }`}>
+                        {req.status}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-gray-400 text-xs">
+                      {req.reviewed_by ? (reviewers[req.reviewed_by] || 'Another Admin') : '-'}
+                    </td>
+                    {tab === 'pending' && (
+                      <td className="py-3.5 px-4 text-right flex justify-end gap-2">
+                        <button
+                          className="px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-600 hover:text-white transition disabled:opacity-60 cursor-pointer"
+                          disabled={actionLoading === req.id + 'approve'}
+                          onClick={() => handleAction(req.id, 'approve')}
+                        >
+                          {actionLoading === req.id + 'approve' ? 'Approving...' : '✓ Approve'}
+                        </button>
+                        <button
+                          className="px-3.5 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold hover:bg-rose-600 hover:text-white transition disabled:opacity-60 cursor-pointer"
+                          disabled={actionLoading === req.id + 'decline'}
+                          onClick={() => handleAction(req.id, 'decline')}
+                        >
+                          {actionLoading === req.id + 'decline' ? 'Declining...' : '✕ Decline'}
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 5. Contact Form Submissions */}
+      <div className="bg-white border border-[#ede9fe] rounded-3xl shadow-md p-6 md:p-8 mb-10">
+        <h2 className="text-2xl font-baumans text-[#9102C0] mb-6 flex items-center gap-2">
+          💬 Student Feedback & Reviews
+        </h2>
+
+        {reviews.length === 0 ? (
+          <div className="text-center py-12 bg-gray-50 border border-dashed rounded-2xl text-gray-400 font-medium">
+            No feedback submissions received yet.
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-2xl border border-gray-100">
+            <table className="min-w-full text-left text-sm font-poppins">
+              <thead className="bg-gray-50 border-b border-gray-100 text-[#342F76] font-semibold">
+                <tr>
+                  <th className="py-3.5 px-4">Student</th>
+                  <th className="py-3.5 px-4">Roll No</th>
+                  <th className="py-3.5 px-4">Message</th>
+                  <th className="py-3.5 px-4">Date</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {reviews.map((r) => (
+                  <tr key={r.id} className="hover:bg-[#f3e8ff]/20 transition">
+                    <td className="py-3.5 px-4">
+                      <div className="font-semibold text-gray-700">{r.name}</div>
+                      <div className="text-xs text-gray-400">{r.email}</div>
+                    </td>
+                    <td className="py-3.5 px-4 text-gray-500 font-mono">{r.rollno}</td>
+                    <td className="py-3.5 px-4 text-gray-600 max-w-xs truncate hover:text-clip hover:whitespace-normal transition duration-200">
+                      {r.message}
+                    </td>
+                    <td className="py-3.5 px-4 text-gray-400 text-xs">
+                      {r.submitted_at ? new Date(r.submitted_at).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* 6. Material Deletion Section */}
+      <div className="bg-white border border-[#ede9fe] rounded-3xl shadow-md p-6 md:p-8">
+        <h2 className="text-2xl font-baumans text-[#9102C0] mb-4 flex items-center gap-2">
+          🗑️ Material Management (Deletion)
+        </h2>
+        <p className="text-gray-500 text-sm mb-6 font-poppins">
+          Instantly delete approved study materials from the live site database. This will also clean up matching Google Drive files.
+        </p>
+        <div className="border-t border-gray-100 pt-6">
+          <MaterialDeletion />
+        </div>
       </div>
     </div>
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
