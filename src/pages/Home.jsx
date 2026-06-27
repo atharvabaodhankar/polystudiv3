@@ -258,7 +258,7 @@ const Home = ({ navLogoRef }) => {
       </section>
 
       {/* Student Contributors Leaderboard Section */}
-      <section id="leaderboard" className="py-24 bg-white relative overflow-hidden border-t border-b border-[#ede9fe]">
+      <section id="leaderboard" className="py-24 bg-[#f8f6ff] relative overflow-hidden border-t border-b border-[#ede9fe]">
         <div className="absolute -right-32 top-24 w-96 h-96 bg-gradient-to-br from-[#9102C0]/5 to-[#342F76]/0 rounded-full blur-3xl z-0" />
         <div className="absolute -left-32 bottom-24 w-96 h-96 bg-gradient-to-br from-[#342F76]/5 to-[#9102C0]/0 rounded-full blur-3xl z-0" />
         
@@ -407,78 +407,6 @@ const Home = ({ navLogoRef }) => {
               {contactSuccess && <div className="text-green-600 text-center font-semibold mt-2">{contactSuccess}</div>}
               {contactError && <div className="text-red-600 text-center font-semibold mt-2">{contactError}</div>}
             </form>
-          </div>
-        </div>
-      </section>
-      {/* Contributors Section */}
-      <section id="contributors" className="py-24 bg-white relative overflow-hidden">
-        {/* Decorative blurred gradient shapes */}
-        <div className="absolute -left-32 top-24 w-96 h-96 bg-gradient-to-br from-[#9102C0]/10 to-[#342F76]/0 rounded-full blur-3xl z-0" />
-        <div className="absolute right-0 top-1/3 w-80 h-80 bg-gradient-to-tr from-[#342F76]/10 via-[#9102C0]/10 to-[#f3e8ff]/20 rounded-full blur-2xl z-0 animate-pulse-slow" />
-        <div className="max-w-5xl mx-auto px-4 relative z-10">
-          <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-2 pb-5 font-bold text-center">Our Amazing Contributors</h1>
-          <p className="text-[#342F76] text-lg mb-2 font-poppins text-center">Meet the students who are making PolyStudi better every day by sharing their knowledge and resources.</p>
-          <p className="text-[#9102C0] text-base mb-10 font-baumans italic text-center">Together we learn, together we grow.</p>
-          
-          {/* All Contributors Grid */}
-          <div className="mb-12">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {(showAllContributors ? contributors : contributors.slice(0, 5)).map((contributor, index) => {
-                const initial = contributor.name?.charAt(0)?.toUpperCase() || '?';
-                return (
-                  <div key={contributor.name} className="bg-white/60 backdrop-blur-xl border border-[#ede9fe] rounded-2xl p-7 shadow-md hover:shadow-lg transition-all duration-200 text-center group flex flex-col items-center relative overflow-hidden" style={{ minHeight: 160 }}>
-                    {/* Simple Avatar */}
-                    <div className="mb-4 flex items-center justify-center">
-                      <span className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-[#f3e8ff] via-[#9102C0]/10 to-[#342F76]/10 shadow-sm text-3xl font-bold text-[#9102C0]">
-                        {initial}
-                      </span>
-                    </div>
-                    {/* Contributor Name with word wrap and fixed height */}
-                    <div className="w-full flex justify-center items-center min-h-[48px]">
-                      <span
-                        className="text-lg font-bold text-[#342F76] mb-1 group-hover:text-[#9102C0] transition-colors break-words text-center w-full"
-                        style={{ letterSpacing: 0.2 }}
-                      >
-                        {contributor.name}
-                      </span>
-                    </div>
-                    {/* Divider */}
-                    <div className="w-8 h-1 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#342F76] mx-auto mb-2 opacity-60" />
-                    {/* Contribution Count */}
-                    <p className="text-base font-semibold text-[#9102C0] mb-0.5">
-                      {contributor.contributions} {contributor.contributions === 1 ? 'contribution' : 'contributions'}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-            
-            {/* Show All Button */}
-            {contributors.length > 5 && (
-              <div className="text-center mt-8">
-                <button
-                  onClick={() => setShowAllContributors(!showAllContributors)}
-                  className="px-8 py-3 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold hover:scale-105 transition-all duration-200 shadow-lg"
-                >
-                  {showAllContributors ? 'Show Less' : `Show All (${contributors.length - 5} more)`}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Call to Action */}
-          <div className="mt-12 text-center">
-            <div className="bg-white/80 backdrop-blur-2xl border-2 border-[#9102C0] text-[#342F76] px-8 py-6 rounded-2xl font-semibold shadow-lg">
-              <p className="text-lg mb-4">
-                <span className="font-bold text-[#9102C0]">Join our community!</span> Share your notes, papers, or materials and help your fellow students succeed.
-              </p>
-              <a 
-                href="#courses" 
-                className="inline-block px-8 py-3 rounded-full bg-gradient-to-r from-[#9102C0] via-[#E040FB] to-[#9102C0] text-white font-bold hover:scale-105 transition-all duration-200 shadow-lg"
-              >
-                Start Contributing
-              </a>
-            </div>
           </div>
         </div>
       </section>

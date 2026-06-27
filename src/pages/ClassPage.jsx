@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { FaBookOpen } from 'react-icons/fa';
 import { supabase } from '../supabaseClient';
 import SyllabusTable from '../components/SyllabusTable';
 import MaterialCard from '../components/MaterialCard';
@@ -289,8 +290,8 @@ const ClassPage = () => {
                 className="relative bg-white/80 rounded-2xl shadow-md p-6 flex flex-col min-h-[240px] border border-[#ede9fe] hover:shadow-lg transition-all duration-200 group"
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f3e8ff] text-2xl text-[#9102C0] shadow-sm mr-2">
-                    📝
+                  <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-[#f3e8ff] text-[#9102C0] shadow-sm mr-2">
+                    <FaBookOpen className="text-lg" />
                   </span>
                   <span className="inline-block w-2 h-2 rounded-full bg-[#9102C0] mr-1"></span>
                   <span className="text-xs text-[#342F76] font-semibold">{note.created_at ? new Date(note.created_at).toLocaleDateString() : ''}</span>
