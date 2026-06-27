@@ -45,51 +45,52 @@ const Dashboard = () => {
           .eq('email', user.email)
           .maybeSingle();
 
-        if (!userRow) {
-          // If the profile does not exist, check if user has branch/name metadata stored in localStorage from Google Auth signup
-          const storedBranch = localStorage.getItem('admin_signup_branch');
-          const storedYear = localStorage.getItem('admin_signup_year');
-          const storedName = localStorage.getItem('admin_signup_name') || user.user_metadata?.full_name || 'Admin';
+        // Check if registration details exist in localStorage (meaning they just signed up via Google)
+        const storedBranch = localStorage.getItem('admin_signup_branch');
+        const storedYear = localStorage.getItem('admin_signup_year');
+        const storedName = localStorage.getItem('admin_signup_name') || user.user_metadata?.full_name || 'Admin';
 
-          if (storedBranch) {
-            try {
-              const API_URL = import.meta.env.VITE_API_URL;
-              const res = await fetch(`${API_URL}/api/register-admin-candidate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  id: user.id,
-                  email: user.email,
-                  fullName: storedName,
-                  branch: storedBranch,
-                  year: storedYear || 'N/A'
-                })
-              });
-              if (!res.ok) {
-                const resData = await res.json().catch(() => ({}));
-                throw new Error(resData.error || 'Failed to complete Google registration.');
-              }
-              setUserFullName(storedName);
-              setUserRole('admin_candidate');
-              setUserBranch(storedBranch);
-            } catch (regErr) {
-              console.error('Error during Google admin candidate registration:', regErr);
-              setUserRole(null);
-              setUserBranch(null);
-            } finally {
-              localStorage.removeItem('admin_signup_name');
-              localStorage.removeItem('admin_signup_branch');
-              localStorage.removeItem('admin_signup_year');
+        if (storedBranch) {
+          try {
+            const API_URL = import.meta.env.VITE_API_URL;
+            const res = await fetch(`${API_URL}/api/register-admin-candidate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id: user.id,
+                email: user.email,
+                fullName: storedName,
+                branch: storedBranch,
+                year: storedYear || 'N/A'
+              })
+            });
+            if (!res.ok) {
+              const resData = await res.json().catch(() => ({}));
+              throw new Error(resData.error || 'Failed to complete Google registration.');
             }
-          } else {
+            setUserFullName(storedName);
+            setUserRole('admin_candidate');
+            setUserBranch(storedBranch);
+          } catch (regErr) {
+            console.error('Error during Google admin candidate registration:', regErr);
+            setUserRole(null);
+            setUserBranch(null);
+          } finally {
+            localStorage.removeItem('admin_signup_name');
+            localStorage.removeItem('admin_signup_branch');
+            localStorage.removeItem('admin_signup_year');
+          }
+        } else {
+          // If no stored registration details, proceed with checking the fetched userRow
+          if (!userRow) {
             setUserFullName(user.user_metadata?.full_name || 'Admin');
             setUserRole(null);
             setUserBranch(null);
+          } else {
+            setUserFullName(userRow.full_name || 'Admin');
+            setUserRole(userRow.role);
+            setUserBranch(userRow.branch);
           }
-        } else {
-          setUserFullName(userRow.full_name || 'Admin');
-          setUserRole(userRow.role);
-          setUserBranch(userRow.branch);
         }
       }
       setAuthLoading(false);
