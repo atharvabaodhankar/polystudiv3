@@ -103,78 +103,138 @@ const ClassPage = () => {
   useEffect(() => {
     document.title = `Polystudi || ${classCode}`;
     const fetchData = async () => {
-      const [
-        { data: syllabusData },
-        { data: extraData },
-        { data: notesData },
-        { data: subjectsData },
-        { data: questionPapersData },
-        { data: solvedPapersData },
-        { data: allMaterialsData }
-      ] = await Promise.all([
-        supabase.from('subjects').select('*').eq('class_code', classCode),
-        supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'extra'),
-        supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'note'),
-        supabase.from('subjects').select('*').eq('class_code', classCode),
-        supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'question_paper'),
-        supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'solved'),
-        supabase.from('materials').select('uploader').not('uploader', 'is', null),
-      ]);
-      setSyllabus(syllabusData || []);
-      setExtraMaterials(extraData || []);
-      setNotes(notesData || []);
-      setSubjects(subjectsData || []);
-
-      // Aggregate contributor statistics
-      const counts = {};
-      if (allMaterialsData) {
-        allMaterialsData.forEach(m => {
-          if (m.uploader) {
-            counts[m.uploader] = (counts[m.uploader] || 0) + 1;
+      const runClientFallback = async () => {
+        try {
+          const [
+            { data: syllabusData },
+            { data: extraData },
+            { data: notesData },
+            { data: subjectsData },
+            { data: questionPapersData },
+            { data: solvedPapersData },
+            { data: allMaterialsData }
+          ] = await Promise.all([
+            supabase.from('subjects').select('*').eq('class_code', classCode),
+            supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'extra'),
+            supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'note'),
+            supabase.from('subjects').select('*').eq('class_code', classCode),
+            supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'question_paper'),
+            supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'solved'),
+            supabase.from('materials').select('uploader').not('uploader', 'is', null),
+          ]);
+          
+          setSyllabus(syllabusData || []);
+          setExtraMaterials(extraData || []);
+          setNotes(notesData || []);
+          setSubjects(subjectsData || []);
+          
+          const counts = {};
+          if (allMaterialsData) {
+            allMaterialsData.forEach(m => {
+              if (m.uploader) counts[m.uploader] = (counts[m.uploader] || 0) + 1;
+            });
           }
-        });
+          setContributorStats(counts);
+          
+          processPapers(questionPapersData, solvedPapersData, subjectsData || []);
+          setLoading(false);
+        } catch (err) {
+          console.error('[ClassPage] Fallback failed:', err);
+          setLoading(false);
+        }
+      };
+
+      const processPapers = (questionPapersData, solvedPapersData, subjectsData) => {
+        if (questionPapersData) {
+          const groupedQ = {};
+          questionPapersData.forEach((item) => {
+            if (!groupedQ[item.subject_code]) groupedQ[item.subject_code] = [];
+            groupedQ[item.subject_code].push(item);
+          });
+          const questionArray = Object.entries(groupedQ).map(([subject_code, papers]) => {
+            const subject = subjectsData.find(s => s.subject_code === subject_code);
+            return {
+              subject: subject ? subject.subject_name : subject_code,
+              code: subject_code,
+              papers,
+            };
+          });
+          setQuestionPapers(questionArray);
+        } else {
+          setQuestionPapers([]);
+        }
+
+        if (solvedPapersData) {
+          const grouped = {};
+          solvedPapersData.forEach((item) => {
+            if (!grouped[item.subject_code]) grouped[item.subject_code] = [];
+            grouped[item.subject_code].push(item);
+          });
+          const solvedArray = Object.entries(grouped).map(([subject_code, papers]) => {
+            const subject = subjectsData.find(s => s.subject_code === subject_code);
+            return {
+              subject: subject ? subject.subject_name : subject_code,
+              code: subject_code,
+              papers,
+            };
+          });
+          setSolvedPapers(solvedArray);
+        } else {
+          setSolvedPapers([]);
+        }
+      };
+
+      try {
+        const API_URL = import.meta.env.VITE_API_URL;
+        
+        const [
+          { data: syllabusData },
+          { data: subjectsData },
+          { data: allMaterialsData }
+        ] = await Promise.all([
+          supabase.from('subjects').select('*').eq('class_code', classCode),
+          supabase.from('subjects').select('*').eq('class_code', classCode),
+          supabase.from('materials').select('uploader').not('uploader', 'is', null)
+        ]);
+
+        setSyllabus(syllabusData || []);
+        setSubjects(subjectsData || []);
+
+        const counts = {};
+        if (allMaterialsData) {
+          allMaterialsData.forEach(m => {
+            if (m.uploader) counts[m.uploader] = (counts[m.uploader] || 0) + 1;
+          });
+        }
+        setContributorStats(counts);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+        const res = await fetch(`${API_URL}/api/materials/${classCode}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error('Failed to fetch materials data');
+        const payload = await res.json();
+        
+        if (payload && payload.success && payload.data) {
+          const materialsList = payload.data;
+          const extraData = materialsList.filter(m => m.type === 'extra');
+          const notesData = materialsList.filter(m => m.type === 'note');
+          const questionPapersData = materialsList.filter(m => m.type === 'question_paper');
+          const solvedPapersData = materialsList.filter(m => m.type === 'solved');
+
+          setExtraMaterials(extraData);
+          setNotes(notesData);
+          processPapers(questionPapersData, solvedPapersData, subjectsData || []);
+          setLoading(false);
+        } else {
+          await runClientFallback();
+        }
+      } catch (error) {
+        console.warn('[ClassPage] Fetch failed/timed out. Falling back to Supabase client.', error);
+        await runClientFallback();
       }
-      setContributorStats(counts);
-      // Group question papers by subject
-      if (questionPapersData) {
-        const groupedQ = {};
-        questionPapersData.forEach((item) => {
-          if (!groupedQ[item.subject_code]) groupedQ[item.subject_code] = [];
-          groupedQ[item.subject_code].push(item);
-        });
-        const questionArray = Object.entries(groupedQ).map(([subject_code, papers]) => {
-          const subject = subjectsData.find(s => s.subject_code === subject_code);
-          return {
-            subject: subject ? subject.subject_name : subject_code,
-            code: subject_code,
-            papers,
-          };
-        });
-        setQuestionPapers(questionArray);
-      } else {
-        setQuestionPapers([]);
-      }
-      // Group solved papers by subject
-      if (solvedPapersData) {
-        const grouped = {};
-        solvedPapersData.forEach((item) => {
-          if (!grouped[item.subject_code]) grouped[item.subject_code] = [];
-          grouped[item.subject_code].push(item);
-        });
-        // Map to array for rendering
-        const solvedArray = Object.entries(grouped).map(([subject_code, papers]) => {
-          const subject = subjectsData.find(s => s.subject_code === subject_code);
-          return {
-            subject: subject ? subject.subject_name : subject_code,
-            code: subject_code,
-            papers,
-          };
-        });
-        setSolvedPapers(solvedArray);
-      } else {
-        setSolvedPapers([]);
-      }
-      setLoading(false);
     };
     fetchData();
   }, [classCode]);
