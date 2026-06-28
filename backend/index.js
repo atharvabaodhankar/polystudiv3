@@ -415,11 +415,14 @@ app.post('/api/review-material-request', express.json(), async (req, res) => {
         return res.status(500).json({ error: 'Failed to insert material.' });
       }
 
-      // Invalidate leaderboard cache
+      // Invalidate leaderboard and materials cache
       try {
-        await redis.del('polystudi:leaderboard');
+        await Promise.all([
+          redis.del('polystudi:leaderboard'),
+          redis.del(`polystudi:materials:${requestData.class_code}`)
+        ]);
       } catch (err) {
-        console.error('[Leaderboard Cache] Invalidation error:', err);
+        console.error('[Cache] Invalidation error:', err);
       }
 
       // 3. Update status in material_requests
@@ -912,12 +915,51 @@ app.get('/api/leaderboard', async (req, res) => {
 });
 
 app.post('/api/invalidate-leaderboard', express.json(), async (req, res) => {
+  const { classCode } = req.body;
   try {
-    await redis.del('polystudi:leaderboard');
+    const keys = ['polystudi:leaderboard'];
+    if (classCode) {
+      keys.push(`polystudi:materials:${classCode}`);
+    }
+    await Promise.all(keys.map(k => redis.del(k)));
     return res.json({ success: true });
   } catch (err) {
     console.error('[Leaderboard Cache] Invalidation error:', err);
     return res.status(500).json({ error: 'Failed to invalidate cache' });
+  }
+});
+
+app.get('/api/materials/:classCode', async (req, res) => {
+  const { classCode } = req.params;
+  const cacheKey = `polystudi:materials:${classCode}`;
+  
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return res.json({ success: true, data: cached });
+    }
+  } catch (err) {
+    console.error(`[Materials Cache] Error reading key ${cacheKey} from Redis:`, err);
+  }
+
+  try {
+    const { data: materials, error } = await supabaseAdmin
+      .from('materials')
+      .select('*')
+      .eq('class_code', classCode);
+
+    if (error) throw error;
+
+    try {
+      await redis.set(cacheKey, materials, { ex: 86400 }); // 24 hours
+    } catch (err) {
+      console.error(`[Materials Cache] Error writing key ${cacheKey} to Redis:`, err);
+    }
+
+    return res.json({ success: true, data: materials });
+  } catch (error) {
+    console.error(`[Materials Cache] Query error for class ${classCode}:`, error);
+    return res.status(500).json({ success: false, error: 'Database query failed' });
   }
 });
 

@@ -121,12 +121,16 @@ const MaterialDeletion = () => {
     await supabase.from('materials').delete().eq('id', mat.id);
     await supabase.from('material_requests').delete().eq('file_url', mat?.file_url);
 
-    // Invalidate leaderboard cache on the backend
+    // Invalidate leaderboard and class materials cache on the backend
     try {
       const API_URL = import.meta.env.VITE_API_URL;
-      await fetch(`${API_URL}/api/invalidate-leaderboard`, { method: 'POST' });
+      await fetch(`${API_URL}/api/invalidate-leaderboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ classCode: mat.class_code })
+      });
     } catch (err) {
-      console.error('[Leaderboard Cache] Failed to invalidate cache:', err);
+      console.error('[Cache] Failed to invalidate cache:', err);
     }
 
     setMaterials((prev) => prev.filter((m) => m.id !== mat.id));

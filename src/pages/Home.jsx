@@ -122,23 +122,61 @@ const Home = ({ navLogoRef }) => {
   // Fetch contributors data
   useEffect(() => {
     const fetchContributors = async () => {
+      const runClientFallback = async () => {
+        try {
+          const { data: materials } = await supabase
+            .from('materials')
+            .select('uploader, type')
+            .not('uploader', 'is', null);
+
+          if (materials) {
+            const contributorCounts = {};
+            materials.forEach(material => {
+              if (material.uploader) {
+                contributorCounts[material.uploader] = (contributorCounts[material.uploader] || 0) + 1;
+              }
+            });
+
+            const contributorsArray = Object.entries(contributorCounts).map(([name, count]) => ({
+              name,
+              contributions: count,
+              type: count >= 15 ? 'master' : count >= 10 ? 'gold' : count >= 5 ? 'silver' : count >= 3 ? 'bronze' : 'contributor'
+            })).sort((a, b) => b.contributions - a.contributions);
+
+            setContributors(contributorsArray);
+            setTopContributors(contributorsArray.slice(0, 5));
+            setTotalContributions(materials.length);
+          }
+        } catch (err) {
+          console.error('[Leaderboard] Fallback failed:', err);
+        }
+      };
+
       try {
         const API_URL = import.meta.env.VITE_API_URL;
-        const res = await fetch(`${API_URL}/api/leaderboard`);
+        
+        // Fetch with a 2-second timeout controller
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+        const res = await fetch(`${API_URL}/api/leaderboard`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (!res.ok) throw new Error('Failed to fetch leaderboard data');
         const payload = await res.json();
         
         if (payload && payload.success && payload.data) {
           const contributorsArray = payload.data;
           setContributors(contributorsArray);
-          setTopContributors(contributorsArray.slice(0, 5)); // Top 5 contributors
-          
-          // Calculate total contributions
+          setTopContributors(contributorsArray.slice(0, 5));
           const total = contributorsArray.reduce((acc, curr) => acc + curr.contributions, 0);
           setTotalContributions(total);
+        } else {
+          await runClientFallback();
         }
       } catch (error) {
-        console.error('Error fetching contributors:', error);
+        console.warn('Backend fetch failed or timed out. Falling back to Supabase client.', error);
+        await runClientFallback();
       }
     };
 
