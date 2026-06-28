@@ -22,6 +22,81 @@ const Dashboard = () => {
   const [activeView, setActiveView] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Admin Management States (Superadmin only)
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [adminUsersLoading, setAdminUsersLoading] = useState(false);
+  const [adminSearchQuery, setAdminSearchQuery] = useState('');
+  const [isSuspended, setIsSuspended] = useState(false);
+  const [actionInProgress, setActionInProgress] = useState(null);
+
+  const fetchAdminUsers = async () => {
+    setAdminUsersLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('get_admin_profiles');
+      if (error) throw error;
+      setAdminUsers(data || []);
+    } catch (err) {
+      console.error('Error fetching admin profiles:', err.message);
+    } finally {
+      setAdminUsersLoading(false);
+    }
+  };
+
+  const handleToggleSuspend = async (targetAdminId, currentSuspendedStatus) => {
+    setActionInProgress(targetAdminId + 'suspend');
+    try {
+      const API_URL = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API_URL}/api/toggle-suspend-admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          adminId: targetAdminId, 
+          suspended: !currentSuspendedStatus, 
+          superadminId: userId 
+        })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to toggle suspension.');
+      }
+      setAdminUsers(prev => prev.map(a => a.id === targetAdminId ? { ...a, suspended: !currentSuspendedStatus } : a));
+    } catch (err) {
+      alert('Error updating status: ' + err.message);
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const handleSendMagicLink = async (targetEmail, targetAdminId) => {
+    setActionInProgress(targetAdminId + 'magic');
+    try {
+      const API_URL = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API_URL}/api/send-magic-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: targetEmail, 
+          superadminId: userId 
+        })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to send magic link.');
+      }
+      alert('Magic link login email sent successfully to ' + targetEmail);
+    } catch (err) {
+      alert('Error sending magic link: ' + err.message);
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  useEffect(() => {
+    if (activeView === 'admins' && userRole === 'superadmin') {
+      fetchAdminUsers();
+    }
+  }, [activeView, userRole]);
+
   // Activity Logs States
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
@@ -74,7 +149,7 @@ const Dashboard = () => {
         setUserEmail(user.email);
         const { data: userRow } = await supabase
           .from('users')
-          .select('full_name, role, branch')
+          .select('full_name, role, branch, suspended')
           .eq('email', user.email)
           .maybeSingle();
 
@@ -123,6 +198,19 @@ const Dashboard = () => {
             setUserFullName(userRow.full_name || 'Admin');
             setUserRole(userRow.role);
             setUserBranch(userRow.branch);
+
+            // Check if suspended
+            if (userRow.suspended) {
+              setIsSuspended(true);
+            } else {
+              // Update last login
+              const API_URL = import.meta.env.VITE_API_URL;
+              fetch(`${API_URL}/api/update-last-login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: user.id })
+              }).catch(err => console.error('[LastLogin] Update failed:', err));
+            }
           }
         }
       }
@@ -284,6 +372,34 @@ const Dashboard = () => {
           <p className="text-sm text-gray-500 font-poppins">
             A superadmin is reviewing your account. Once approved, you will have access to the dashboard. Feel free to refresh this page.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isSuspended) {
+    return (
+      <div className="max-w-md mx-auto py-24 px-6 text-center font-poppins">
+        <div className="bg-white border border-rose-200 rounded-3xl shadow-xl p-10 flex flex-col items-center gap-6">
+          <div className="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 text-3xl">
+            <svg className="w-8 h-8 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-rose-600">Account Suspended</h1>
+          <p className="text-gray-500 leading-relaxed text-sm">
+            Hi <strong>{userFullName}</strong>, your administrative access has been suspended by the superadmin.
+          </p>
+          <div className="w-full h-px bg-[#ede9fe]"></div>
+          <p className="text-xs text-gray-400">
+            If you believe this is a mistake, please contact the superadmin at baodhankaratharva@gmail.com.
+          </p>
+          <button 
+            onClick={handleLogout}
+            className="w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition cursor-pointer"
+          >
+            Sign Out
+          </button>
         </div>
       </div>
     );
@@ -533,6 +649,134 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+      </div>
+    );
+  };
+
+  const renderAdmins = () => {
+    if (userRole !== 'superadmin') return <div className="text-center py-12 text-gray-400 font-poppins">Access Denied.</div>;
+
+    const filteredAdmins = adminUsers.filter(a => {
+      const query = adminSearchQuery.toLowerCase().trim();
+      if (!query) return true;
+      return (
+        a.full_name?.toLowerCase().includes(query) ||
+        a.email?.toLowerCase().includes(query) ||
+        a.branch?.toLowerCase().includes(query)
+      );
+    });
+
+    return (
+      <div className="space-y-6 animate-fadeIn font-poppins">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative w-full sm:max-w-xs">
+            <input
+              type="text"
+              placeholder="Search admins..."
+              value={adminSearchQuery}
+              onChange={(e) => setAdminSearchQuery(e.target.value)}
+              className="w-full text-xs font-semibold text-[#342F76] placeholder-gray-400 border border-gray-200 bg-white rounded-xl py-3 pl-10 pr-4 outline-none focus:border-purple-400 transition"
+            />
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+          </div>
+          <button 
+            onClick={fetchAdminUsers}
+            disabled={adminUsersLoading}
+            className="w-full sm:w-auto px-4 py-2 text-xs font-bold rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 transition cursor-pointer"
+          >
+            {adminUsersLoading ? 'Refreshing...' : 'Refresh List'}
+          </button>
+        </div>
+
+        {adminUsersLoading ? (
+          <div className="py-12 flex justify-center items-center">
+            <div className="w-8 h-8 border-3 border-[#9102C0] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : filteredAdmins.length === 0 ? (
+          <div className="text-center py-12 text-gray-400 font-medium bg-white rounded-2xl border border-gray-100 shadow-sm">
+            No administrator accounts found.
+          </div>
+        ) : (
+          <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    <th className="py-4 px-6">Administrator</th>
+                    <th className="py-4 px-6">Department</th>
+                    <th className="py-4 px-6">Last Login</th>
+                    <th className="py-4 px-6">Approvals</th>
+                    <th className="py-4 px-6">Status</th>
+                    <th className="py-4 px-6">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm">
+                  {filteredAdmins.map((admin) => (
+                    <tr key={admin.id} className="hover:bg-gray-50/50 transition">
+                      <td className="py-4 px-6">
+                        <div className="font-semibold text-[#342F76]">{admin.full_name}</div>
+                        <div className="text-xs text-gray-400">{admin.email}</div>
+                        {admin.role === 'superadmin' && (
+                          <span className="inline-block mt-1 px-1.5 py-0.5 text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200 rounded">
+                            SUPERADMIN
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6 whitespace-nowrap text-gray-500 font-medium">
+                        {admin.branch || 'All'}
+                      </td>
+                      <td className="py-4 px-6 text-xs text-gray-400 whitespace-nowrap">
+                        {admin.last_login_at ? new Date(admin.last_login_at).toLocaleString() : 'Never logged in'}
+                      </td>
+                      <td className="py-4 px-6 font-bold text-[#342F76] whitespace-nowrap">
+                        {admin.materials_approved}
+                      </td>
+                      <td className="py-4 px-6 whitespace-nowrap">
+                        {admin.suspended ? (
+                          <span className="px-2 py-0.5 rounded text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                            Suspended
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Active
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => handleSendMagicLink(admin.email, admin.id)}
+                            disabled={actionInProgress === admin.id + 'magic'}
+                            className="px-3 py-1.5 text-xs font-bold rounded-lg border border-purple-200 hover:border-purple-300 text-purple-700 transition cursor-pointer disabled:opacity-40"
+                          >
+                            Send Magic Link
+                          </button>
+                          {admin.role !== 'superadmin' && (
+                            <button
+                              onClick={() => handleToggleSuspend(admin.id, admin.suspended)}
+                              disabled={actionInProgress === admin.id + 'suspend'}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer disabled:opacity-40 ${
+                                admin.suspended
+                                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                  : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
+                              }`}
+                            >
+                              {admin.suspended ? 'Unsuspend' : 'Suspend'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -1038,22 +1282,40 @@ const Dashboard = () => {
 
           {/* Superadmin only admin candidate link */}
           {userRole === 'superadmin' && (
-            <button
-              onClick={() => {
-                setActiveView('candidates');
-                setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer ${
-                activeView === 'candidates' 
-                  ? 'bg-[#9102C0] text-white shadow-md' 
-                  : 'text-purple-200/70 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              Admin Candidates
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  setActiveView('candidates');
+                  setSidebarOpen(false);
+                }}
+                className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer ${
+                  activeView === 'candidates' 
+                    ? 'bg-[#9102C0] text-white shadow-md' 
+                    : 'text-purple-200/70 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                Admin Candidates
+              </button>
+              <button
+                onClick={() => {
+                  setActiveView('admins');
+                  setSidebarOpen(false);
+                }}
+                className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer ${
+                  activeView === 'admins' 
+                    ? 'bg-[#9102C0] text-white shadow-md' 
+                    : 'text-purple-200/70 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Admin Accounts
+              </button>
+            </>
           )}
         </nav>
 
@@ -1091,6 +1353,7 @@ const Dashboard = () => {
                activeView === 'feedback' ? 'Student Reviews & Feedback' :
                activeView === 'deletion' ? 'Delete live materials' :
                activeView === 'logs' ? 'Activity Audit Logs' :
+               activeView === 'admins' ? 'Admin accounts management' :
                'Admin candidates approvals'}
             </h2>
           </div>
@@ -1108,6 +1371,7 @@ const Dashboard = () => {
           {activeView === 'deletion' && renderDeletion()}
           {activeView === 'candidates' && renderCandidates()}
           {activeView === 'logs' && renderLogs()}
+          {activeView === 'admins' && renderAdmins()}
         </main>
       </div>
 

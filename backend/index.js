@@ -423,6 +423,18 @@ app.post('/api/review-material-request', express.json(), async (req, res) => {
   }
 
   try {
+    // Check if admin is suspended
+    if (userId) {
+      const { data: reviewerUser, error: checkErr } = await supabaseAdmin
+        .from('users')
+        .select('suspended')
+        .eq('id', userId)
+        .single();
+      if (checkErr || (reviewerUser && reviewerUser.suspended)) {
+        return res.status(403).json({ error: 'Your account has been suspended by the superadmin.' });
+      }
+    }
+
     // 1. Fetch the request
     const { data: requestData, error: fetchError } = await supabaseAdmin
       .from('material_requests')
@@ -1154,6 +1166,86 @@ app.get('/api/materials/:classCode', async (req, res) => {
   } catch (error) {
     console.error(`[Materials Cache] Query error for class ${classCode}:`, error);
     return res.status(500).json({ success: false, error: 'Database query failed' });
+  }
+});
+
+// ── Admin Management Endpoints (Superadmin Features) ──────────────────────────
+
+app.post('/api/update-last-login', express.json(), async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: 'Missing user ID.' });
+  try {
+    const { error } = await supabaseAdmin
+      .from('users')
+      .update({ last_login_at: new Date().toISOString() })
+      .eq('id', userId);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating last login:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/send-magic-link', express.json(), async (req, res) => {
+  const { email, superadminId } = req.body;
+  if (!email || !superadminId) {
+    return res.status(400).json({ error: 'Missing parameters.' });
+  }
+  try {
+    // Verify requester is superadmin
+    const { data: superUser, error: fetchErr } = await supabaseAdmin
+      .from('users')
+      .select('role')
+      .eq('id', superadminId)
+      .single();
+      
+    if (fetchErr || !superUser || superUser.role !== 'superadmin') {
+      return res.status(403).json({ error: 'Unauthorized. Superadmin only.' });
+    }
+
+    const { error } = await supabaseAdmin.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: 'https://polystudi.com/dashboard'
+      }
+    });
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error sending magic link:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/toggle-suspend-admin', express.json(), async (req, res) => {
+  const { adminId, suspended, superadminId } = req.body;
+  if (!adminId || suspended === undefined || !superadminId) {
+    return res.status(400).json({ error: 'Missing parameters.' });
+  }
+  try {
+    // Verify requester is superadmin
+    const { data: superUser, error: fetchErr } = await supabaseAdmin
+      .from('users')
+      .select('role')
+      .eq('id', superadminId)
+      .single();
+      
+    if (fetchErr || !superUser || superUser.role !== 'superadmin') {
+      return res.status(403).json({ error: 'Unauthorized. Superadmin only.' });
+    }
+
+    const { error } = await supabaseAdmin
+      .from('users')
+      .update({ suspended })
+      .eq('id', adminId);
+      
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error toggling suspend admin:', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
