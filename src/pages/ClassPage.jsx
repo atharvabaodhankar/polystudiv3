@@ -53,16 +53,17 @@ const dummyNotes = [
 
 const ContributorBadge = ({ tier, size = 'md' }) => {
   const badgeImages = {
+    contributor: '/contributor_badge.png',
     bronze: '/bronze_badge.png',
     silver: '/silver_badge.png',
-    gold: '/gold_badge.jpg',
+    gold: '/gold_badge.png',
     master: '/master_badge.png'
   };
 
-  const imageSrc = badgeImages[tier] || badgeImages.bronze;
+  const imageSrc = badgeImages[tier] || badgeImages.contributor;
 
   return (
-    <div className="relative flex items-center justify-center rounded-full overflow-hidden transition-all duration-300 border border-gray-100 shadow-sm"
+    <div className="relative flex items-center justify-center rounded-full overflow-hidden transition-all duration-300"
       style={{ 
         width: size === 'sm' ? '26px' : '54px',
         height: size === 'sm' ? '26px' : '54px'
@@ -210,9 +211,9 @@ const ClassPage = () => {
       if (!uploader) return null;
       const count = contributorStats[uploader];
       if (!count) return null;
-      const tier = count >= 15 ? 'master' : count >= 10 ? 'silver' : count >= 5 ? 'bronze' : count >= 3 ? 'gold' : 'contributor';
-      const label = tier === 'master' ? 'Master Scholar' : tier === 'silver' ? 'Silver Scholar' : tier === 'bronze' ? 'Bronze Scholar' : tier === 'gold' ? 'Gold Contributor' : 'Contributor';
-      const badgeClass = tier === 'master' ? 'bg-amber-50 text-amber-700 border-amber-200' : tier === 'silver' ? 'bg-slate-100 text-slate-700 border-slate-200' : tier === 'bronze' ? 'bg-orange-100 text-orange-700 border-orange-200' : tier === 'gold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-purple-100 text-purple-700 border-purple-200';
+      const tier = count >= 15 ? 'master' : count >= 10 ? 'gold' : count >= 5 ? 'silver' : count >= 3 ? 'bronze' : 'contributor';
+      const label = tier === 'master' ? 'Master Scholar' : tier === 'gold' ? 'Gold Scholar' : tier === 'silver' ? 'Silver Scholar' : tier === 'bronze' ? 'Bronze Scholar' : 'Contributor';
+      const badgeClass = tier === 'master' ? 'bg-purple-100 text-purple-700 border-purple-200' : tier === 'gold' ? 'bg-amber-50 text-amber-700 border-amber-200' : tier === 'silver' ? 'bg-slate-100 text-slate-700 border-slate-200' : tier === 'bronze' ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200';
       return (
         <div className="flex items-center gap-1.5 mt-0.5">
           <ContributorBadge tier={tier} size="sm" />

@@ -7,13 +7,14 @@ import { gsap } from 'gsap';
 
 const ContributorBadge = ({ tier, size = 'md' }) => {
   const badgeImages = {
+    contributor: '/contributor_badge.png',
     bronze: '/bronze_badge.png',
     silver: '/silver_badge.png',
-    gold: '/gold_badge.jpg',
+    gold: '/gold_badge.png',
     master: '/master_badge.png'
   };
 
-  const imageSrc = badgeImages[tier] || badgeImages.bronze;
+  const imageSrc = badgeImages[tier] || badgeImages.contributor;
 
   return (
     <div className="relative flex items-center justify-center rounded-full overflow-hidden transition-all duration-300"
@@ -141,7 +142,7 @@ const Home = ({ navLogoRef }) => {
           const contributorsArray = Object.entries(contributorCounts).map(([name, count]) => ({
             name,
             contributions: count,
-            type: count >= 15 ? 'master' : count >= 10 ? 'silver' : count >= 5 ? 'bronze' : count >= 3 ? 'gold' : 'contributor'
+            type: count >= 15 ? 'master' : count >= 10 ? 'gold' : count >= 5 ? 'silver' : count >= 3 ? 'bronze' : 'contributor'
           })).sort((a, b) => b.contributions - a.contributions);
 
           setContributors(contributorsArray);
@@ -319,9 +320,9 @@ const Home = ({ navLogoRef }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {(showAllContributors ? contributors : topContributors).map((c, index) => {
                   const points = c.contributions * 10;
-                  const tier = c.contributions >= 15 ? 'master' : c.contributions >= 10 ? 'silver' : c.contributions >= 5 ? 'bronze' : c.contributions >= 3 ? 'gold' : 'contributor';
-                  const badgeLabel = tier === 'master' ? 'Master Scholar' : tier === 'silver' ? 'Silver Scholar' : tier === 'bronze' ? 'Bronze Scholar' : tier === 'gold' ? 'Gold Contributor' : 'Contributor';
-                  const badgeBg = tier === 'master' ? 'bg-amber-50 text-amber-700 border-amber-200' : tier === 'silver' ? 'bg-slate-100 text-slate-700 border-slate-200' : tier === 'bronze' ? 'bg-orange-100 text-orange-700 border-orange-200' : tier === 'gold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-purple-100 text-purple-700 border-purple-200';
+                  const tier = c.contributions >= 15 ? 'master' : c.contributions >= 10 ? 'gold' : c.contributions >= 5 ? 'silver' : c.contributions >= 3 ? 'bronze' : 'contributor';
+                  const badgeLabel = tier === 'master' ? 'Master Scholar' : tier === 'gold' ? 'Gold Scholar' : tier === 'silver' ? 'Silver Scholar' : tier === 'bronze' ? 'Bronze Scholar' : 'Contributor';
+                  const badgeBg = tier === 'master' ? 'bg-purple-100 text-purple-700 border-purple-200' : tier === 'gold' ? 'bg-amber-50 text-amber-700 border-amber-200' : tier === 'silver' ? 'bg-slate-100 text-slate-700 border-slate-200' : tier === 'bronze' ? 'bg-orange-100 text-orange-700 border-orange-200' : 'bg-indigo-50 text-indigo-700 border-indigo-200';
                   
                   return (
                     <div 
