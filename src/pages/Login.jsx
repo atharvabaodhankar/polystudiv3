@@ -55,26 +55,61 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address first to reset your password.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    setMessage('');
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password',
+      });
+      if (resetError) {
+        setError(resetError.message);
+      } else {
+        setMessage('Password reset link sent! Please check your email inbox.');
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8f6ff] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f8f6ff] px-4 font-poppins">
       <form onSubmit={handleLogin} className="bg-white border border-[#9102C0] rounded-2xl shadow-xl p-10 flex flex-col gap-6 w-full max-w-md">
         <h1 className="text-3xl font-baumans text-[#9102C0] mb-2 text-center">Admin Login</h1>
         <input
           type="email"
           required
-          className="border border-[#ede9fe] rounded-lg px-4 py-3 font-poppins text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition"
+          className="border border-[#ede9fe] rounded-lg px-4 py-3 text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition"
           placeholder="Email"
           value={email}
           onChange={e => setEmail(e.target.value)}
         />
-        <input
-          type="password"
-          required
-          className="border border-[#ede9fe] rounded-lg px-4 py-3 font-poppins text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-        />
+        <div className="flex flex-col gap-1.5">
+          <input
+            type="password"
+            required
+            className="border border-[#ede9fe] rounded-lg px-4 py-3 text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handleForgotPassword}
+              className="text-xs font-semibold text-[#9102C0] hover:underline cursor-pointer transition"
+            >
+              Forgot Password?
+            </button>
+          </div>
+        </div>
         <button
           type="submit"
           className="w-full py-3 rounded-full bg-[#9102C0] text-white font-bold text-lg shadow-sm hover:scale-105 hover:shadow-md transition-all duration-150"
