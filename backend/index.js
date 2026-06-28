@@ -1249,7 +1249,157 @@ app.post('/api/toggle-suspend-admin', express.json(), async (req, res) => {
   }
 });
 
+// ─── SUPERADMIN CONTENT MANAGEMENT ───────────────────────────────────────────
+
+// Helper: verify the requesting user is superadmin
+async function verifySuperadmin(userId) {
+  if (!userId) return false;
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('role')
+    .eq('id', userId)
+    .single();
+  return !error && data && data.role === 'superadmin';
+}
+
+// --- Syllabus PDF Upload ---
+
+app.post('/api/syllabus/upload', upload.single('file'), async (req, res) => {
+  const { userId } = req.body;
+  if (!await verifySuperadmin(userId)) {
+    if (req.file) fs.unlinkSync(req.file.path);
+    return res.status(403).json({ error: 'Unauthorized. Superadmin only.' });
+  }
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+
+  const filePath = req.file.path;
+  const fileName = req.file.originalname;
+
+  try {
+    // Upload to a "Syllabus" folder in Google Drive
+    const syllabusFolderId = await getOrCreateFolder('Syllabus');
+    const uploadRes = await drive.files.create({
+      requestBody: {
+        name: fileName,
+        mimeType: 'application/pdf',
+        parents: [syllabusFolderId],
+      },
+      media: {
+        body: fs.createReadStream(filePath),
+      },
+      fields: 'id',
+    });
+
+    const fileId = uploadRes.data.id;
+
+    // Make it public so it can be embedded/linked
+    await drive.permissions.create({
+      fileId,
+      requestBody: { role: 'reader', type: 'anyone' },
+    });
+
+    const fileInfo = await drive.files.get({ fileId, fields: 'webViewLink' });
+    const url = fileInfo.data.webViewLink;
+
+    res.json({ success: true, url });
+  } catch (err) {
+    console.error('Syllabus upload error:', err.message);
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  }
+});
+
+// --- Subjects ---
+
+app.post('/api/subjects/add', express.json(), async (req, res) => {
+  const { userId, class_code, subject_name, subject_code, total_marks, syllabus_pdf } = req.body;
+  if (!await verifySuperadmin(userId)) return res.status(403).json({ error: 'Unauthorized. Superadmin only.' });
+  if (!class_code || !subject_name || !subject_code) return res.status(400).json({ error: 'class_code, subject_name and subject_code are required.' });
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('subjects')
+      .insert({ class_code, subject_name, subject_code, total_marks: total_marks || null, syllabus_pdf: syllabus_pdf || null })
+      .select()
+      .single();
+    if (error) throw error;
+    res.json({ success: true, subject: data });
+  } catch (err) {
+    console.error('Error adding subject:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/subjects/update', express.json(), async (req, res) => {
+  const { userId, id, class_code, subject_name, subject_code, total_marks, syllabus_pdf } = req.body;
+  if (!await verifySuperadmin(userId)) return res.status(403).json({ error: 'Unauthorized. Superadmin only.' });
+  if (!id) return res.status(400).json({ error: 'id is required.' });
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('subjects')
+      .update({ class_code, subject_name, subject_code, total_marks: total_marks || null, syllabus_pdf: syllabus_pdf || null })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    res.json({ success: true, subject: data });
+  } catch (err) {
+    console.error('Error updating subject:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/subjects/delete', express.json(), async (req, res) => {
+  const { userId, id } = req.body;
+  if (!await verifySuperadmin(userId)) return res.status(403).json({ error: 'Unauthorized. Superadmin only.' });
+  if (!id) return res.status(400).json({ error: 'id is required.' });
+  try {
+    const { error } = await supabaseAdmin.from('subjects').delete().eq('id', id);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting subject:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Classes ---
+
+app.post('/api/classes/add', express.json(), async (req, res) => {
+  const { userId, code, name } = req.body;
+  if (!await verifySuperadmin(userId)) return res.status(403).json({ error: 'Unauthorized. Superadmin only.' });
+  if (!code || !name) return res.status(400).json({ error: 'code and name are required.' });
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('classes')
+      .insert({ code: code.toUpperCase().trim(), name: name.trim() })
+      .select()
+      .single();
+    if (error) throw error;
+    res.json({ success: true, class: data });
+  } catch (err) {
+    console.error('Error adding class:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/classes/delete', express.json(), async (req, res) => {
+  const { userId, code } = req.body;
+  if (!await verifySuperadmin(userId)) return res.status(403).json({ error: 'Unauthorized. Superadmin only.' });
+  if (!code) return res.status(400).json({ error: 'code is required.' });
+  try {
+    const { error } = await supabaseAdmin.from('classes').delete().eq('code', code);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error deleting class:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Backend server is running on port ${PORT}`);
-});
+});

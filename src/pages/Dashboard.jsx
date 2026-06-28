@@ -99,6 +99,166 @@ const Dashboard = () => {
     }
   }, [activeView, userRole]);
 
+  // ── Content Management States (Superadmin only) ──────────────────────────
+  const [cmSubjects, setCmSubjects] = useState([]);
+  const [cmClasses, setCmClasses] = useState([]);
+  const [cmLoading, setCmLoading] = useState(false);
+  const [cmClassFilter, setCmClassFilter] = useState('');
+  const [cmSubjectSearch, setCmSubjectSearch] = useState('');
+
+  // Subject form state
+  const [subjectForm, setSubjectForm] = useState({ class_code: '', subject_name: '', subject_code: '', total_marks: '', syllabus_pdf: '' });
+  const [editingSubjectId, setEditingSubjectId] = useState(null);
+  const [subjectFormOpen, setSubjectFormOpen] = useState(false);
+  const [subjectActionLoading, setSubjectActionLoading] = useState(false);
+  const [syllabusUploading, setSyllabusUploading] = useState(false);
+
+  const handleSyllabusFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file only.');
+      e.target.value = '';
+      return;
+    }
+    
+    setSyllabusUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', userId);
+    
+    const API_URL = import.meta.env.VITE_API_URL;
+    try {
+      const res = await fetch(`${API_URL}/api/syllabus/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to upload syllabus PDF.');
+      
+      setSubjectForm(p => ({ ...p, syllabus_pdf: data.url }));
+      alert('Syllabus PDF uploaded successfully to Google Drive!');
+    } catch (err) {
+      alert('Upload Error: ' + err.message);
+      e.target.value = '';
+    } finally {
+      setSyllabusUploading(false);
+    }
+  };
+
+  // Class form state
+  const [classForm, setClassForm] = useState({ code: '', name: '' });
+  const [classActionLoading, setClassActionLoading] = useState(false);
+
+  const fetchContentData = async () => {
+    setCmLoading(true);
+    try {
+      const [{ data: subjectsData }, { data: classesData }] = await Promise.all([
+        supabase.from('subjects').select('*').order('class_code').order('subject_name'),
+        supabase.from('classes').select('*').order('code'),
+      ]);
+      setCmSubjects(subjectsData || []);
+      setCmClasses(classesData || []);
+    } catch (err) {
+      console.error('Error fetching content data:', err.message);
+    } finally {
+      setCmLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeView === 'content' && userRole === 'superadmin') {
+      fetchContentData();
+    }
+  }, [activeView, userRole]);
+
+  const handleSubjectSubmit = async (e) => {
+    e.preventDefault();
+    setSubjectActionLoading(true);
+    const API_URL = import.meta.env.VITE_API_URL;
+    const endpoint = editingSubjectId ? '/api/subjects/update' : '/api/subjects/add';
+    try {
+      const payload = { userId, ...subjectForm, total_marks: subjectForm.total_marks ? Number(subjectForm.total_marks) : null };
+      if (editingSubjectId) payload.id = editingSubjectId;
+      const res = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to save subject.');
+      await fetchContentData();
+      setSubjectForm({ class_code: '', subject_name: '', subject_code: '', total_marks: '', syllabus_pdf: '' });
+      setEditingSubjectId(null);
+      setSubjectFormOpen(false);
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setSubjectActionLoading(false);
+    }
+  };
+
+  const handleDeleteSubject = async (id) => {
+    if (!window.confirm('Delete this subject? This cannot be undone.')) return;
+    setSubjectActionLoading(true);
+    const API_URL = import.meta.env.VITE_API_URL;
+    try {
+      const res = await fetch(`${API_URL}/api/subjects/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, id }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed to delete.');
+      setCmSubjects(prev => prev.filter(s => s.id !== id));
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setSubjectActionLoading(false);
+    }
+  };
+
+  const handleAddClass = async (e) => {
+    e.preventDefault();
+    setClassActionLoading(true);
+    const API_URL = import.meta.env.VITE_API_URL;
+    try {
+      const res = await fetch(`${API_URL}/api/classes/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, ...classForm }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Failed to add class.');
+      setCmClasses(prev => [...prev, data.class].sort((a, b) => a.code.localeCompare(b.code)));
+      setClassForm({ code: '', name: '' });
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setClassActionLoading(false);
+    }
+  };
+
+  const handleDeleteClass = async (code) => {
+    if (!window.confirm(`Delete class "${code}"? All subjects under it will also be removed.`)) return;
+    setClassActionLoading(true);
+    const API_URL = import.meta.env.VITE_API_URL;
+    try {
+      const res = await fetch(`${API_URL}/api/classes/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, code }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Failed to delete class.');
+      await fetchContentData();
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setClassActionLoading(false);
+    }
+  };
+  // ────────────────────────────────────────────────────────────────────────────
+
   // Activity Logs States
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
@@ -784,6 +944,217 @@ const Dashboard = () => {
     );
   };
 
+  const renderContentManagement = () => {
+    if (userRole !== 'superadmin') return <div className="text-center py-12 text-gray-400 font-poppins">Access Denied.</div>;
+
+    const inputCls = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-[#342F76] font-poppins focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition bg-white placeholder-gray-400";
+
+    const filteredSubjects = cmSubjects.filter(s => {
+      const matchClass = !cmClassFilter || s.class_code === cmClassFilter;
+      const q = cmSubjectSearch.toLowerCase().trim();
+      const matchSearch = !q || s.subject_name?.toLowerCase().includes(q) || s.subject_code?.toLowerCase().includes(q);
+      return matchClass && matchSearch;
+    });
+
+    return (
+      <div className="space-y-8 animate-fadeIn font-poppins">
+
+        {/* ── Classes Section ── */}
+        <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl font-bold text-[#342F76] font-baumans flex items-center gap-2">
+              <svg className="w-5 h-5 text-[#9102C0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              Class Codes
+            </h2>
+            <button onClick={fetchContentData} disabled={cmLoading} className="text-xs font-bold text-purple-600 hover:underline cursor-pointer">
+              {cmLoading ? 'Loading...' : 'Refresh'}
+            </button>
+          </div>
+
+          {/* Add class form */}
+          <form onSubmit={handleAddClass} className="flex flex-col sm:flex-row gap-3 mb-5">
+            <input required value={classForm.code} onChange={e => setClassForm(p => ({ ...p, code: e.target.value.toUpperCase() }))} placeholder="Code (e.g. CM5K)" className={`${inputCls} sm:w-36`} />
+            <input required value={classForm.name} onChange={e => setClassForm(p => ({ ...p, name: e.target.value }))} placeholder="Class Name (e.g. Computer 5th Sem)" className={inputCls} />
+            <button type="submit" disabled={classActionLoading} className="px-5 py-2.5 rounded-xl bg-[#9102C0] text-white text-sm font-bold hover:opacity-90 transition cursor-pointer whitespace-nowrap disabled:opacity-50">
+              {classActionLoading ? 'Adding...' : '+ Add Class'}
+            </button>
+          </form>
+
+          {/* Classes table */}
+          <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  <th className="py-3 px-5">Code</th>
+                  <th className="py-3 px-5">Name</th>
+                  <th className="py-3 px-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {cmClasses.length === 0 ? (
+                  <tr><td colSpan="3" className="py-8 text-center text-gray-400">No classes found.</td></tr>
+                ) : cmClasses.map(c => (
+                  <tr key={c.code} className="hover:bg-gray-50/50 transition">
+                    <td className="py-3 px-5 font-bold text-[#9102C0]">{c.code}</td>
+                    <td className="py-3 px-5 text-gray-600">{c.name}</td>
+                    <td className="py-3 px-5 text-right">
+                      <button onClick={() => handleDeleteClass(c.code)} disabled={classActionLoading} className="text-xs font-bold text-rose-600 hover:underline cursor-pointer disabled:opacity-40">Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* ── Subjects Section ── */}
+        <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+            <h2 className="text-xl font-bold text-[#342F76] font-baumans flex items-center gap-2">
+              <svg className="w-5 h-5 text-[#9102C0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              Subjects
+            </h2>
+            <button
+              onClick={() => { setSubjectFormOpen(true); setEditingSubjectId(null); setSubjectForm({ class_code: cmClasses[0]?.code || '', subject_name: '', subject_code: '', total_marks: '', syllabus_pdf: '' }); }}
+              className="px-5 py-2.5 rounded-xl bg-[#9102C0] text-white text-sm font-bold hover:opacity-90 transition cursor-pointer whitespace-nowrap"
+            >
+              + Add Subject
+            </button>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-5">
+            <select value={cmClassFilter} onChange={e => setCmClassFilter(e.target.value)} className={`${inputCls} sm:w-48`}>
+              <option value="">All Classes</option>
+              {cmClasses.map(c => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
+            </select>
+            <div className="relative flex-1">
+              <input value={cmSubjectSearch} onChange={e => setCmSubjectSearch(e.target.value)} placeholder="Search subjects..." className={inputCls} />
+            </div>
+          </div>
+
+          {/* Add / Edit subject form */}
+          {subjectFormOpen && (
+            <form onSubmit={handleSubjectSubmit} className="mb-6 p-5 bg-[#f8f6ff] border border-[#ede9fe] rounded-2xl space-y-4">
+              <h3 className="font-bold text-[#342F76] text-sm">{editingSubjectId ? 'Edit Subject' : 'New Subject'}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Class Code</label>
+                  <select required value={subjectForm.class_code} onChange={e => setSubjectForm(p => ({ ...p, class_code: e.target.value }))} className={inputCls}>
+                    <option value="">Select class...</option>
+                    {cmClasses.map(c => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Subject Code</label>
+                  <input required value={subjectForm.subject_code} onChange={e => setSubjectForm(p => ({ ...p, subject_code: e.target.value }))} placeholder="e.g. 315319" className={inputCls} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Subject Name</label>
+                  <input required value={subjectForm.subject_name} onChange={e => setSubjectForm(p => ({ ...p, subject_name: e.target.value }))} placeholder="e.g. OPERATING SYSTEM (OSY)" className={inputCls} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Total Marks</label>
+                  <input type="number" value={subjectForm.total_marks} onChange={e => setSubjectForm(p => ({ ...p, total_marks: e.target.value }))} placeholder="e.g. 175" className={inputCls} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Syllabus PDF File (Upload directly to Google Drive)</label>
+                  <div className="flex flex-col sm:flex-row gap-3 items-center">
+                    <input 
+                      type="file" 
+                      accept="application/pdf"
+                      onChange={handleSyllabusFileChange}
+                      disabled={syllabusUploading}
+                      className="w-full sm:w-auto flex-1 text-sm text-[#342F76] font-poppins file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 border border-gray-200 rounded-xl px-4 py-1.5 bg-white"
+                    />
+                    {syllabusUploading && (
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#9102C0] whitespace-nowrap animate-pulse">
+                        <div className="w-4 h-4 border-2 border-[#9102C0] border-t-transparent rounded-full animate-spin"></div>
+                        Uploading to Drive...
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-semibold text-gray-500 mb-1 block">Or Syllabus PDF URL</label>
+                  <input type="url" value={subjectForm.syllabus_pdf} onChange={e => setSubjectForm(p => ({ ...p, syllabus_pdf: e.target.value }))} placeholder="https://drive.google.com/..." className={inputCls} />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button type="submit" disabled={subjectActionLoading} className="px-5 py-2.5 rounded-xl bg-[#9102C0] text-white text-sm font-bold hover:opacity-90 transition cursor-pointer disabled:opacity-50">
+                  {subjectActionLoading ? 'Saving...' : editingSubjectId ? 'Update Subject' : 'Add Subject'}
+                </button>
+                <button type="button" onClick={() => { setSubjectFormOpen(false); setEditingSubjectId(null); }} className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-500 hover:bg-gray-50 transition cursor-pointer">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Subjects table */}
+          {cmLoading ? (
+            <div className="py-12 flex justify-center"><div className="w-8 h-8 border-3 border-[#9102C0] border-t-transparent rounded-full animate-spin"></div></div>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-gray-100">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    <th className="py-3 px-5">Class</th>
+                    <th className="py-3 px-5">Subject Name</th>
+                    <th className="py-3 px-5">Code</th>
+                    <th className="py-3 px-5">Marks</th>
+                    <th className="py-3 px-5">Syllabus</th>
+                    <th className="py-3 px-5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filteredSubjects.length === 0 ? (
+                    <tr><td colSpan="6" className="py-8 text-center text-gray-400">No subjects found.</td></tr>
+                  ) : filteredSubjects.map(s => (
+                    <tr key={s.id} className="hover:bg-gray-50/50 transition">
+                      <td className="py-3 px-5">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">{s.class_code}</span>
+                      </td>
+                      <td className="py-3 px-5 font-semibold text-[#342F76] max-w-xs">{s.subject_name}</td>
+                      <td className="py-3 px-5 text-gray-500 font-mono text-xs">{s.subject_code}</td>
+                      <td className="py-3 px-5 text-gray-500">{s.total_marks ?? '—'}</td>
+                      <td className="py-3 px-5">
+                        {s.syllabus_pdf ? (
+                          <a href={s.syllabus_pdf} target="_blank" rel="noreferrer" className="text-xs font-bold text-[#9102C0] hover:underline">View PDF</a>
+                        ) : <span className="text-gray-300 text-xs">None</span>}
+                      </td>
+                      <td className="py-3 px-5 text-right whitespace-nowrap">
+                        <div className="flex justify-end gap-3">
+                          <button
+                            onClick={() => {
+                              setEditingSubjectId(s.id);
+                              setSubjectForm({ class_code: s.class_code, subject_name: s.subject_name, subject_code: s.subject_code, total_marks: s.total_marks ?? '', syllabus_pdf: s.syllabus_pdf ?? '' });
+                              setSubjectFormOpen(true);
+                            }}
+                            className="text-xs font-bold text-blue-600 hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                          <button onClick={() => handleDeleteSubject(s.id)} disabled={subjectActionLoading} className="text-xs font-bold text-rose-600 hover:underline cursor-pointer disabled:opacity-40">
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderLogs = () => {
     const filteredLogs = logs.filter(l => {
       const query = logSearchQuery.toLowerCase().trim();
@@ -1318,6 +1689,22 @@ const Dashboard = () => {
                 </svg>
                 Admin Accounts
               </button>
+              <button
+                onClick={() => {
+                  setActiveView('content');
+                  setSidebarOpen(false);
+                }}
+                className={`w-full flex items-center gap-3.5 px-4.5 py-3 rounded-xl text-sm font-semibold transition-all duration-150 cursor-pointer ${
+                  activeView === 'content' 
+                    ? 'bg-[#9102C0] text-white shadow-md' 
+                    : 'text-purple-200/70 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Content Management
+              </button>
             </>
           )}
         </nav>
@@ -1357,6 +1744,7 @@ const Dashboard = () => {
                activeView === 'deletion' ? 'Delete live materials' :
                activeView === 'logs' ? 'Activity Audit Logs' :
                activeView === 'admins' ? 'Admin accounts management' :
+               activeView === 'content' ? 'Content Management' :
                'Admin candidates approvals'}
             </h2>
           </div>
@@ -1367,15 +1755,18 @@ const Dashboard = () => {
         </header>
 
         {/* Scrollable Container Content */}
-        <main className="flex-1 p-6 md:p-8 max-w-6xl w-full mx-auto">
-          {activeView === 'overview' && renderOverview()}
-          {activeView === 'materials' && renderMaterials()}
-          {activeView === 'feedback' && renderFeedback()}
-          {activeView === 'deletion' && renderDeletion()}
-          {activeView === 'candidates' && renderCandidates()}
-          {activeView === 'logs' && renderLogs()}
-          {activeView === 'admins' && renderAdmins()}
-        </main>
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6 md:p-8 max-w-6xl w-full mx-auto">
+            {activeView === 'overview' && renderOverview()}
+            {activeView === 'materials' && renderMaterials()}
+            {activeView === 'feedback' && renderFeedback()}
+            {activeView === 'deletion' && renderDeletion()}
+            {activeView === 'candidates' && renderCandidates()}
+            {activeView === 'logs' && renderLogs()}
+            {activeView === 'admins' && renderAdmins()}
+            {activeView === 'content' && renderContentManagement()}
+          </div>
+        </div>
       </div>
 
     </div>
