@@ -79,11 +79,11 @@ const Chatbot = () => {
   return (
     <>
       {/* Chat Window */}
-      <div className={`fixed bottom-20 right-4 sm:right-6 z-50 flex flex-col
+      <div className={`fixed bottom-20 right-4 sm:right-6 z-[9999] flex flex-col
         w-[calc(100vw-32px)] sm:w-[360px] h-[70vh] sm:h-[520px]
         bg-white rounded-2xl shadow-2xl border border-gray-200
         transition-all duration-300 ease-in-out origin-bottom-right
-        overflow-hidden
+        overflow-hidden will-change-transform
         ${isOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'}`}
       >
         {/* Header */}
@@ -99,7 +99,7 @@ const Chatbot = () => {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 relative z-10">
           {messages.map((msg, i) => (
             <div key={i}>
               {msg.role === 'user' && (
@@ -174,7 +174,7 @@ const Chatbot = () => {
       </div>
 
       {/* Toggle Button */}
-      <div className="fixed bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end gap-2">
+      <div className="fixed bottom-6 right-4 sm:right-6 z-[9999] flex flex-col items-end gap-2">
         {!isOpen && showTooltip && (
           <div className="relative bg-white text-[#342F76] text-xs font-medium px-3 py-2 rounded-xl shadow-lg border border-purple-100 whitespace-nowrap">
             👋 Hi! Need help finding notes?
