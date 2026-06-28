@@ -22,6 +22,35 @@ const Dashboard = () => {
   const [activeView, setActiveView] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Activity Logs States
+  const [logs, setLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logSearchQuery, setLogSearchQuery] = useState('');
+  const [logCurrentPage, setLogCurrentPage] = useState(1);
+  const logItemsPerPage = 10;
+
+  const fetchLogs = async () => {
+    setLogsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setLogs(data || []);
+    } catch (err) {
+      console.error('Error fetching logs:', err.message);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeView === 'logs') {
+      fetchLogs();
+    }
+  }, [activeView]);
+
   // Search States
   const [searchQuery, setSearchQuery] = useState('');
   const [reviewSearchQuery, setReviewSearchQuery] = useState('');
@@ -508,6 +537,120 @@ const Dashboard = () => {
     );
   };
 
+  const renderLogs = () => {
+    const filteredLogs = logs.filter(l => {
+      const query = logSearchQuery.toLowerCase().trim();
+      if (!query) return true;
+      return (
+        l.action?.toLowerCase().includes(query) ||
+        l.performed_by_name?.toLowerCase().includes(query) ||
+        l.entity_type?.toLowerCase().includes(query) ||
+        JSON.stringify(l.details || {})?.toLowerCase().includes(query)
+      );
+    });
+
+    const totalLogPages = Math.ceil(filteredLogs.length / logItemsPerPage);
+    const indexOfLastLog = logCurrentPage * logItemsPerPage;
+    const indexOfFirstLog = indexOfLastLog - logItemsPerPage;
+    const currentLogs = filteredLogs.slice(indexOfFirstLog, indexOfLastLog);
+
+    const getActionBadgeClass = (action) => {
+      if (action.includes('approve')) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      if (action.includes('delete') || action.includes('reject')) return 'bg-rose-50 text-rose-700 border-rose-200';
+      if (action.includes('decline')) return 'bg-amber-50 text-amber-700 border-amber-200';
+      return 'bg-purple-50 text-purple-700 border-purple-200';
+    };
+
+    const getActionLabel = (action) => {
+      return action.replace(/_/g, ' ').toUpperCase();
+    };
+
+    return (
+      <div className="space-y-6 animate-fadeIn font-poppins">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="relative w-full sm:max-w-xs">
+            <input
+              type="text"
+              placeholder="Search logs..."
+              value={logSearchQuery}
+              onChange={(e) => {
+                setLogSearchQuery(e.target.value);
+                setLogCurrentPage(1);
+              }}
+              className="w-full text-xs font-semibold text-[#342F76] placeholder-gray-400 border border-gray-200 bg-white rounded-xl py-3 pl-10 pr-4 outline-none focus:border-purple-400 transition"
+            />
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+          </div>
+          <button 
+            onClick={fetchLogs}
+            disabled={logsLoading}
+            className="w-full sm:w-auto px-4 py-2 text-xs font-bold rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 transition cursor-pointer"
+          >
+            {logsLoading ? 'Refreshing...' : 'Refresh Logs'}
+          </button>
+        </div>
+
+        {logsLoading ? (
+          <div className="py-12 flex justify-center items-center">
+            <div className="w-8 h-8 border-3 border-[#9102C0] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : filteredLogs.length === 0 ? (
+          <div className="text-center py-12 text-gray-400 font-medium bg-white rounded-2xl border border-gray-100 shadow-sm">
+            No audit logs found.
+          </div>
+        ) : (
+          <div className="bg-white border border-[#ede9fe] rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    <th className="py-4 px-6">Timestamp</th>
+                    <th className="py-4 px-6">Action</th>
+                    <th className="py-4 px-6">Performed By</th>
+                    <th className="py-4 px-6">Details</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm">
+                  {currentLogs.map((l) => (
+                    <tr key={l.id} className="hover:bg-gray-50/50 transition">
+                      <td className="py-4 px-6 text-xs text-gray-400 whitespace-nowrap">
+                        {new Date(l.created_at).toLocaleString()}
+                      </td>
+                      <td className="py-4 px-6 whitespace-nowrap">
+                        <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold border ${getActionBadgeClass(l.action)}`}>
+                          {getActionLabel(l.action)}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 font-semibold text-[#342F76] whitespace-nowrap">
+                        {l.performed_by_name}
+                      </td>
+                      <td className="py-4 px-6 text-gray-500 max-w-xs break-all">
+                        {l.details && (
+                          <div className="text-xs space-y-0.5">
+                            {Object.entries(l.details).map(([k, v]) => (
+                              <div key={k}>
+                                <strong className="text-gray-400 uppercase text-[9px]">{k.replace(/_/g, ' ')}:</strong> {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {renderPagination(logCurrentPage, totalLogPages, setLogCurrentPage)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderCandidates = () => {
     if (userRole !== 'superadmin') return <div className="text-center py-12 text-gray-400 font-poppins">Access Denied.</div>;
     return (
@@ -870,6 +1013,11 @@ const Dashboard = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-5v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             )},
+            { id: 'logs', name: 'Activity Audit Logs', icon: (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            )},
           ].map((item) => (
             <button
               key={item.id}
@@ -942,6 +1090,7 @@ const Dashboard = () => {
                activeView === 'materials' ? 'Material submission queue' :
                activeView === 'feedback' ? 'Student Reviews & Feedback' :
                activeView === 'deletion' ? 'Delete live materials' :
+               activeView === 'logs' ? 'Activity Audit Logs' :
                'Admin candidates approvals'}
             </h2>
           </div>
@@ -958,6 +1107,7 @@ const Dashboard = () => {
           {activeView === 'feedback' && renderFeedback()}
           {activeView === 'deletion' && renderDeletion()}
           {activeView === 'candidates' && renderCandidates()}
+          {activeView === 'logs' && renderLogs()}
         </main>
       </div>
 

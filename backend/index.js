@@ -230,6 +230,13 @@ async function logActivity(action, performedBy, performedByName, entityType, ent
 
 async function rateLimiter(req, res, next) {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  
+  // Bypass rate limiting for local development testing
+  const isLocal = ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+  if (isLocal) {
+    return next();
+  }
+
   const path = req.path;
   const key = `rate_limit:${path}:${ip}`;
   
