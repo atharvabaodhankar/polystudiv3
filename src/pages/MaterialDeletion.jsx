@@ -124,10 +124,17 @@ const MaterialDeletion = () => {
     // Invalidate leaderboard and class materials cache on the backend
     try {
       const API_URL = import.meta.env.VITE_API_URL;
+      const { data: { user } } = await supabase.auth.getUser();
       await fetch(`${API_URL}/api/invalidate-leaderboard`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ classCode: mat.class_code })
+        body: JSON.stringify({ 
+          classCode: mat.class_code,
+          logDeletion: true,
+          userId: user?.id,
+          materialTitle: mat.title,
+          uploader: mat.uploader
+        })
       });
     } catch (err) {
       console.error('[Cache] Failed to invalidate cache:', err);

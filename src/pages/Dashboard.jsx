@@ -188,11 +188,12 @@ const Dashboard = () => {
   const handleApproveAdmin = async (id) => {
     setCandidateLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       const API_URL = import.meta.env.VITE_API_URL;
       const res = await fetch(`${API_URL}/api/approve-admin-candidate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
+        body: JSON.stringify({ id, adminId: user?.id })
       });
       if (!res.ok) {
         const resData = await res.json().catch(() => ({}));
@@ -209,11 +210,12 @@ const Dashboard = () => {
   const handleRejectAdmin = async (id) => {
     setCandidateLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
       const API_URL = import.meta.env.VITE_API_URL;
       const res = await fetch(`${API_URL}/api/reject-admin-candidate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
+        body: JSON.stringify({ id, adminId: user?.id })
       });
       if (!res.ok) {
         const resData = await res.json().catch(() => ({}));

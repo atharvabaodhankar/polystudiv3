@@ -207,6 +207,27 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 const { Redis } = require('@upstash/redis');
 const redis = Redis.fromEnv();
 
+// Helper to log activities into activity_logs table
+async function logActivity(action, performedBy, performedByName, entityType, entityId, details) {
+  try {
+    const { error } = await supabaseAdmin
+      .from('activity_logs')
+      .insert([{
+        action,
+        performed_by: performedBy || null,
+        performed_by_name: performedByName || 'System',
+        entity_type: entityType || null,
+        entity_id: entityId ? String(entityId) : null,
+        details: details || {}
+      }]);
+    if (error) {
+      console.error('[ActivityLog] DB Error inserting log:', error);
+    }
+  } catch (err) {
+    console.error('[ActivityLog] Error:', err.message);
+  }
+}
+
 async function rateLimiter(req, res, next) {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const path = req.path;
@@ -308,6 +329,18 @@ app.post('/api/submit-material-request', rateLimiter, upload.single('file'), asy
     if (dbError) {
       console.error('Error inserting material request into Supabase:', dbError);
       return res.status(500).json({ error: 'Failed to store request in database.' });
+    }
+
+    // Log the submission activity
+    if (requestRecord) {
+      await logActivity(
+        'material_submitted',
+        null,
+        uploader,
+        'material_requests',
+        requestRecord.id,
+        { title, class_code, subject_code, type, creator }
+      );
     }
 
     // Clean up uploaded temp file
@@ -436,6 +469,33 @@ app.post('/api/review-material-request', express.json(), async (req, res) => {
         return res.status(500).json({ error: 'Failed to update request status.' });
       }
 
+      // Log the approval
+      let adminName = 'Admin';
+      try {
+        const { data: adminUser } = await supabaseAdmin
+          .from('users')
+          .select('full_name')
+          .eq('id', userId)
+          .single();
+        if (adminUser) adminName = adminUser.full_name;
+      } catch {}
+
+      await logActivity(
+        'material_approved',
+        userId,
+        adminName,
+        'materials',
+        requestData.id,
+        {
+          title: requestData.title,
+          class_code: requestData.class_code,
+          subject_code: requestData.subject_code,
+          type: requestData.type,
+          uploader: requestData.uploader,
+          creator: requestData.creator
+        }
+      );
+
       // 4. Send approval email via PlugMail
       sendPlugMail(requestData.creator, 'user status update', {
         status_badge_text: 'APPROVED',
@@ -479,6 +539,33 @@ app.post('/api/review-material-request', express.json(), async (req, res) => {
         console.error('Error updating material request status:', updateError);
         return res.status(500).json({ error: 'Failed to update request status.' });
       }
+
+      // Log the decline
+      let adminName = 'Admin';
+      try {
+        const { data: adminUser } = await supabaseAdmin
+          .from('users')
+          .select('full_name')
+          .eq('id', userId)
+          .single();
+        if (adminUser) adminName = adminUser.full_name;
+      } catch {}
+
+      await logActivity(
+        'material_declined',
+        userId,
+        adminName,
+        'material_requests',
+        requestData.id,
+        {
+          title: requestData.title,
+          class_code: requestData.class_code,
+          subject_code: requestData.subject_code,
+          type: requestData.type,
+          uploader: requestData.uploader,
+          creator: requestData.creator
+        }
+      );
 
       // 4. Send decline email via PlugMail
       sendPlugMail(requestData.creator, 'user status update', {
@@ -746,6 +833,16 @@ app.post('/api/register-admin-candidate', express.json(), async (req, res) => {
       throw dbError;
     }
 
+    // Log the admin candidate registration
+    await logActivity(
+      'admin_candidate_registered',
+      id,
+      fullName,
+      'users',
+      id,
+      { email, branch, year }
+    );
+
     // 1. Email Superadmin about new registration
     await sendPlugMail('baodhankaratharva@gmail.com', 'user status update', {
       status_badge_text: 'NEW ADMIN SIGNUP',
@@ -819,6 +916,32 @@ app.post('/api/approve-admin-candidate', express.json(), async (req, res) => {
       throw updateError;
     }
 
+    // Log the approval
+    let superadminName = 'Superadmin';
+    if (adminId) {
+      try {
+        const { data: superUser } = await supabaseAdmin
+          .from('users')
+          .select('full_name')
+          .eq('id', adminId)
+          .single();
+        if (superUser) superadminName = superUser.full_name;
+      } catch {}
+    }
+
+    await logActivity(
+      'admin_candidate_approved',
+      adminId,
+      superadminName,
+      'users',
+      id,
+      {
+        candidate_email: userRow.email,
+        candidate_name: userRow.full_name,
+        branch: userRow.branch
+      }
+    );
+
     // Email approved candidate
     await sendPlugMail(userRow.email, 'user status update', {
       status_badge_text: 'APPROVED',
@@ -847,10 +970,17 @@ app.post('/api/approve-admin-candidate', express.json(), async (req, res) => {
 
 app.post('/api/reject-admin-candidate', express.json(), async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id, adminId } = req.body;
     if (!id) {
       return res.status(400).json({ error: 'Missing candidate ID.' });
     }
+
+    // Fetch details first
+    const { data: userRow } = await supabaseAdmin
+      .from('users')
+      .select('email, full_name, branch')
+      .eq('id', id)
+      .single();
 
     // Delete candidate profile
     const { error } = await supabaseAdmin
@@ -860,6 +990,34 @@ app.post('/api/reject-admin-candidate', express.json(), async (req, res) => {
 
     if (error) {
       throw error;
+    }
+
+    // Log the rejection
+    if (userRow) {
+      let superadminName = 'Superadmin';
+      if (adminId) {
+        try {
+          const { data: superUser } = await supabaseAdmin
+            .from('users')
+            .select('full_name')
+            .eq('id', adminId)
+            .single();
+          if (superUser) superadminName = superUser.full_name;
+        } catch {}
+      }
+
+      await logActivity(
+        'admin_candidate_rejected',
+        adminId,
+        superadminName,
+        'users',
+        id,
+        {
+          candidate_email: userRow.email,
+          candidate_name: userRow.full_name,
+          branch: userRow.branch
+        }
+      );
     }
 
     res.json({ success: true });
@@ -917,13 +1075,40 @@ app.get('/api/leaderboard', async (req, res) => {
 });
 
 app.post('/api/invalidate-leaderboard', express.json(), async (req, res) => {
-  const { classCode } = req.body;
+  const { classCode, logDeletion, userId, materialTitle, uploader } = req.body;
   try {
     const keys = ['polystudi:leaderboard'];
     if (classCode) {
       keys.push(`polystudi:materials:${classCode}`);
     }
     await Promise.all(keys.map(k => redis.del(k)));
+
+    // Log deletion activity if requested
+    if (logDeletion && userId) {
+      let adminName = 'Admin';
+      try {
+        const { data: adminUser } = await supabaseAdmin
+          .from('users')
+          .select('full_name')
+          .eq('id', userId)
+          .single();
+        if (adminUser) adminName = adminUser.full_name;
+      } catch {}
+
+      await logActivity(
+        'material_deleted',
+        userId,
+        adminName,
+        'materials',
+        null,
+        {
+          title: materialTitle,
+          class_code: classCode,
+          uploader: uploader
+        }
+      );
+    }
+
     return res.json({ success: true });
   } catch (err) {
     console.error('[Leaderboard Cache] Invalidation error:', err);
