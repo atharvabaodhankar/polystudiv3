@@ -16,7 +16,7 @@ const ContributorBadge = ({ tier, size = 'md' }) => {
   const imageSrc = badgeImages[tier] || badgeImages.bronze;
 
   return (
-    <div className="relative flex items-center justify-center rounded-full overflow-hidden transition-all duration-300 border border-gray-100 shadow-sm"
+    <div className="relative flex items-center justify-center rounded-full overflow-hidden transition-all duration-300"
       style={{ 
         width: size === 'sm' ? '26px' : '54px',
         height: size === 'sm' ? '26px' : '54px'
@@ -141,7 +141,7 @@ const Home = ({ navLogoRef }) => {
           const contributorsArray = Object.entries(contributorCounts).map(([name, count]) => ({
             name,
             contributions: count,
-            type: count >= 10 ? 'gold' : count >= 5 ? 'silver' : 'bronze'
+            type: count >= 15 ? 'master' : count >= 10 ? 'silver' : count >= 5 ? 'bronze' : count >= 3 ? 'gold' : 'contributor'
           })).sort((a, b) => b.contributions - a.contributions);
 
           setContributors(contributorsArray);
@@ -319,9 +319,9 @@ const Home = ({ navLogoRef }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 {(showAllContributors ? contributors : topContributors).map((c, index) => {
                   const points = c.contributions * 10;
-                  const badgeLabel = c.contributions >= 10 ? 'Master Scholar' : c.contributions >= 5 ? 'Gold Contributor' : c.contributions >= 3 ? 'Silver Contributor' : 'Bronze Contributor';
-                  const badgeBg = c.contributions >= 10 ? 'bg-purple-100 text-purple-700 border-purple-200' : c.contributions >= 5 ? 'bg-amber-100 text-amber-700 border-amber-200' : c.contributions >= 3 ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-orange-100 text-orange-700 border-orange-200';
-                  const medalColor = index === 0 ? 'text-[#d97706]' : index === 1 ? 'text-[#9ca3af]' : index === 2 ? 'text-[#b45309]' : 'text-purple-300';
+                  const tier = c.contributions >= 15 ? 'master' : c.contributions >= 10 ? 'silver' : c.contributions >= 5 ? 'bronze' : c.contributions >= 3 ? 'gold' : 'contributor';
+                  const badgeLabel = tier === 'master' ? 'Master Scholar' : tier === 'silver' ? 'Silver Scholar' : tier === 'bronze' ? 'Bronze Scholar' : tier === 'gold' ? 'Gold Contributor' : 'Contributor';
+                  const badgeBg = tier === 'master' ? 'bg-amber-50 text-amber-700 border-amber-200' : tier === 'silver' ? 'bg-slate-100 text-slate-700 border-slate-200' : tier === 'bronze' ? 'bg-orange-100 text-orange-700 border-orange-200' : tier === 'gold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-purple-100 text-purple-700 border-purple-200';
                   
                   return (
                     <div 
@@ -333,7 +333,7 @@ const Home = ({ navLogoRef }) => {
                           <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#342F76] text-white text-[10px] font-bold flex items-center justify-center z-10 shadow-sm font-poppins">
                             {index + 1}
                           </span>
-                          <ContributorBadge tier={c.contributions >= 10 ? 'master' : c.contributions >= 5 ? 'gold' : c.contributions >= 3 ? 'silver' : 'bronze'} size="md" />
+                          <ContributorBadge tier={tier} size="md" />
                         </div>
                         <div>
                           <div className="font-bold text-[#342F76] text-lg font-poppins flex items-center gap-2">

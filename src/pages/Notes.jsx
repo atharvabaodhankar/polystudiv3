@@ -71,9 +71,9 @@ const Notes = () => {
     if (!uploader) return null;
     const count = contributorStats[uploader];
     if (!count) return null;
-    const tier = count >= 10 ? 'master' : count >= 5 ? 'gold' : count >= 3 ? 'silver' : 'bronze';
-    const label = count >= 10 ? 'Master Scholar' : count >= 5 ? 'Gold Contributor' : count >= 3 ? 'Silver Contributor' : 'Bronze Contributor';
-    const badgeClass = count >= 10 ? 'bg-purple-50 text-purple-700 border-purple-200' : count >= 5 ? 'bg-amber-50 text-amber-700 border-amber-200' : count >= 3 ? 'bg-gray-50 text-gray-700 border-gray-200' : 'bg-orange-50 text-orange-700 border-orange-200';
+    const tier = count >= 15 ? 'master' : count >= 10 ? 'silver' : count >= 5 ? 'bronze' : count >= 3 ? 'gold' : 'contributor';
+    const label = tier === 'master' ? 'Master Scholar' : tier === 'silver' ? 'Silver Scholar' : tier === 'bronze' ? 'Bronze Scholar' : tier === 'gold' ? 'Gold Contributor' : 'Contributor';
+    const badgeClass = tier === 'master' ? 'bg-amber-50 text-amber-700 border-amber-200' : tier === 'silver' ? 'bg-slate-100 text-slate-700 border-slate-200' : tier === 'bronze' ? 'bg-orange-100 text-orange-700 border-orange-200' : tier === 'gold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : 'bg-purple-100 text-purple-700 border-purple-200';
     return (
       <div className="flex items-center gap-1.5 mt-0.5">
         <ContributorBadge tier={tier} size="sm" />

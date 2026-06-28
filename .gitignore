@@ -15,6 +15,9 @@ dist-ssr
 context.md
 polystudiv2
 gdrive-converter
+.agents
+.claude
+.supabase
 
 # Editor directories and files
 .vscode/*
