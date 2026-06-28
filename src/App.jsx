@@ -23,7 +23,7 @@ const App = () => {
     <Router>
       <div className="min-h-screen flex flex-col bg-white">
         <Navbar ref={navLogoRef} />
-        <main className="flex-1 pt-20">
+        <main className="flex-1 pt-20 .bg-\[\#9102C0\]">
           <Routes>
             <Route path="/" element={<Home navLogoRef={navLogoRef} />} />
             <Route path="/dashboard" element={<Dashboard />} />

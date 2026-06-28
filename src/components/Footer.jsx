@@ -61,7 +61,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="w-full bg-[#9102C0] pt-16 pb-0 mt-16 text-white font-poppins">
+    <footer className="w-full bg-[#9102C0] pt-16 pb-0 text-white font-poppins">
       <div className="max-w-6xl mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center justify-between items-start gap-12 md:gap-0">
         {/* Logo and About */}
         <div className="flex-1 flex flex-col items-start">
