@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { useNavigate } from 'react-router-dom';
 import MaterialDeletion from './MaterialDeletion';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [allRequests, setAllRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null);
@@ -514,6 +516,7 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    navigate('/login');
   };
 
   // Modular SaaS View Renderers
