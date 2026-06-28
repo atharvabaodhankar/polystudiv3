@@ -229,7 +229,7 @@ const Home = ({ navLogoRef }) => {
         </div>
       )}
       {/* Hero Section */}
-      <section id="hero" className="h-[90vh] min-h-[500px] bg-cover bg-center relative flex items-center justify-start overflow-hidden" style={{ backgroundImage: `url('/hero-bg-neon.png')` }}>
+      <section id="hero" className="h-[90vh] min-h-[500px] bg-cover bg-center relative flex items-center justify-start overflow-hidden" style={{ backgroundImage: `url('/home.png')` }}>
         {/* Animated gradient shapes */}
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-[#9102C0]/40 via-[#f3e8ff]/60 to-[#342F76]/30 rounded-full blur-3xl z-0 animate-pulse-slow" />
         <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-tr from-[#342F76]/30 via-[#9102C0]/20 to-[#f3e8ff]/40 rounded-full blur-2xl z-0 animate-pulse-slow" />
