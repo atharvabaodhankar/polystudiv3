@@ -405,7 +405,7 @@ const Home = ({ navLogoRef }) => {
         <div className="max-w-5xl mx-auto px-4 relative z-10">
           <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-2 pb-2 font-bold text-left">About Us</h1>
           <h2 className="text-xl md:text-2xl font-baumans text-[#342F76] mb-4 font-semibold tracking-wide text-left">Meet the Creator</h2>
-          <p className="text-[#9102C0] text-lg mb-10 font-baumans italic max-w-2xl text-left">Bringing websites to life, one pixel at a time. Passionate about modern web design, animation, and empowering students through technology.</p>
+          <p className="text-[#9102C0] text-lg mb-10 font-baumans italic max-w-2xl text-left">PolyStudi was created to make learning more accessible through technology, collaboration, and high-quality educational resources.</p>
           <div className="flex justify-center">
             <div className="relative bg-white/80 backdrop-blur-2xl border-2 border-transparent rounded-3xl shadow-2xl p-10 text-center overflow-hidden w-full max-w-md group transition-all duration-300 hover:shadow-[0_8px_40px_-8px_#9102C0]">
               {/* Animated gradient border */}

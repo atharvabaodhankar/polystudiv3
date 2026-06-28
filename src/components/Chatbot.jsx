@@ -83,6 +83,7 @@ const Chatbot = () => {
         w-[calc(100vw-32px)] sm:w-[360px] h-[70vh] sm:h-[520px]
         bg-white rounded-2xl shadow-2xl border border-gray-200
         transition-all duration-300 ease-in-out origin-bottom-right
+        overflow-hidden
         ${isOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-90 pointer-events-none'}`}
       >
         {/* Header */}
