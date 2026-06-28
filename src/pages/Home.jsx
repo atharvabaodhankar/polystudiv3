@@ -5,6 +5,32 @@ import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane, FaTrophy, FaUsers, FaS
 import { supabase } from '../supabaseClient';
 import { gsap } from 'gsap';
 
+const ContributorBadge = ({ tier, size = 'md' }) => {
+  const badgeImages = {
+    bronze: '/bronze_badge.png',
+    silver: '/silver_badge.png',
+    gold: '/gold_badge.jpg',
+    master: '/master_badge.png'
+  };
+
+  const imageSrc = badgeImages[tier] || badgeImages.bronze;
+
+  return (
+    <div className="relative flex items-center justify-center rounded-full overflow-hidden transition-all duration-300 border border-gray-100 shadow-sm"
+      style={{ 
+        width: size === 'sm' ? '26px' : '54px',
+        height: size === 'sm' ? '26px' : '54px'
+      }}
+    >
+      <img 
+        src={imageSrc} 
+        alt={`${tier} Badge`} 
+        className="w-full h-full object-cover rounded-full"
+      />
+    </div>
+  );
+};
+
 const Home = ({ navLogoRef }) => {
   if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
     window.history.scrollRestoration = 'manual';
@@ -266,7 +292,7 @@ const Home = ({ navLogoRef }) => {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
             <div>
               <h2 className="text-3xl md:text-4xl font-baumans text-[#9102C0] mb-2 font-bold flex items-center gap-3">
-                <FaTrophy className="text-[#d97706] text-2xl md:text-3xl" />
+                <img src="/polystudiv3-round.png" className="w-10 h-10 object-contain shadow-sm rounded-full" alt="PolyStudi" />
                 Contributors Leaderboard
               </h2>
               <p className="text-[#342F76] text-lg font-poppins max-w-xl">
@@ -303,12 +329,11 @@ const Home = ({ navLogoRef }) => {
                       className="bg-[#fcfaff] border border-[#ede9fe] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition duration-200 group"
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-white border border-[#ede9fe] flex items-center justify-center font-bold text-[#342F76] text-lg font-baumans shadow-inner relative">
-                          {index < 3 ? (
-                            <FaTrophy className={`text-xl ${medalColor}`} />
-                          ) : (
-                            `#${index + 1}`
-                          )}
+                        <div className="relative">
+                          <span className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-[#342F76] text-white text-[10px] font-bold flex items-center justify-center z-10 shadow-sm font-poppins">
+                            {index + 1}
+                          </span>
+                          <ContributorBadge tier={c.contributions >= 10 ? 'master' : c.contributions >= 5 ? 'gold' : c.contributions >= 3 ? 'silver' : 'bronze'} size="md" />
                         </div>
                         <div>
                           <div className="font-bold text-[#342F76] text-lg font-poppins flex items-center gap-2">

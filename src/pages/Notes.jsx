@@ -3,6 +3,32 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FaBookOpen } from 'react-icons/fa';
 import { supabase } from '../supabaseClient';
 
+const ContributorBadge = ({ tier, size = 'md' }) => {
+  const badgeImages = {
+    bronze: '/bronze_badge.png',
+    silver: '/silver_badge.png',
+    gold: '/gold_badge.jpg',
+    master: '/master_badge.png'
+  };
+
+  const imageSrc = badgeImages[tier] || badgeImages.bronze;
+
+  return (
+    <div className="relative flex items-center justify-center rounded-full overflow-hidden transition-all duration-300 border border-gray-100 shadow-sm"
+      style={{ 
+        width: size === 'sm' ? '26px' : '54px',
+        height: size === 'sm' ? '26px' : '54px'
+      }}
+    >
+      <img 
+        src={imageSrc} 
+        alt={`${tier} Badge`} 
+        className="w-full h-full object-cover rounded-full"
+      />
+    </div>
+  );
+};
+
 const Notes = () => {
   const { classCode } = useParams();
   const navigate = useNavigate();
@@ -45,12 +71,16 @@ const Notes = () => {
     if (!uploader) return null;
     const count = contributorStats[uploader];
     if (!count) return null;
+    const tier = count >= 10 ? 'master' : count >= 5 ? 'gold' : count >= 3 ? 'silver' : 'bronze';
     const label = count >= 10 ? 'Master Scholar' : count >= 5 ? 'Gold Contributor' : count >= 3 ? 'Silver Contributor' : 'Bronze Contributor';
-    const badgeClass = count >= 10 ? 'bg-purple-100 text-purple-700 border-purple-200' : count >= 5 ? 'bg-amber-100 text-amber-700 border-amber-200' : count >= 3 ? 'bg-gray-100 text-gray-700 border-gray-200' : 'bg-orange-100 text-orange-700 border-orange-200';
+    const badgeClass = count >= 10 ? 'bg-purple-50 text-purple-700 border-purple-200' : count >= 5 ? 'bg-amber-50 text-amber-700 border-amber-200' : count >= 3 ? 'bg-gray-50 text-gray-700 border-gray-200' : 'bg-orange-50 text-orange-700 border-orange-200';
     return (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border capitalize tracking-wide ${badgeClass}`}>
-        {label}
-      </span>
+      <div className="flex items-center gap-1.5 mt-0.5">
+        <ContributorBadge tier={tier} size="sm" />
+        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wide ${badgeClass}`}>
+          {label}
+        </span>
+      </div>
     );
   };
 
