@@ -123,31 +123,19 @@ const Home = ({ navLogoRef }) => {
   useEffect(() => {
     const fetchContributors = async () => {
       try {
-        // Get all materials and count contributions per uploader
-        const { data: materials } = await supabase
-          .from('materials')
-          .select('uploader, type')
-          .not('uploader', 'is', null);
-
-        if (materials) {
-          // Count contributions per uploader
-          const contributorCounts = {};
-          materials.forEach(material => {
-            if (material.uploader) {
-              contributorCounts[material.uploader] = (contributorCounts[material.uploader] || 0) + 1;
-            }
-          });
-
-          // Convert to array and sort by contribution count
-          const contributorsArray = Object.entries(contributorCounts).map(([name, count]) => ({
-            name,
-            contributions: count,
-            type: count >= 15 ? 'master' : count >= 10 ? 'gold' : count >= 5 ? 'silver' : count >= 3 ? 'bronze' : 'contributor'
-          })).sort((a, b) => b.contributions - a.contributions);
-
+        const API_URL = import.meta.env.VITE_API_URL;
+        const res = await fetch(`${API_URL}/api/leaderboard`);
+        if (!res.ok) throw new Error('Failed to fetch leaderboard data');
+        const payload = await res.json();
+        
+        if (payload && payload.success && payload.data) {
+          const contributorsArray = payload.data;
           setContributors(contributorsArray);
           setTopContributors(contributorsArray.slice(0, 5)); // Top 5 contributors
-          setTotalContributions(materials.length);
+          
+          // Calculate total contributions
+          const total = contributorsArray.reduce((acc, curr) => acc + curr.contributions, 0);
+          setTotalContributions(total);
         }
       } catch (error) {
         console.error('Error fetching contributors:', error);

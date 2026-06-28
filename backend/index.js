@@ -203,7 +203,37 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-// ── Chatbot ───────────────────────────────────────────────────────────────────
+// ── Redis Initialization & Rate Limiting ─────────────────────────────────────
+const { Redis } = require('@upstash/redis');
+const redis = Redis.fromEnv();
+
+async function rateLimiter(req, res, next) {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const path = req.path;
+  const key = `rate_limit:${path}:${ip}`;
+  
+  try {
+    const current = await redis.incr(key);
+    if (current === 1) {
+      await redis.expire(key, 3600); // 1 hour window
+    }
+    
+    if (path === '/api/chat' && current > 20) {
+      return res.status(429).json({ error: 'Too many queries. Please try again in an hour.' });
+    }
+    
+    if (path === '/api/submit-material-request' && current > 5) {
+      return res.status(429).json({ error: 'Too many uploads. Please try again in an hour.' });
+    }
+    
+    next();
+  } catch (err) {
+    console.error('[RateLimiter] Redis error:', err);
+    next();
+  }
+}
+
+// ── Chatbot & Supabase ────────────────────────────────────────────────────────
 const { createClient } = require('@supabase/supabase-js');
 
 const supabaseAdmin = createClient(
@@ -235,7 +265,7 @@ async function sendPlugMail(to, template, variables) {
   }
 }
 
-app.post('/api/submit-material-request', upload.single('file'), async (req, res) => {
+app.post('/api/submit-material-request', rateLimiter, upload.single('file'), async (req, res) => {
   try {
     const { title, class_code, subject_code, type, uploader, creator } = req.body;
     if (!req.file || !title || !class_code || !subject_code || !type || !uploader || !creator) {
@@ -383,6 +413,13 @@ app.post('/api/review-material-request', express.json(), async (req, res) => {
       if (insertError) {
         console.error('Error inserting approved material:', insertError);
         return res.status(500).json({ error: 'Failed to insert material.' });
+      }
+
+      // Invalidate leaderboard cache
+      try {
+        await redis.del('polystudi:leaderboard');
+      } catch (err) {
+        console.error('[Leaderboard Cache] Invalidation error:', err);
       }
 
       // 3. Update status in material_requests
@@ -638,7 +675,7 @@ async function fetchDBContext(intent, classCode, subjectQuery) {
   return results;
 }
 
-app.post('/api/chat', express.json(), async (req, res) => {
+app.post('/api/chat', rateLimiter, express.json(), async (req, res) => {
   const { message, history = [] } = req.body;
   if (!message || typeof message !== 'string')
     return res.status(400).json({ success: false, error: 'message is required' });
@@ -824,6 +861,63 @@ app.post('/api/reject-admin-candidate', express.json(), async (req, res) => {
   } catch (err) {
     console.error('Error rejecting admin candidate:', err.message);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Redis Cached Leaderboard API ──────────────────────────────────────────────
+
+app.get('/api/leaderboard', async (req, res) => {
+  const cacheKey = 'polystudi:leaderboard';
+  try {
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+      return res.json({ success: true, data: cached });
+    }
+  } catch (err) {
+    console.error('[Leaderboard Cache] Error reading from Redis:', err);
+  }
+
+  try {
+    const { data: materials, error } = await supabaseAdmin
+      .from('materials')
+      .select('uploader, type')
+      .not('uploader', 'is', null);
+
+    if (error) throw error;
+
+    const contributorCounts = {};
+    materials.forEach(material => {
+      if (material.uploader) {
+        contributorCounts[material.uploader] = (contributorCounts[material.uploader] || 0) + 1;
+      }
+    });
+
+    const contributorsArray = Object.entries(contributorCounts).map(([name, count]) => ({
+      name,
+      contributions: count,
+      type: count >= 15 ? 'master' : count >= 10 ? 'gold' : count >= 5 ? 'silver' : count >= 3 ? 'bronze' : 'contributor'
+    })).sort((a, b) => b.contributions - a.contributions);
+
+    try {
+      await redis.set(cacheKey, contributorsArray, { ex: 3600 });
+    } catch (err) {
+      console.error('[Leaderboard Cache] Error writing to Redis:', err);
+    }
+
+    return res.json({ success: true, data: contributorsArray });
+  } catch (error) {
+    console.error('[Leaderboard Cache] Query error:', error);
+    return res.status(500).json({ success: false, error: 'Database query failed' });
+  }
+});
+
+app.post('/api/invalidate-leaderboard', express.json(), async (req, res) => {
+  try {
+    await redis.del('polystudi:leaderboard');
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('[Leaderboard Cache] Invalidation error:', err);
+    return res.status(500).json({ error: 'Failed to invalidate cache' });
   }
 });
 
