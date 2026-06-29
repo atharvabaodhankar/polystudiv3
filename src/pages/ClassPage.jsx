@@ -80,6 +80,7 @@ const ContributorBadge = ({ tier, size = 'md' }) => {
 
 const ClassPage = () => {
   const { classCode } = useParams();
+  const [className, setClassName] = useState('');
   const [syllabus, setSyllabus] = useState([]);
   const [contributorStats, setContributorStats] = useState({});
   const [extraMaterials, setExtraMaterials] = useState([]);
@@ -106,6 +107,7 @@ const ClassPage = () => {
       const runClientFallback = async () => {
         try {
           const [
+            { data: classData },
             { data: syllabusData },
             { data: extraData },
             { data: notesData },
@@ -114,6 +116,7 @@ const ClassPage = () => {
             { data: solvedPapersData },
             { data: allMaterialsData }
           ] = await Promise.all([
+            supabase.from('classes').select('name').eq('code', classCode).maybeSingle(),
             supabase.from('subjects').select('*').eq('class_code', classCode),
             supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'extra'),
             supabase.from('materials').select('*').eq('class_code', classCode).eq('type', 'note'),
@@ -123,6 +126,7 @@ const ClassPage = () => {
             supabase.from('materials').select('uploader').not('uploader', 'is', null),
           ]);
           
+          if (classData) setClassName(classData.name);
           setSyllabus(syllabusData || []);
           setExtraMaterials(extraData || []);
           setNotes(notesData || []);
@@ -188,15 +192,18 @@ const ClassPage = () => {
         const API_URL = import.meta.env.VITE_API_URL;
         
         const [
+          { data: classData },
           { data: syllabusData },
           { data: subjectsData },
           { data: allMaterialsData }
         ] = await Promise.all([
+          supabase.from('classes').select('name').eq('code', classCode).maybeSingle(),
           supabase.from('subjects').select('*').eq('class_code', classCode),
           supabase.from('subjects').select('*').eq('class_code', classCode),
           supabase.from('materials').select('uploader').not('uploader', 'is', null)
         ]);
 
+        if (classData) setClassName(classData.name);
         setSyllabus(syllabusData || []);
         setSubjects(subjectsData || []);
 
@@ -288,8 +295,11 @@ const ClassPage = () => {
     <div className="max-w-7xl mx-auto py-12 px-4">
       {/* Class Welcome Section */}
       <section className="mb-16 flex flex-col items-start bg-gradient-to-r from-[#f3e8ff] via-white to-white rounded-2xl p-8 shadow-lg border-l-8 border-[#9102C0]">
-        <h1 className="text-5xl md:text-7xl font-bold text-[#9102C0] mb-2 tracking-tight uppercase drop-shadow-sm">{classCode}</h1>
-        <div className="h-1 w-20 bg-[#9102C0] rounded"></div>
+        <h1 className="text-4xl md:text-5xl font-bold text-[#9102C0] mb-2 tracking-tight uppercase drop-shadow-sm">
+          {classCode === 'SKILLS' ? 'Skills Hub' : classCode}
+        </h1>
+        <p className="text-sm font-semibold text-gray-500 font-poppins">{className || (classCode === 'SKILLS' ? 'Technical & Professional Skills' : '')}</p>
+        <div className="h-1 w-20 bg-[#9102C0] rounded mt-2"></div>
         <div className="mt-6 w-full flex">
           <div className="relative bg-white/60 backdrop-blur-md rounded-2xl shadow-xl px-8 py-8 flex flex-col md:flex-row items-start justify-between gap-6 w-full max-w-4xl border border-white/30">
             {/* Gradient Accent Bar */}
@@ -300,8 +310,14 @@ const ClassPage = () => {
             </div>
             {/* Text */}
             <div className="flex-1 text-left">
-              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#9102C0] to-[#E040FB] bg-clip-text text-transparent mb-2">Contribute to your class!</h2>
-              <p className="text-[#342F76] text-base md:text-lg font-medium">Share your notes, papers, or materials and help everyone succeed.</p>
+              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#9102C0] to-[#E040FB] bg-clip-text text-transparent mb-2">
+                {classCode === 'SKILLS' ? 'Contribute to the Hub!' : 'Contribute to your class!'}
+              </h2>
+              <p className="text-[#342F76] text-base md:text-lg font-medium">
+                {classCode === 'SKILLS' 
+                  ? 'Share your notes, cheatsheets, or general guides and help others learn.' 
+                  : 'Share your notes, papers, or materials and help everyone succeed.'}
+              </p>
             </div>
             {/* Button */}
             <button
@@ -315,11 +331,16 @@ const ClassPage = () => {
       </section>
       {/* Syllabus Table */}
       <section id="syllabus" className="mb-16" ref={syllabusRef}>
-        <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Syllabus</h2>
+        <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">
+          {classCode === 'SKILLS' ? 'Topics' : 'Syllabus'}
+        </h2>
         {syllabus.length === 0 ? (
-          <div className="text-[#342F76] text-lg font-poppins">Syllabus is not available for this class yet.</div>
+          <div className="text-[#342F76] text-lg font-poppins">
+            {classCode === 'SKILLS' ? 'Topics are not available for this hub yet.' : 'Syllabus is not available for this class yet.'}
+          </div>
         ) : (
           <SyllabusTable
+            isSkills={classCode === 'SKILLS'}
             data={syllabus.map((subj, i) => ({
               sr: i + 1,
               name: subj.subject_name,
@@ -422,100 +443,104 @@ const ClassPage = () => {
         )}
       </section>
       {/* Solved Papers Preview */}
-      <section id="solved-papers" className="mb-16" ref={solvedRef}>
-        <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Solved Papers</h2>
-        <button
-          className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
-          onClick={() => navigate(`/class/${classCode}/request-material`)}
-        >
-          Request to Share Material
-        </button>
-        {solvedPapers.length === 0 ? (
-          <div className="text-[#342F76] text-lg font-poppins">No solved papers found for this class yet.</div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {(showAllSolved ? solvedPapers : solvedPapers.slice(0, 2)).map((subj, i) => (
-                <div key={i} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
-                  <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{subj.subject} ({subj.code})</h3>
-                  <ul className="space-y-2">
-                    {subj.papers.map((paper, j) => (
-                      <li key={paper.id}>
-                        <a
-                          href={paper.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[#9102C0] hover:underline font-bold bg-[#f3e8ff] px-4 py-2 rounded transition inline-block"
-                        >
-                          {paper.title} — Download
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-            {solvedPapers.length > 2 && (
-              <div className="flex justify-center mt-4">
-                <button
-                  className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
-                  onClick={() => setShowAllSolved((v) => !v)}
-                >
-                  {showAllSolved ? 'Show Less' : 'Show All'}
-                </button>
+      {classCode !== 'SKILLS' && (
+        <section id="solved-papers" className="mb-16" ref={solvedRef}>
+          <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Solved Papers</h2>
+          <button
+            className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
+            onClick={() => navigate(`/class/${classCode}/request-material`)}
+          >
+            Request to Share Material
+          </button>
+          {solvedPapers.length === 0 ? (
+            <div className="text-[#342F76] text-lg font-poppins">No solved papers found for this class yet.</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {(showAllSolved ? solvedPapers : solvedPapers.slice(0, 2)).map((subj, i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
+                    <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{subj.subject} ({subj.code})</h3>
+                    <ul className="space-y-2">
+                      {subj.papers.map((paper, j) => (
+                        <li key={paper.id}>
+                          <a
+                            href={paper.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#9102C0] hover:underline font-bold bg-[#f3e8ff] px-4 py-2 rounded transition inline-block"
+                          >
+                            {paper.title} — Download
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            )}
-          </>
-        )}
-      </section>
+              {solvedPapers.length > 2 && (
+                <div className="flex justify-center mt-4">
+                  <button
+                    className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
+                    onClick={() => setShowAllSolved((v) => !v)}
+                  >
+                    {showAllSolved ? 'Show Less' : 'Show All'}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      )}
+
       {/* Question Papers Section */}
-      <section id="question-papers" className="mb-16" ref={questionRef}>
-        <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Question Papers</h2>
-        <button
-          className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
-          onClick={() => navigate(`/class/${classCode}/request-material`)}
-        >
-          Request to Share Material
-        </button>
-        {questionPapers.length === 0 ? (
-          <div className="text-[#342F76] text-lg font-poppins">No question papers found for this class yet.</div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {(showAllQuestions ? questionPapers : questionPapers.slice(0, 2)).map((subj, i) => (
-                <div key={i} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
-                  <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{subj.subject} ({subj.code})</h3>
-                  <ul className="space-y-2">
-                    {subj.papers.map((paper, j) => (
-                      <li key={paper.id}>
-                        <a
-                          href={paper.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[#9102C0] hover:underline font-bold bg-[#f3e8ff] px-4 py-2 rounded transition inline-block"
-                        >
-                          {paper.title} — Download
-                        </a>
-                        {/* <span className="text-xs text-gray-400 ml-2">{paper.created_at ? new Date(paper.created_at).toLocaleDateString() : ''}</span> */}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-            {questionPapers.length > 2 && (
-              <div className="flex justify-center mt-4">
-                <button
-                  className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
-                  onClick={() => setShowAllQuestions((v) => !v)}
-                >
-                  {showAllQuestions ? 'Show Less' : 'Show All'}
-                </button>
+      {classCode !== 'SKILLS' && (
+        <section id="question-papers" className="mb-16" ref={questionRef}>
+          <h2 className="p-h1 text-4xl text-[#9102C0] font-bold font-baumans mb-8">Question Papers</h2>
+          <button
+            className="mb-6 px-4 py-2 rounded-full bg-[#9102C0] text-white font-bold hover:bg-[#342F76] transition"
+            onClick={() => navigate(`/class/${classCode}/request-material`)}
+          >
+            Request to Share Material
+          </button>
+          {questionPapers.length === 0 ? (
+            <div className="text-[#342F76] text-lg font-poppins">No question papers found for this class yet.</div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {(showAllQuestions ? questionPapers : questionPapers.slice(0, 2)).map((subj, i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-[#9102C0]">
+                    <h3 className="font-bold text-xl mb-2 font-poppins text-[#342F76]">{subj.subject} ({subj.code})</h3>
+                    <ul className="space-y-2">
+                      {subj.papers.map((paper, j) => (
+                        <li key={paper.id}>
+                          <a
+                            href={paper.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#9102C0] hover:underline font-bold bg-[#f3e8ff] px-4 py-2 rounded transition inline-block"
+                          >
+                            {paper.title} — Download
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </div>
-            )}
-          </>
-        )}
-      </section>
+              {questionPapers.length > 2 && (
+                <div className="flex justify-center mt-4">
+                  <button
+                    className="px-6 py-2 rounded-lg bg-[#9102C0] text-white font-semibold hover:bg-[#342F76] transition"
+                    onClick={() => setShowAllQuestions((v) => !v)}
+                  >
+                    {showAllQuestions ? 'Show Less' : 'Show All'}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </section>
+      )}
       {showRequestModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full relative">
