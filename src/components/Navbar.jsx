@@ -76,23 +76,26 @@ const Navbar = forwardRef((props, navLogoRef) => {
   const navLinks = (
     <>
       <li>
-        <Link to={homeLink} onClick={() => setMobileMenuOpen(false)} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all duration-300 text-lg md:text-xl text-black block">Home</Link>
+        <Link to={homeLink} onClick={() => setMobileMenuOpen(false)} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-1.5 px-3 relative transition-all duration-300 text-sm xl:text-base text-black block">Home</Link>
       </li>
       <li>
-        <a href="#courses" onClick={handleNavSection('courses')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all duration-300 text-lg md:text-xl text-black block">Courses</a>
+        <a href="#courses" onClick={handleNavSection('courses')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-1.5 px-3 relative transition-all duration-300 text-sm xl:text-base text-black block">Courses</a>
       </li>
       <li>
-        <a href="#leaderboard" onClick={handleNavSection('leaderboard')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all duration-300 text-lg md:text-xl text-black block">Leaderboard</a>
+        <Link to="/class/SKILLS" onClick={() => setMobileMenuOpen(false)} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-1.5 px-3 relative transition-all duration-300 text-sm xl:text-base text-black block">Skills Hub</Link>
       </li>
       <li>
-        <a href="#aboutus" onClick={handleNavSection('aboutus')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all duration-300 text-lg md:text-xl text-black block">AboutUs</a>
+        <a href="#leaderboard" onClick={handleNavSection('leaderboard')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-1.5 px-3 relative transition-all duration-300 text-sm xl:text-base text-black block">Leaderboard</a>
       </li>
       <li>
-        <a href="#contact" onClick={handleNavSection('contact')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all duration-300 text-lg md:text-xl text-black block">ContactUs</a>
+        <a href="#aboutus" onClick={handleNavSection('aboutus')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-1.5 px-3 relative transition-all duration-300 text-sm xl:text-base text-black block">AboutUs</a>
+      </li>
+      <li>
+        <a href="#contact" onClick={handleNavSection('contact')} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-1.5 px-3 relative transition-all duration-300 text-sm xl:text-base text-black block">ContactUs</a>
       </li>
       <li className="relative" ref={adminDropdownRef}>
         <button
-          className="admin-btn nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all duration-300 text-lg md:text-xl text-black flex items-center gap-2 w-full justify-between md:justify-center"
+          className="admin-btn nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-1.5 px-3 relative transition-all duration-300 text-sm xl:text-base text-black flex items-center gap-1.5 w-full justify-between md:justify-center"
           onClick={() => setAdminDropdown((v) => !v)}
           type="button"
           aria-haspopup="true"
@@ -110,7 +113,7 @@ const Navbar = forwardRef((props, navLogoRef) => {
       </li>
       {classCode && (
         <li>
-          <Link to={`/class/${classCode}/assignments`} onClick={() => setMobileMenuOpen(false)} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-2 px-4 relative transition-all duration-300 text-lg md:text-xl text-black block">
+          <Link to={`/class/${classCode}/assignments`} onClick={() => setMobileMenuOpen(false)} className="nav-btn super-hover uppercase bg-white/10 border border-black/10 rounded-xl py-1.5 px-3 relative transition-all duration-300 text-sm xl:text-base text-black block">
             Assignments
           </Link>
         </li>
@@ -131,7 +134,7 @@ const Navbar = forwardRef((props, navLogoRef) => {
       </div>
       {/* Desktop Nav */}
       <nav className="hidden lg:block">
-        <ul className="flex gap-[2vw] items-center">{navLinks}</ul>
+        <ul className="flex gap-2 xl:gap-3 items-center">{navLinks}</ul>
       </nav>
       {/* Mobile Hamburger */}
       <button
