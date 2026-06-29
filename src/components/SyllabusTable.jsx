@@ -26,30 +26,44 @@ const SyllabusTable = ({ data, isSkills }) => {
               <td className="py-3 px-6 text-right">
                 <div className="inline-flex items-center gap-2">
                   {row.pdf && row.pdf !== '#' ? (
-                    <>
-                      <button
-                        onClick={() => setSelectedSubject(row)}
+                    row.pdf.startsWith('http') && !row.pdf.toLowerCase().endsWith('.pdf') && !row.pdf.includes('drive.google.com') ? (
+                      <a
+                        href={row.pdf}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#9102C0] text-white font-semibold hover:opacity-90 transition cursor-pointer text-xs"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
                         </svg>
-                        {isSkills ? 'View Guide' : 'View Syllabus'}
-                      </button>
-                      <a 
-                        href={row.pdf} 
-                        download
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center p-2 rounded-full border border-gray-200 text-[#342F76] hover:bg-gray-50 transition"
-                        title={isSkills ? 'Download Guide PDF' : 'Download Syllabus PDF'}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
+                        View Site
                       </a>
-                    </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => setSelectedSubject(row)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#9102C0] text-white font-semibold hover:opacity-90 transition cursor-pointer text-xs"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          {isSkills ? 'View Guide' : 'View Syllabus'}
+                        </button>
+                        <a 
+                          href={row.pdf} 
+                          download
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center p-2 rounded-full border border-gray-200 text-[#342F76] hover:bg-gray-50 transition"
+                          title={isSkills ? 'Download Guide PDF' : 'Download Syllabus PDF'}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                          </svg>
+                        </a>
+                      </>
+                    )
                   ) : (
                     <span className="text-gray-400 text-xs font-medium">
                       {isSkills ? 'Guide Not Available' : 'Syllabus Not Available'}

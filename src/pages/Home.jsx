@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import atharvaImg from '../assets/Atharva.jpg';
-import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane, FaTrophy, FaUsers, FaStar, FaRocket, FaArrowRight } from 'react-icons/fa';
+import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane, FaTrophy, FaUsers, FaStar, FaRocket, FaArrowRight, FaGitAlt, FaLinux, FaReact, FaCloud, FaDocker, FaBrain, FaCode, FaLink } from 'react-icons/fa';
 import { supabase } from '../supabaseClient';
 import { gsap } from 'gsap';
 
@@ -258,44 +258,107 @@ const Home = ({ navLogoRef }) => {
           <p className="text-[#9102C0] text-base mb-10 font-baumans italic">Empowering Polytechnic Students, One Click at a Time.</p>
 
           {/* Featured Skills Hub Banner */}
-          <div className="relative bg-gradient-to-br from-white to-[#fcfaff] border border-[#ede9fe] rounded-3xl p-8 md:p-10 shadow-[0_12px_40px_-12px_rgba(145,2,192,0.12)] mb-12 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group">
+          <div className="relative bg-gradient-to-b from-white/95 to-[#fcf8ff]/95 border border-[#9102C0]/10 rounded-[20px] p-8 md:p-10 shadow-[0_20px_60px_rgba(145,2,192,0.08)] mb-12 overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-10 group backdrop-blur-md">
             {/* Soft decorative ambient glow circles */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#9102C0]/5 rounded-full blur-2xl"></div>
             <div className="absolute -bottom-10 -left-10 w-44 h-44 bg-[#342F76]/5 rounded-full blur-3xl"></div>
             
             {/* Left Column: Content */}
-            <div className="relative z-10 text-left flex-1 max-w-xl">
+            <div className="relative z-10 text-left flex-1 max-w-2xl">
               <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wider bg-[#f3e8ff] text-[#9102C0] border border-[#e8d5ff] uppercase mb-4 font-poppins gap-1.5">
                 <FaRocket className="w-3 h-3 text-[#9102C0]" /> Beyond Academic Syllabus
               </span>
-              <h2 className="text-3xl md:text-4xl font-extrabold font-baumans text-[#342F76] mb-3 leading-tight tracking-tight">
-                Tech & Professional <br/>
-                <span className="text-[#9102C0]">Skills Hub</span>
+              <h2 className="text-3xl md:text-5xl font-extrabold font-baumans text-[#342F76] mb-3 leading-tight tracking-tight">
+                Tech Skills Hub
               </h2>
               <p className="text-[#342F76]/70 font-poppins text-sm md:text-base leading-relaxed mb-6">
-                Master industry-essential tools like Git, Linux Command Line, and Web Development. Access cheat sheets, guides, and practical commands contributed by fellow students.
+                Master modern technologies beyond college curriculum. Learn Web Development, Linux, Git, Cloud, Blockchain & AI.
               </p>
-              <div className="flex flex-wrap gap-2.5">
+              
+              {/* Chips */}
+              <div className="flex flex-wrap gap-2.5 mb-6">
                 <span className="bg-[#f0fdfa] border border-[#ccfbf1] rounded-full px-3 py-1 text-xs text-[#0f766e] font-semibold font-poppins flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]"></span> Git & GitHub
+                  <FaGitAlt className="w-3.5 h-3.5 text-[#0d9488]" /> Git
                 </span>
                 <span className="bg-[#eff6ff] border border-[#dbeafe] rounded-full px-3 py-1 text-xs text-[#1d4ed8] font-semibold font-poppins flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#2563eb]"></span> Linux CLI
+                  <FaLinux className="w-3.5 h-3.5 text-[#2563eb]" /> Linux
                 </span>
-                <span className="bg-[#faf5ff] border border-[#f3e8ff] rounded-full px-3 py-1 text-xs text-[#7e22ce] font-semibold font-poppins flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#9333ea]"></span> Web Dev Basics
+                <span className="bg-[#ecfdf5] border border-[#d1fae5] rounded-full px-3 py-1 text-xs text-[#065f46] font-semibold font-poppins flex items-center gap-1.5">
+                  <FaReact className="w-3.5 h-3.5 text-[#059669]" /> React
                 </span>
+                <span className="bg-[#fff7ed] border border-[#ffedd5] rounded-full px-3 py-1 text-xs text-[#c2410c] font-semibold font-poppins flex items-center gap-1.5">
+                  <FaLink className="w-3.5 h-3.5 text-[#ea580c]" /> Blockchain
+                </span>
+                <span className="bg-[#f0f9ff] border border-[#e0f2fe] rounded-full px-3 py-1 text-xs text-[#0369a1] font-semibold font-poppins flex items-center gap-1.5">
+                  <FaCloud className="w-3.5 h-3.5 text-[#0284c7]" /> Cloud
+                </span>
+                <span className="bg-[#f0f4ff] border border-[#e0e7ff] rounded-full px-3 py-1 text-xs text-[#3730a3] font-semibold font-poppins flex items-center gap-1.5">
+                  <FaDocker className="w-3.5 h-3.5 text-[#4f46e5]" /> Docker
+                </span>
+                <span className="bg-[#fdf2f8] border border-[#fce7f3] rounded-full px-3 py-1 text-xs text-[#9d174d] font-semibold font-poppins flex items-center gap-1.5">
+                  <FaBrain className="w-3.5 h-3.5 text-[#db2777]" /> AI
+                </span>
+                <span className="bg-[#faf5ff] border border-[#f3e8ff] rounded-full px-3 py-1 text-xs text-[#581c87] font-semibold font-poppins flex items-center gap-1.5">
+                  <FaCode className="w-3.5 h-3.5 text-[#7e22ce]" /> DSA
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
+                <a 
+                  href="/class/SKILLS" 
+                  className="w-full sm:w-auto text-center px-6 py-3 rounded-xl bg-[#9102C0] text-white font-extrabold text-sm shadow-[0_4px_14px_rgba(145,2,192,0.25)] hover:bg-[#a11bd0] hover:shadow-[0_8px_24px_rgba(145,2,192,0.4)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2 group"
+                >
+                  Enter Skills Hub <FaArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+                </a>
+                <a 
+                  href="https://roadtochain.tech" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto text-center px-6 py-3 rounded-xl bg-white border-2 border-[#9102C0] text-[#9102C0] font-extrabold text-sm hover:bg-[#9102C0] hover:text-white transition duration-200 flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(145,2,192,0.05)] hover:-translate-y-0.5 hover:scale-[1.02] group"
+                >
+                  Road to Chain <FaArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+                </a>
+              </div>
+
+              {/* Featured Creator Project Callout */}
+              <div className="p-5 rounded-[16px] bg-gradient-to-br from-[#f8f6ff]/80 to-[#f3e8ff]/80 border border-[#d8b4fe]/40 shadow-sm flex items-start gap-4 hover:border-[#9102C0]/30 transition-all duration-300">
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-white shadow-sm flex items-center justify-center border border-purple-100">
+                  <img src="https://roadtochain.tech/_next/image?url=%2Flogo.png%3Fv%3D4&w=64&q=75" alt="RoadToChain Logo" className="w-8 h-8 object-contain" />
+                </div>
+                <div className="text-left">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold tracking-wider bg-[#9102C0] text-white uppercase font-poppins">
+                      Featured
+                    </span>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-bold tracking-wider bg-[#f3e8ff] text-[#9102C0] border border-[#e8d5ff] uppercase font-poppins">
+                      By Founder
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-extrabold text-[#342F76] font-baumans">
+                    <a 
+                      href="https://roadtochain.tech" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="hover:text-[#9102C0] transition flex items-center gap-1.5 group/link"
+                    >
+                      Road to Chain: Zero to Hero Web3 <FaArrowRight className="w-3 h-3 text-[#9102C0] transition-transform group-hover/link:translate-x-0.5" />
+                    </a>
+                  </h4>
+                  <p className="text-xs text-[#342F76]/80 mt-1 font-poppins leading-relaxed">
+                    A completely free, highly practical blockchain engineering course built entirely by me. No superficial definitions, just real system deep-dives.
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Right Column: Button */}
-            <div className="relative z-10 shrink-0 w-full md:w-auto flex items-center justify-center">
-              <a 
-                href="/class/SKILLS" 
-                className="w-full md:w-auto text-center px-6 py-3 rounded-xl bg-[#9102C0] text-white font-extrabold text-sm shadow-[0_4px_14px_rgba(145,2,192,0.25)] hover:bg-[#a11bd0] hover:shadow-[0_4px_20px_rgba(145,2,192,0.4)] hover:scale-102 transition duration-200 flex items-center justify-center gap-2"
-              >
-                Enter Skills Hub <FaArrowRight className="w-3.5 h-3.5" />
-              </a>
+            {/* Right Column: 3D Illustration */}
+            <div className="relative z-10 shrink-0 w-full lg:w-[350px] flex items-center justify-center">
+              <img 
+                src="/skills_banner_3d.png" 
+                alt="Tech Skills Illustration" 
+                className="w-72 h-72 md:w-80 md:h-80 lg:w-[350px] lg:h-[350px] object-contain drop-shadow-[0_20px_40px_rgba(145,2,192,0.15)] transform group-hover:scale-105 transition-all duration-500"
+              />
             </div>
           </div>
 
