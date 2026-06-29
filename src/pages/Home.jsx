@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import atharvaImg from '../assets/Atharva.jpg';
-import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane, FaTrophy, FaUsers, FaStar } from 'react-icons/fa';
+import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane, FaTrophy, FaUsers, FaStar, FaRocket, FaArrowRight } from 'react-icons/fa';
 import { supabase } from '../supabaseClient';
 import { gsap } from 'gsap';
 
@@ -258,25 +258,45 @@ const Home = ({ navLogoRef }) => {
           <p className="text-[#9102C0] text-base mb-10 font-baumans italic">Empowering Polytechnic Students, One Click at a Time.</p>
 
           {/* Featured Skills Hub Banner */}
-          <div className="relative bg-gradient-to-r from-[#342F76] via-[#630182] to-[#9102C0] rounded-3xl p-6 md:p-8 shadow-xl border border-white/10 mb-10 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 group">
-            <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-[#E040FB]/20 rounded-full blur-3xl group-hover:scale-110 transition duration-500"></div>
-            <div className="relative z-10 text-left flex-1">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wider bg-white/20 text-purple-200 border border-white/10 uppercase mb-3">
-                New Section
+          <div className="relative bg-gradient-to-br from-white to-[#fcfaff] border border-[#ede9fe] rounded-3xl p-8 md:p-10 shadow-[0_12px_40px_-12px_rgba(145,2,192,0.12)] mb-12 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 group">
+            {/* Soft decorative ambient glow circles */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-[#9102C0]/5 rounded-full blur-2xl"></div>
+            <div className="absolute -bottom-10 -left-10 w-44 h-44 bg-[#342F76]/5 rounded-full blur-3xl"></div>
+            
+            {/* Left Column: Content */}
+            <div className="relative z-10 text-left flex-1 max-w-xl">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wider bg-[#f3e8ff] text-[#9102C0] border border-[#e8d5ff] uppercase mb-4 font-poppins gap-1.5">
+                <FaRocket className="w-3 h-3 text-[#9102C0]" /> Beyond Academic Syllabus
               </span>
-              <h2 className="text-2xl md:text-3xl font-extrabold font-baumans text-white mb-2 leading-tight">
-                Tech & Professional Skills Hub
+              <h2 className="text-3xl md:text-4xl font-extrabold font-baumans text-[#342F76] mb-3 leading-tight tracking-tight">
+                Tech & Professional <br/>
+                <span className="text-[#9102C0]">Skills Hub</span>
               </h2>
-              <p className="text-purple-100 font-poppins text-sm md:text-base max-w-2xl">
-                Master Git & GitHub, Linux command line, Web Development, and Programming languages. Upload and access cheat sheets, guides, and practical notes outside your academic syllabus!
+              <p className="text-[#342F76]/70 font-poppins text-sm md:text-base leading-relaxed mb-6">
+                Master industry-essential tools like Git, Linux Command Line, and Web Development. Access cheat sheets, guides, and practical commands contributed by fellow students.
               </p>
+              <div className="flex flex-wrap gap-2.5">
+                <span className="bg-[#f0fdfa] border border-[#ccfbf1] rounded-full px-3 py-1 text-xs text-[#0f766e] font-semibold font-poppins flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]"></span> Git & GitHub
+                </span>
+                <span className="bg-[#eff6ff] border border-[#dbeafe] rounded-full px-3 py-1 text-xs text-[#1d4ed8] font-semibold font-poppins flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#2563eb]"></span> Linux CLI
+                </span>
+                <span className="bg-[#faf5ff] border border-[#f3e8ff] rounded-full px-3 py-1 text-xs text-[#7e22ce] font-semibold font-poppins flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#9333ea]"></span> Web Dev Basics
+                </span>
+              </div>
             </div>
-            <a 
-              href="/class/SKILLS" 
-              className="relative z-10 shrink-0 px-6 py-3 rounded-full bg-white text-[#9102C0] font-bold text-sm shadow-md hover:scale-105 hover:bg-[#f3e8ff] transition duration-200"
-            >
-              Explore Skills Hub &rarr;
-            </a>
+
+            {/* Right Column: Button */}
+            <div className="relative z-10 shrink-0 w-full md:w-auto flex items-center justify-center">
+              <a 
+                href="/class/SKILLS" 
+                className="w-full md:w-auto text-center px-6 py-3 rounded-xl bg-[#9102C0] text-white font-extrabold text-sm shadow-[0_4px_14px_rgba(145,2,192,0.25)] hover:bg-[#a11bd0] hover:shadow-[0_4px_20px_rgba(145,2,192,0.4)] hover:scale-102 transition duration-200 flex items-center justify-center gap-2"
+              >
+                Enter Skills Hub <FaArrowRight className="w-3.5 h-3.5" />
+              </a>
+            </div>
           </div>
 
           {/* Computer Technology (CM) always visible */}
