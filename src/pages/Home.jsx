@@ -256,6 +256,29 @@ const Home = ({ navLogoRef }) => {
           <h1 className="text-4xl md:text-5xl font-baumans text-[#9102C0] mb-2 pb-5 font-bold">Courses</h1>
           <p className="text-[#342F76] text-lg mb-2 font-poppins">Select your Course and semester for further guidance and study materials for that specific Course and Semester.</p>
           <p className="text-[#9102C0] text-base mb-10 font-baumans italic">Empowering Polytechnic Students, One Click at a Time.</p>
+
+          {/* Featured Skills Hub Banner */}
+          <div className="relative bg-gradient-to-r from-[#342F76] via-[#630182] to-[#9102C0] rounded-3xl p-6 md:p-8 shadow-xl border border-white/10 mb-10 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 group">
+            <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-[#E040FB]/20 rounded-full blur-3xl group-hover:scale-110 transition duration-500"></div>
+            <div className="relative z-10 text-left flex-1">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wider bg-white/20 text-purple-200 border border-white/10 uppercase mb-3">
+                New Section
+              </span>
+              <h2 className="text-2xl md:text-3xl font-extrabold font-baumans text-white mb-2 leading-tight">
+                Tech & Professional Skills Hub
+              </h2>
+              <p className="text-purple-100 font-poppins text-sm md:text-base max-w-2xl">
+                Master Git & GitHub, Linux command line, Web Development, and Programming languages. Upload and access cheat sheets, guides, and practical notes outside your academic syllabus!
+              </p>
+            </div>
+            <a 
+              href="/class/SKILLS" 
+              className="relative z-10 shrink-0 px-6 py-3 rounded-full bg-white text-[#9102C0] font-bold text-sm shadow-md hover:scale-105 hover:bg-[#f3e8ff] transition duration-200"
+            >
+              Explore Skills Hub &rarr;
+            </a>
+          </div>
+
           {/* Computer Technology (CM) always visible */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 mb-8">
             {Array.from({ length: 6 }, (_, i) => ({
