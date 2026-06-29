@@ -259,6 +259,14 @@ const Home = ({ navLogoRef }) => {
 
           {/* Featured Skills Hub Banner */}
           <div className="relative bg-gradient-to-b from-white/95 to-[#fcf8ff]/95 border border-[#9102C0]/10 rounded-[20px] p-8 md:p-10 shadow-[0_20px_60px_rgba(145,2,192,0.08)] mb-12 overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-10 group backdrop-blur-md">
+            {/* Soft decorative background dotted pattern */}
+            <div 
+              className="absolute inset-0 opacity-[0.07] pointer-events-none" 
+              style={{ 
+                backgroundImage: 'radial-gradient(#9102C0 1.2px, transparent 1.2px)', 
+                backgroundSize: '24px 24px' 
+              }}
+            ></div>
             {/* Soft decorative ambient glow circles */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-[#9102C0]/5 rounded-full blur-2xl"></div>
             <div className="absolute -bottom-10 -left-10 w-44 h-44 bg-[#342F76]/5 rounded-full blur-3xl"></div>
@@ -277,29 +285,29 @@ const Home = ({ navLogoRef }) => {
               
               {/* Chips */}
               <div className="flex flex-wrap gap-2.5 mb-6">
-                <span className="bg-[#f0fdfa] border border-[#ccfbf1] rounded-full px-3 py-1 text-xs text-[#0f766e] font-semibold font-poppins flex items-center gap-1.5">
-                  <FaGitAlt className="w-3.5 h-3.5 text-[#0d9488]" /> Git
+                <span className="bg-[#f0fdfa] border border-[#ccfbf1] rounded-full px-3 py-1 text-xs text-[#0f766e] font-semibold font-poppins flex items-center gap-1.5 hover:bg-[#e6fffa] hover:border-[#a7f3d0] hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+                  <FaGitAlt className="w-3.5 h-3.5 text-[#0d9488] transition-transform duration-300 group-hover:scale-110" /> Git
                 </span>
-                <span className="bg-[#eff6ff] border border-[#dbeafe] rounded-full px-3 py-1 text-xs text-[#1d4ed8] font-semibold font-poppins flex items-center gap-1.5">
-                  <FaLinux className="w-3.5 h-3.5 text-[#2563eb]" /> Linux
+                <span className="bg-[#eff6ff] border border-[#dbeafe] rounded-full px-3 py-1 text-xs text-[#1d4ed8] font-semibold font-poppins flex items-center gap-1.5 hover:bg-[#e0f2fe] hover:border-[#bfdbfe] hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+                  <FaLinux className="w-3.5 h-3.5 text-[#2563eb] transition-transform duration-300 group-hover:scale-110" /> Linux
                 </span>
-                <span className="bg-[#ecfdf5] border border-[#d1fae5] rounded-full px-3 py-1 text-xs text-[#065f46] font-semibold font-poppins flex items-center gap-1.5">
-                  <FaReact className="w-3.5 h-3.5 text-[#059669]" /> React
+                <span className="bg-[#ecfdf5] border border-[#d1fae5] rounded-full px-3 py-1 text-xs text-[#065f46] font-semibold font-poppins flex items-center gap-1.5 hover:bg-[#d1fae5] hover:border-[#a7f3d0] hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+                  <FaReact className="w-3.5 h-3.5 text-[#059669] transition-transform duration-300 group-hover:scale-110" /> React
                 </span>
-                <span className="bg-[#fff7ed] border border-[#ffedd5] rounded-full px-3 py-1 text-xs text-[#c2410c] font-semibold font-poppins flex items-center gap-1.5">
-                  <FaLink className="w-3.5 h-3.5 text-[#ea580c]" /> Blockchain
+                <span className="bg-[#fff7ed] border border-[#ffedd5] rounded-full px-3 py-1 text-xs text-[#c2410c] font-semibold font-poppins flex items-center gap-1.5 hover:bg-[#ffedd5] hover:border-[#fed7aa] hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+                  <FaLink className="w-3.5 h-3.5 text-[#ea580c] transition-transform duration-300 group-hover:scale-110" /> Blockchain
                 </span>
-                <span className="bg-[#f0f9ff] border border-[#e0f2fe] rounded-full px-3 py-1 text-xs text-[#0369a1] font-semibold font-poppins flex items-center gap-1.5">
-                  <FaCloud className="w-3.5 h-3.5 text-[#0284c7]" /> Cloud
+                <span className="bg-[#f0f9ff] border border-[#e0f2fe] rounded-full px-3 py-1 text-xs text-[#0369a1] font-semibold font-poppins flex items-center gap-1.5 hover:bg-[#e0f2fe] hover:border-[#bae6fd] hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+                  <FaCloud className="w-3.5 h-3.5 text-[#0284c7] transition-transform duration-300 group-hover:scale-110" /> Cloud
                 </span>
-                <span className="bg-[#f0f4ff] border border-[#e0e7ff] rounded-full px-3 py-1 text-xs text-[#3730a3] font-semibold font-poppins flex items-center gap-1.5">
-                  <FaDocker className="w-3.5 h-3.5 text-[#4f46e5]" /> Docker
+                <span className="bg-[#f0f4ff] border border-[#e0e7ff] rounded-full px-3 py-1 text-xs text-[#3730a3] font-semibold font-poppins flex items-center gap-1.5 hover:bg-[#e0e7ff] hover:border-[#c7d2fe] hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+                  <FaDocker className="w-3.5 h-3.5 text-[#4f46e5] transition-transform duration-300 group-hover:scale-110" /> Docker
                 </span>
-                <span className="bg-[#fdf2f8] border border-[#fce7f3] rounded-full px-3 py-1 text-xs text-[#9d174d] font-semibold font-poppins flex items-center gap-1.5">
-                  <FaBrain className="w-3.5 h-3.5 text-[#db2777]" /> AI
+                <span className="bg-[#fdf2f8] border border-[#fce7f3] rounded-full px-3 py-1 text-xs text-[#9d174d] font-semibold font-poppins flex items-center gap-1.5 hover:bg-[#fce7f3] hover:border-[#fbcfe8] hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+                  <FaBrain className="w-3.5 h-3.5 text-[#db2777] transition-transform duration-300 group-hover:scale-110" /> AI
                 </span>
-                <span className="bg-[#faf5ff] border border-[#f3e8ff] rounded-full px-3 py-1 text-xs text-[#581c87] font-semibold font-poppins flex items-center gap-1.5">
-                  <FaCode className="w-3.5 h-3.5 text-[#7e22ce]" /> DSA
+                <span className="bg-[#faf5ff] border border-[#f3e8ff] rounded-full px-3 py-1 text-xs text-[#581c87] font-semibold font-poppins flex items-center gap-1.5 hover:bg-[#f3e8ff] hover:border-[#e9d5ff] hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer">
+                  <FaCode className="w-3.5 h-3.5 text-[#7e22ce] transition-transform duration-300 group-hover:scale-110" /> DSA
                 </span>
               </div>
 
@@ -307,7 +315,7 @@ const Home = ({ navLogoRef }) => {
               <div className="flex flex-col sm:flex-row items-center gap-3 mb-6">
                 <a 
                   href="/class/SKILLS" 
-                  className="w-full sm:w-auto text-center px-6 py-3 rounded-xl bg-[#9102C0] text-white font-extrabold text-sm shadow-[0_4px_14px_rgba(145,2,192,0.25)] hover:bg-[#a11bd0] hover:shadow-[0_8px_24px_rgba(145,2,192,0.4)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2 group"
+                  className="w-full sm:w-auto text-center px-6 py-3 rounded-xl bg-[#9102C0] text-white font-extrabold text-sm shadow-[0_4px_14px_rgba(145,2,192,0.25)] hover:bg-[#a11bd0] hover:shadow-[0_8px_24px_rgba(145,2,192,0.4)] hover:-translate-y-0.5 hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2 group animate-glow-pulse"
                 >
                   Enter Skills Hub <FaArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                 </a>
@@ -322,7 +330,7 @@ const Home = ({ navLogoRef }) => {
               </div>
 
               {/* Featured Creator Project Callout */}
-              <div className="p-5 rounded-[16px] bg-gradient-to-br from-[#f8f6ff]/80 to-[#f3e8ff]/80 border border-[#d8b4fe]/40 shadow-sm flex items-start gap-4 hover:border-[#9102C0]/30 transition-all duration-300">
+              <div className="p-5 rounded-[16px] bg-gradient-to-br from-[#fbfaff] via-[#f7f3ff] to-[#f1eaff] border border-[#d8b4fe]/40 shadow-[0_8px_30px_rgba(145,2,192,0.06)] flex items-start gap-4 hover:border-[#9102C0]/40 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(145,2,192,0.12)] transition-all duration-300">
                 <div className="flex-shrink-0 w-10 h-10 rounded-xl overflow-hidden bg-white shadow-sm flex items-center justify-center border border-purple-100">
                   <img src="https://roadtochain.tech/_next/image?url=%2Flogo.png%3Fv%3D4&w=64&q=75" alt="RoadToChain Logo" className="w-8 h-8 object-contain" />
                 </div>
