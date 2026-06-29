@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PdfViewerModal from './PdfViewerModal';
 
-const SyllabusTable = ({ data }) => {
+const SyllabusTable = ({ data, isSkills }) => {
   const [selectedSubject, setSelectedSubject] = useState(null);
 
   return (
@@ -12,7 +12,7 @@ const SyllabusTable = ({ data }) => {
             <th className="py-4 px-6 font-bold text-base rounded-tl-2xl">Sr.No</th>
             <th className="py-4 px-6 font-bold text-base">Subject Name</th>
             <th className="py-4 px-6 font-bold text-base">Subject Code</th>
-            <th className="py-4 px-6 font-bold text-base">Total Marks</th>
+            {!isSkills && <th className="py-4 px-6 font-bold text-base">Total Marks</th>}
             <th className="py-4 px-6 font-bold text-base rounded-tr-2xl text-right">Actions</th>
           </tr>
         </thead>
@@ -22,7 +22,7 @@ const SyllabusTable = ({ data }) => {
               <td className="py-3 px-6 font-semibold text-[#342F76]">{row.sr}</td>
               <td className="py-3 px-6 font-semibold text-[#342F76]">{row.name}</td>
               <td className="py-3 px-6 text-[#9102C0] font-bold">{row.code}</td>
-              <td className="py-3 px-6 text-[#342F76]">{row.marks || '—'}</td>
+              {!isSkills && <td className="py-3 px-6 text-[#342F76]">{row.marks || '—'}</td>}
               <td className="py-3 px-6 text-right">
                 <div className="inline-flex items-center gap-2">
                   {row.pdf && row.pdf !== '#' ? (
@@ -35,7 +35,7 @@ const SyllabusTable = ({ data }) => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
-                        View Syllabus
+                        {isSkills ? 'View Guide' : 'View Syllabus'}
                       </button>
                       <a 
                         href={row.pdf} 
@@ -43,7 +43,7 @@ const SyllabusTable = ({ data }) => {
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center p-2 rounded-full border border-gray-200 text-[#342F76] hover:bg-gray-50 transition"
-                        title="Download Syllabus PDF"
+                        title={isSkills ? 'Download Guide PDF' : 'Download Syllabus PDF'}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -51,7 +51,9 @@ const SyllabusTable = ({ data }) => {
                       </a>
                     </>
                   ) : (
-                    <span className="text-gray-400 text-xs font-medium">Syllabus Not Available</span>
+                    <span className="text-gray-400 text-xs font-medium">
+                      {isSkills ? 'Guide Not Available' : 'Syllabus Not Available'}
+                    </span>
                   )}
                 </div>
               </td>
