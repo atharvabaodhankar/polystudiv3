@@ -9,6 +9,7 @@ const MaterialRequest = () => {
   const [title, setTitle] = useState('');
   const [selectedClass, setSelectedClass] = useState(classCode || '');
   const [selectedSubject, setSelectedSubject] = useState('');
+  const [customSubjectName, setCustomSubjectName] = useState('');
   const [file, setFile] = useState(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -47,8 +48,8 @@ const MaterialRequest = () => {
     setLoading(true);
     setError('');
     setSuccess('');
-    setUploadProgress(0);
-    if (!title || !selectedClass || !selectedSubject || !name || !email || !file) {
+    const isCustom = selectedSubject === 'OTHER';
+    if (!title || !selectedClass || !selectedSubject || (isCustom && !customSubjectName) || !name || !email || !file) {
       setError('Please fill in all required fields and select a file.');
       setLoading(false);
       return;
@@ -70,7 +71,7 @@ const MaterialRequest = () => {
       formData.append('title', title);
       formData.append('class_code', selectedClass);
       formData.append('type', type);
-      formData.append('subject_code', selectedSubject);
+      formData.append('subject_code', isCustom ? `CUST:${customSubjectName}` : selectedSubject);
       formData.append('uploader', name);
       formData.append('creator', email);
 
@@ -153,12 +154,28 @@ const MaterialRequest = () => {
             ))}
           </select>
           <label className="font-semibold">Subject*</label>
-          <select value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required disabled={!selectedClass}>
+          <select value={selectedSubject} onChange={e => { setSelectedSubject(e.target.value); setCustomSubjectName(''); }} className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition" required disabled={!selectedClass}>
             <option value="">{selectedClass ? 'Select Subject' : 'Select Class First'}</option>
             {filteredSubjects.map(s => (
               <option key={s.subject_code} value={s.subject_code}>{s.subject_name} ({s.subject_code})</option>
             ))}
+            {selectedClass && (
+              <option value="OTHER">Other (Custom / Uncategorized Subject)</option>
+            )}
           </select>
+          {selectedSubject === 'OTHER' && (
+            <div className="flex flex-col gap-2 mt-1 animate-fadeIn">
+              <label className="font-semibold text-sm text-[#342F76]">Custom Subject Name*</label>
+              <input
+                type="text"
+                value={customSubjectName}
+                onChange={e => setCustomSubjectName(e.target.value)}
+                placeholder="e.g., Git & GitHub, Linux Command Line"
+                className="border rounded-xl px-4 py-3 bg-[#f8f6ff] focus:ring-2 focus:ring-[#9102C0] outline-none transition"
+                required
+              />
+            </div>
+          )}
           <label className="font-semibold">File*</label>
           <div className="relative flex items-center gap-3">
             <input

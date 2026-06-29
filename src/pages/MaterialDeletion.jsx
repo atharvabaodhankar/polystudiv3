@@ -52,18 +52,28 @@ const MaterialDeletion = () => {
 
   // Fetch all available sections for this department
   useEffect(() => {
-    if (!userRole || !userBranch) return;
+    if (!userRole) return;
     if (userRole !== 'admin' && userRole !== 'superadmin') return;
     const fetchSections = async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from('materials')
-        .select('class_code')
-        .like('class_code', `${userBranch}%`);
-      const uniqueSections = Array.from(new Set((data || []).map(m => m.class_code))).sort();
-      setSections(uniqueSections);
-      if (uniqueSections.length > 0 && !selectedSection) {
-        setSelectedSection(uniqueSections[0]);
+      
+      let query = supabase.from('classes').select('code');
+      if (userRole === 'admin' && userBranch) {
+        query = query.like('code', `${userBranch}%`);
+      }
+      
+      const { data } = await query;
+      let sectionCodes = (data || []).map(c => c.code);
+      
+      // Always include 'SKILLS' so admins/superadmins can manage general resources
+      if (!sectionCodes.includes('SKILLS')) {
+        sectionCodes.push('SKILLS');
+      }
+      
+      sectionCodes.sort();
+      setSections(sectionCodes);
+      if (sectionCodes.length > 0 && !selectedSection) {
+        setSelectedSection(sectionCodes[0]);
       }
       setLoading(false);
     };
