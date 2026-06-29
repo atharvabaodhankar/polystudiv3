@@ -450,10 +450,53 @@ app.post('/api/review-material-request', express.json(), async (req, res) => {
     const siteUrl = req.headers.origin || 'https://polystudi.com';
 
     if (action === 'approve') {
+      let finalSubjectCode = requestData.subject_code;
+
+      // Handle custom subject name creation
+      if (finalSubjectCode && finalSubjectCode.startsWith('CUST:')) {
+        const customSubjectName = finalSubjectCode.replace('CUST:', '').trim();
+        // Generate a clean subject code (e.g. CUST_GIT_1234)
+        const cleanName = customSubjectName.toUpperCase().replace(/[^A-Z0-9]/g, '_').slice(0, 10);
+        const randomNum = Math.floor(1000 + Math.random() * 9000);
+        const generatedCode = `CUST_${cleanName}_${randomNum}`;
+
+        // Check if a subject with this name already exists for this class
+        const { data: existingSubj } = await supabaseAdmin
+          .from('subjects')
+          .select('subject_code')
+          .eq('class_code', requestData.class_code)
+          .eq('subject_name', customSubjectName)
+          .maybeSingle();
+
+        if (existingSubj) {
+          finalSubjectCode = existingSubj.subject_code;
+        } else {
+          // Create the new subject so it becomes visible on the site
+          const { data: newSubj, error: subjErr } = await supabaseAdmin
+            .from('subjects')
+            .insert([{
+              class_code: requestData.class_code,
+              subject_code: generatedCode,
+              subject_name: customSubjectName,
+              total_marks: null,
+              syllabus_pdf: null
+            }])
+            .select()
+            .single();
+
+          if (subjErr) {
+            console.error('Error auto-creating subject:', subjErr);
+            finalSubjectCode = generatedCode;
+          } else {
+            finalSubjectCode = newSubj.subject_code;
+          }
+        }
+      }
+
       // 2. Insert into materials
       const { error: insertError } = await supabaseAdmin.from('materials').insert([{
         class_code: requestData.class_code,
-        subject_code: requestData.subject_code,
+        subject_code: finalSubjectCode,
         type: requestData.type,
         title: requestData.title,
         file_url: requestData.file_url,

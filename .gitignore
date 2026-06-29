@@ -19,6 +19,7 @@ gdrive-converter
 .claude
 .supabase
 skills-lock.json
+scratch
 
 # Editor directories and files
 .vscode/*
