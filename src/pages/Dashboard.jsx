@@ -1428,7 +1428,16 @@ const Dashboard = () => {
                         <div className="text-xs text-gray-400">{req.email}</div>
                       </td>
                       <td className="py-3.5 px-4 text-gray-500 font-semibold">{req.class_code}</td>
-                      <td className="py-3.5 px-4 text-gray-500">{req.subject_code}</td>
+                      <td className="py-3.5 px-4 text-gray-500">
+                        {req.subject_code && req.subject_code.startsWith('CUST:') ? (
+                          <span className="flex flex-col">
+                            <span className="font-semibold text-purple-700">{req.subject_code.replace('CUST:', '')}</span>
+                            <span className="text-[9px] bg-purple-50 text-purple-600 border border-purple-100 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider w-fit mt-0.5">Custom Subject</span>
+                          </span>
+                        ) : (
+                          req.subject_code
+                        )}
+                      </td>
                       <td className="py-3.5 px-4">
                         <a 
                           href={req.file_url} 
