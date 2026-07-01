@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import atharvaImg from '../assets/Atharva.jpg';
-import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane, FaTrophy, FaUsers, FaStar, FaRocket, FaArrowRight, FaGitAlt, FaLinux, FaReact, FaCloud, FaDocker, FaBrain, FaCode, FaLink } from 'react-icons/fa';
+import { FaGithub, FaInstagram, FaEnvelope, FaPaperPlane, FaTrophy, FaUsers, FaStar, FaRocket, FaArrowRight, FaGitAlt, FaLinux, FaReact, FaCloud, FaDocker, FaBrain, FaCode, FaLink, FaTimes, FaSearch } from 'react-icons/fa';
 import { supabase } from '../supabaseClient';
 import { gsap } from 'gsap';
 
@@ -46,10 +46,90 @@ const Home = ({ navLogoRef }) => {
   const [topContributors, setTopContributors] = useState([]);
   const [totalContributions, setTotalContributions] = useState(0);
   const [showAllContributors, setShowAllContributors] = useState(false);
+  const [selectedContributor, setSelectedContributor] = useState(null);
+  const [contributorProfile, setContributorProfile] = useState(null);
+  const [contributorMaterials, setContributorMaterials] = useState([]);
+  const [contributorLoading, setContributorLoading] = useState(false);
+  const [contributorSearchQuery, setContributorSearchQuery] = useState('');
   const preloaderRef = useRef();
   const logoRef = useRef();
   const ringRef = useRef();
   const textRef = useRef();
+
+  const handleContributorClick = async (name) => {
+    setSelectedContributor(name);
+    setContributorLoading(true);
+    setContributorSearchQuery('');
+    setContributorProfile(null);
+    setContributorMaterials([]);
+
+    const runClientFallback = async () => {
+      try {
+        const { data: userProfile } = await supabase
+          .from('users')
+          .select('full_name, branch, year, role, created_at')
+          .ilike('full_name', name.trim())
+          .maybeSingle();
+
+        const { data: userMaterials } = await supabase
+          .from('materials')
+          .select('title, class_code, subject_code, type, file_url, created_at')
+          .eq('uploader', name)
+          .order('created_at', { ascending: false });
+
+        setContributorProfile(userProfile || {
+          full_name: name,
+          branch: 'Not Specified',
+          year: 'Not Specified',
+          role: 'Contributor',
+          created_at: null
+        });
+        setContributorMaterials(userMaterials || []);
+      } catch (err) {
+        console.error('[Contributor Fallback] Error:', err);
+      } finally {
+        setContributorLoading(false);
+      }
+    };
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+      const res = await fetch(`${API_URL}/api/contributor/${encodeURIComponent(name)}`, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) throw new Error('API failed');
+      const payload = await res.json();
+
+      if (payload && payload.success && payload.data) {
+        setContributorProfile(payload.data.profile);
+        setContributorMaterials(payload.data.materials);
+      } else {
+        await runClientFallback();
+      }
+    } catch (error) {
+      console.warn('API call failed. Falling back to Supabase client.', error);
+      await runClientFallback();
+    } finally {
+      setContributorLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setSelectedContributor(null);
+      }
+    };
+    if (selectedContributor) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedContributor]);
 
   useEffect(() => {
     if (preloaderVisible) {
@@ -467,7 +547,8 @@ const Home = ({ navLogoRef }) => {
                   return (
                     <div 
                       key={c.name} 
-                      className="bg-[#fcfaff] border border-[#ede9fe] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md transition duration-200 group"
+                      className="bg-[#fcfaff] border border-[#ede9fe] rounded-2xl p-5 flex items-center justify-between shadow-sm hover:shadow-md hover:border-[#9102C0]/30 transition duration-200 group cursor-pointer"
+                      onClick={() => handleContributorClick(c.name)}
                     >
                       <div className="flex items-center gap-4">
                         <div className="relative">
@@ -576,6 +657,168 @@ const Home = ({ navLogoRef }) => {
           </div>
         </div>
       </section>
+
+      {/* Contributor Profile & Uploads Modal */}
+      {selectedContributor && (
+        <div 
+          className="fixed inset-0 bg-[#342F76]/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 transition-opacity duration-300"
+          onClick={() => setSelectedContributor(null)}
+        >
+          <div 
+            className="bg-white border border-[#ede9fe] rounded-3xl shadow-[0_20px_50px_rgba(52,47,118,0.12)] w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden transform transition-all duration-300 scale-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="p-6 border-b border-[#ede9fe] flex justify-between items-center bg-gradient-to-r from-white to-[#faf9ff]">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-[#f3e8ff] border border-[#e8d5ff] flex items-center justify-center font-baumans font-bold text-xl text-[#9102C0]">
+                  {selectedContributor.charAt(0).toUpperCase()}
+                </div>
+                <div className="text-left">
+                  <h3 className="text-xl font-bold text-[#342F76] font-poppins">{selectedContributor}</h3>
+                  <p className="text-xs text-gray-400 font-poppins font-medium">Contributor Profile</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedContributor(null)}
+                className="w-10 h-10 rounded-full border border-gray-100 bg-white shadow-sm flex items-center justify-center text-gray-400 hover:text-[#9102C0] hover:border-[#9102C0]/20 hover:bg-[#fbfaff] transition duration-200"
+              >
+                <FaTimes className="text-base" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+              {contributorLoading ? (
+                <div className="flex-1 flex flex-col items-center justify-center py-16 gap-3">
+                  <div className="w-10 h-10 border-4 border-[#9102C0]/10 border-t-[#9102C0] rounded-full animate-spin"></div>
+                  <p className="text-sm text-gray-400 font-medium font-poppins">Loading contributor history...</p>
+                </div>
+              ) : (
+                <>
+                  {/* Profile Metadata Spec Sheet */}
+                  <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl bg-[#faf9ff] border border-[#ede9fe] text-left">
+                    <div>
+                      <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider font-poppins">Department & Branch</span>
+                      <span className="text-sm font-semibold text-[#342F76] font-poppins break-words">
+                        {contributorProfile?.branch || 'Not Specified'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider font-poppins">Academic Year</span>
+                      <span className="text-sm font-semibold text-[#342F76] font-poppins">
+                        {contributorProfile?.year || 'Not Specified'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider font-poppins">Platform Role</span>
+                      <span className="text-sm font-semibold text-[#342F76] font-poppins capitalize">
+                        {contributorProfile?.role || 'Contributor'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] text-gray-400 font-bold uppercase tracking-wider font-poppins">Scholar Rank</span>
+                      <span className="text-sm font-semibold text-[#9102C0] font-poppins">
+                        {contributorMaterials.length >= 15 ? 'Master Scholar' : 
+                         contributorMaterials.length >= 10 ? 'Gold Scholar' : 
+                         contributorMaterials.length >= 5 ? 'Silver Scholar' : 
+                         contributorMaterials.length >= 3 ? 'Bronze Scholar' : 'Contributor'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Contributions Section */}
+                  <div className="flex-1 flex flex-col gap-4 min-h-[300px]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <h4 className="font-baumans font-bold text-lg text-[#342F76] text-left">
+                        Shared Materials ({contributorMaterials.length} files)
+                      </h4>
+                      {/* Search Bar */}
+                      <div className="relative flex-1 max-w-xs">
+                        <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                          <FaSearch className="w-3.5 h-3.5" />
+                        </span>
+                        <input
+                          type="text"
+                          placeholder="Search files..."
+                          value={contributorSearchQuery}
+                          onChange={(e) => setContributorSearchQuery(e.target.value)}
+                          className="w-full pl-9 pr-4 py-1.5 text-xs font-poppins bg-white border border-[#ede9fe] rounded-xl text-[#342F76] focus:outline-none focus:border-[#9102C0] focus:ring-1 focus:ring-[#9102C0]/20 transition"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Files List Table */}
+                    <div className="flex-1 border border-[#ede9fe] rounded-2xl overflow-hidden bg-white flex flex-col">
+                      {contributorMaterials.filter(m => 
+                        m.title.toLowerCase().includes(contributorSearchQuery.toLowerCase()) ||
+                        (m.subject_code && m.subject_code.toLowerCase().includes(contributorSearchQuery.toLowerCase())) ||
+                        (m.class_code && m.class_code.toLowerCase().includes(contributorSearchQuery.toLowerCase()))
+                      ).length === 0 ? (
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-gray-400 font-medium font-poppins text-sm gap-2">
+                          <p>No materials matching search criteria.</p>
+                          <p className="text-xs text-gray-300">Try a different keyword or category.</p>
+                        </div>
+                      ) : (
+                        <div className="overflow-y-auto max-h-[320px]">
+                          <table className="w-full text-left border-collapse">
+                            <thead>
+                              <tr className="bg-[#fcfaff] border-b border-[#ede9fe] text-[10px] font-bold uppercase tracking-wider text-gray-400 font-poppins">
+                                <th className="py-3 px-4">File Info</th>
+                                <th className="py-3 px-4">Class</th>
+                                <th className="py-3 px-4">Type</th>
+                                <th className="py-3 px-4 text-right">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {contributorMaterials.filter(m => 
+                                m.title.toLowerCase().includes(contributorSearchQuery.toLowerCase()) ||
+                                (m.subject_code && m.subject_code.toLowerCase().includes(contributorSearchQuery.toLowerCase())) ||
+                                (m.class_code && m.class_code.toLowerCase().includes(contributorSearchQuery.toLowerCase()))
+                              ).map((m) => (
+                                <tr key={m.file_url + m.title} className="border-b border-[#ede9fe] hover:bg-[#faf9ff] transition duration-150">
+                                  <td className="py-3 px-4 font-poppins text-xs font-semibold text-[#342F76] text-left">
+                                    <div className="max-w-[220px] truncate" title={m.title}>
+                                      {m.title}
+                                    </div>
+                                  </td>
+                                  <td className="py-3 px-4 font-poppins text-xs text-gray-400 uppercase text-left">
+                                    {m.class_code}
+                                  </td>
+                                  <td className="py-3 px-4 font-poppins text-[10px] text-left">
+                                    <span className="px-2 py-0.5 rounded font-bold bg-[#f3e8ff] text-[#9102C0] uppercase">
+                                      {m.type}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 px-4 text-right">
+                                    <a
+                                      href={m.file_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center text-xs font-bold text-[#9102C0] hover:text-[#342F76] transition-colors font-poppins"
+                                    >
+                                      View File
+                                    </a>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-[#fcfaff] border-t border-[#ede9fe] text-center text-[10px] font-medium text-gray-400 font-poppins">
+              Reward tiers: 3 files = Bronze | 5 files = Silver | 10 files = Gold | 15 files = Master Scholar.
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

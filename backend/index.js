@@ -1136,6 +1136,50 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
+app.get('/api/contributor/:name', async (req, res) => {
+  const { name } = req.params;
+  if (!name) {
+    return res.status(400).json({ error: 'Uploader name parameter is required.' });
+  }
+
+  const trimmedName = name.trim();
+
+  try {
+    const { data: userProfile, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('full_name, branch, year, role, created_at')
+      .ilike('full_name', trimmedName)
+      .maybeSingle();
+
+    if (userError) throw userError;
+
+    const { data: materials, error: materialsError } = await supabaseAdmin
+      .from('materials')
+      .select('title, class_code, subject_code, type, file_url, created_at')
+      .eq('uploader', trimmedName)
+      .order('created_at', { ascending: false });
+
+    if (materialsError) throw materialsError;
+
+    return res.json({
+      success: true,
+      data: {
+        profile: userProfile || {
+          full_name: trimmedName,
+          branch: 'Not Specified',
+          year: 'Not Specified',
+          role: 'Contributor',
+          created_at: null
+        },
+        materials: materials || []
+      }
+    });
+  } catch (err) {
+    console.error(`[Contributor Info] Error fetching data for ${trimmedName}:`, err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post('/api/invalidate-leaderboard', express.json(), async (req, res) => {
   const { classCode, logDeletion, userId, materialTitle, uploader } = req.body;
   try {
