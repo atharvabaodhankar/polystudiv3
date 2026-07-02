@@ -19,6 +19,28 @@ const Dashboard = () => {
   const [userBranch, setUserBranch] = useState(null);
   const [reviewers, setReviewers] = useState({});
   const [reviews, setReviews] = useState([]);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  const handleToggleNotifications = async () => {
+    const nextVal = !notificationsEnabled;
+    setNotificationsEnabled(nextVal);
+    
+    try {
+      const API_URL = import.meta.env.VITE_API_URL;
+      const res = await fetch(`${API_URL}/api/update-notifications`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, enabled: nextVal })
+      });
+      if (!res.ok) {
+        const resData = await res.json().catch(() => ({}));
+        throw new Error(resData.error || 'Failed to update preferences.');
+      }
+    } catch (err) {
+      alert('Error: ' + err.message);
+      setNotificationsEnabled(!nextVal);
+    }
+  };
 
   // Active SaaS View & Mobile Sidebar toggles
   const [activeView, setActiveView] = useState('overview');
@@ -311,7 +333,7 @@ const Dashboard = () => {
         setUserEmail(user.email);
         const { data: userRow } = await supabase
           .from('users')
-          .select('full_name, role, branch, suspended')
+          .select('full_name, role, branch, suspended, notifications_enabled')
           .eq('email', user.email)
           .maybeSingle();
 
@@ -360,6 +382,7 @@ const Dashboard = () => {
             setUserFullName(userRow.full_name || 'Admin');
             setUserRole(userRow.role);
             setUserBranch(userRow.branch);
+            setNotificationsEnabled(userRow.notifications_enabled || false);
 
             // Check if suspended
             if (userRow.suspended) {
@@ -1614,6 +1637,22 @@ const Dashboard = () => {
             {userRole !== 'superadmin' && (
               <span className="px-2 py-0.5 rounded bg-blue-500/20 text-[#8ec8ff] text-[10px] font-bold uppercase tracking-wider border border-blue-500/30">{userBranch}</span>
             )}
+          </div>
+          <div className="mt-4 pt-3 border-t border-[#342F76]/40 flex items-center justify-between text-xs font-poppins">
+            <span className="text-purple-200/70 font-semibold uppercase tracking-wider">Email Alerts</span>
+            <button
+              type="button"
+              onClick={handleToggleNotifications}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                notificationsEnabled ? 'bg-[#9102C0]' : 'bg-[#342F76]'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  notificationsEnabled ? 'translate-x-4' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
         </div>
 

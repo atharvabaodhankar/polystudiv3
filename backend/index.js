@@ -360,11 +360,12 @@ app.post('/api/submit-material-request', rateLimiter, upload.single('file'), asy
         const siteUrl = req.headers.origin || 'https://polystudi.com';
         const dashboardUrl = `${siteUrl}/dashboard`;
 
-        // Fetch admins and superadmins dynamically
+        // Fetch admins and superadmins dynamically who have notifications enabled
         const { data: admins } = await supabaseAdmin
           .from('users')
-          .select('email, role, branch')
-          .in('role', ['admin', 'superadmin']);
+          .select('email, role, branch, notifications_enabled')
+          .in('role', ['admin', 'superadmin'])
+          .eq('notifications_enabled', true);
 
         const branchCode = class_code.match(/^[A-Za-z]+/)?.[0] || '';
         const recipientEmails = (admins || [])
@@ -1270,6 +1271,22 @@ app.post('/api/update-last-login', express.json(), async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Error updating last login:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/update-notifications', express.json(), async (req, res) => {
+  const { userId, enabled } = req.body;
+  if (!userId) return res.status(400).json({ error: 'Missing user ID.' });
+  try {
+    const { error } = await supabaseAdmin
+      .from('users')
+      .update({ notifications_enabled: !!enabled })
+      .eq('id', userId);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error updating notification preferences:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
